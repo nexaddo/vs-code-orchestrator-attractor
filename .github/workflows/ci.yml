@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  validate:
+  fast-checks:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,14 +27,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm lint
-
-      - name: Format check
-        run: pnpm format:check
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Test
-        run: pnpm test
+      - name: Run fast checks
+        run: pnpm ci:fast-checks
