@@ -57,6 +57,18 @@ Known issues to address next:
 - keep docs and implemented contracts synchronized as lanes start
 - add the first drift review artifact after lane kickoff
 
+### M1.1 - Parallel Lane Kickoff
+
+Active worktrees:
+
+- `C:\_git\wt-m0-test-ci` -> `chore/m0-test-ci-hardening`
+- `C:\_git\wt-m1-shared-contracts` -> `feat/m1-shared-contracts-core`
+
+First commit-sized slices:
+
+- lane 2: add a `ci:fast-checks` source-of-truth script plus a workflow drift meta test
+- lane 1: add `PlanRepositoryRef` and `PlanRecord` shared contract schemas plus fixtures/tests
+
 ## Next Up
 
 ### Lane 1 - Shared Contracts Core
