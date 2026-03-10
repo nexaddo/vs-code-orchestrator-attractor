@@ -11,10 +11,14 @@ const readJson = <T>(filePath: string): T => {
   return JSON.parse(readFileSync(filePath, "utf8")) as T;
 };
 
+// Resolve root from test file location (test/meta/workflow-drift.test.ts)
+// Go up 2 levels to reach the repository root
+const ROOT = path.resolve(__dirname, "../..");
+
 describe("ci:fast-checks baseline", () => {
   it("defines the root ci:fast-checks script", () => {
     const packageJson = readJson<PackageJson>(
-      path.resolve(process.cwd(), "package.json")
+      path.resolve(ROOT, "package.json")
     );
 
     expect(packageJson.scripts?.["ci:fast-checks"]).toBe(
@@ -24,7 +28,7 @@ describe("ci:fast-checks baseline", () => {
 
   it("keeps the workflow job aligned with the root script", () => {
     const workflow = readFileSync(
-      path.resolve(process.cwd(), ".github/workflows/ci.yml"),
+      path.resolve(ROOT, ".github/workflows/ci.yml"),
       "utf8"
     );
 
