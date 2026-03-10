@@ -1,7 +1,7 @@
 ---
 description: High-signal code review agent for maintainability, correctness, and regression risk
 mode: subagent
-model: anthropic/claude-sonnet-4-6
+model: github-copilot/gemini-2.5-pro
 temperature: 0.1
 tools:
   write: false

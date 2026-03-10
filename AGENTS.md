@@ -18,12 +18,12 @@
 
 - Orchestration and planning: GPT-5.4 via GitHub Copilot
 - Focused implementation loops: Claude Haiku 4.5 via Anthropic
-- Code review loops: Claude Sonnet 4.6
+- Code review loops: Gemini 2.5 Pro via GitHub Copilot (primary), GPT-5.4 fallback
 - Default portable project setup in this repo:
   - `@ttd-orchestrator` -> GPT-5.4 via GitHub Copilot
   - `@ttd-planner` -> GPT-5.4 via GitHub Copilot
   - `@ttd-implementer` -> Claude Haiku 4.5 via Anthropic
-  - `@code-reviewer` -> Claude Sonnet 4.6 via Anthropic
+  - `@code-reviewer` -> Gemini 2.5 Pro via GitHub Copilot
   - `@code-reviewer-secondary` -> GPT-5.4 via GitHub Copilot
   - `@plan-drift-reviewer` -> Claude Sonnet 4.6 via Anthropic
 
@@ -34,3 +34,4 @@
 - Keep prompts lean and use structured handoffs instead of full transcripts.
 - Run a drift check before declaring a loop complete or branching to the next lane.
 - Update `docs/architecture/model-routing.md` and `opencode.json` when model routing changes materially.
+- If `@code-reviewer` returns empty or no substantive feedback, immediately rerun review with `@code-reviewer-secondary` and `@ttd-planner` as fallback reviewers.
