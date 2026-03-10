@@ -23,6 +23,7 @@ Use a faster implementation model for small, focused red-green-refactor iteratio
 
 - `code-reviewer`: `anthropic/claude-sonnet-4-6`
 - `code-reviewer-secondary`: `github-copilot/gpt-5.4`
+- `plan-drift-reviewer`: `anthropic/claude-sonnet-4-6`
 
 Use a higher-quality model for code review, design risk checks, and merge-readiness passes.
 
@@ -31,6 +32,7 @@ Use a higher-quality model for code review, design risk checks, and merge-readin
 - `github-copilot/gpt-5.4` is the preferred orchestration and planning model for this project.
 - `anthropic/claude-haiku-4-5` is the preferred implementation model for tight TTD loops.
 - Sonnet 4.6 remains the primary review model.
+- Sonnet 4.6 also powers the dedicated drift-review pass at the end of each loop.
 - GPT-5.4 provides a secondary independent review opinion when a second pass is useful.
 - If a configured provider uses a slightly different Sonnet 4.6 model ID, keep the routing intent the same and update this file to match the provider-specific identifier.
 

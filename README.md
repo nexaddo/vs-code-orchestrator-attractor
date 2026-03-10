@@ -4,7 +4,8 @@ Repository planning workspace for a VS Code extension that implements Attractor-
 
 ## Current Focus
 
-- Define the repository scaffold, delivery pipeline, and testing strategy
+- M0 scaffold is complete and committed on `main`
+- M1 prep is in progress: parallel lane definition, drift control, and first contract/runtime/webview slices
 - Define the backend architecture, contracts, and persistence model
 - Define the v1 repository-first dashboard and first mockups
 - Keep v1 scoped to one writable repository per plan, with additional read-only context repositories
@@ -30,7 +31,7 @@ Repository planning workspace for a VS Code extension that implements Attractor-
 
 ## Near-Term Next Steps
 
-1. Scaffold the workspace and package manifests
-2. Implement shared contracts and schema tests first
-3. Build the first vertical slice: repo -> plan -> run -> timeline -> graph
-4. Add the `@attractor` Copilot participant and role-specific prompt packets
+1. Start the first parallel lanes with worktrees and feature branches
+2. Tighten shared contracts for plans, runs, milestones, and events
+3. Build the first runtime spine and webview shell slices in parallel
+4. Add a drift-review pass at the end of each loop to keep implementation aligned with the plan

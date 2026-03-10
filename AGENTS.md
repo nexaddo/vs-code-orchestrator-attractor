@@ -6,6 +6,7 @@
 - Use `@ttd-planner` for tight TTD loops, acceptance criteria, and failing-test design.
 - Use `@ttd-implementer` for focused implementation iterations and small refactors.
 - Use `@code-reviewer` for review loops, risk checks, and merge-readiness feedback.
+- Use `@plan-drift-reviewer` at the end of each plan/implement/review/commit loop to compare implementation against the documented plan.
 
 ## Preferred Models
 
@@ -18,10 +19,12 @@
   - `@ttd-implementer` -> Claude Haiku 4.5 via Anthropic
   - `@code-reviewer` -> Claude Sonnet 4.6 via Anthropic
   - `@code-reviewer-secondary` -> GPT-5.4 via GitHub Copilot
+  - `@plan-drift-reviewer` -> Claude Sonnet 4.6 via Anthropic
 
 ## Working Rules
 
 - Keep v1 scoped to one writable repository per plan.
 - Treat attached context repositories as read-only.
 - Keep prompts lean and use structured handoffs instead of full transcripts.
+- Run a drift check before declaring a loop complete or branching to the next lane.
 - Update `docs/architecture/model-routing.md` and `opencode.json` when model routing changes materially.

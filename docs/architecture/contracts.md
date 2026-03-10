@@ -194,6 +194,7 @@ export interface ExtensionEvent {
 ```ts
 export interface WebviewInboundMessage {
   version: 1;
+  requestId: string;
   type:
     | "repository.open"
     | "plan.create"
@@ -208,6 +209,7 @@ export interface WebviewInboundMessage {
 
 export interface WebviewOutboundMessage {
   version: 1;
+  requestId: string;
   type:
     | "overview.state"
     | "repository.state"
