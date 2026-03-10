@@ -5,9 +5,11 @@ import { describe, expect, it } from "vitest";
 
 import { RepositoryRecordSchema } from "../../src/contracts";
 
+// Use file-relative path instead of process.cwd() for robustness
+// Resolve relative to this test file's directory
 const fixturesDir = path.resolve(
-  process.cwd(),
-  "test/fixtures/contracts/repositories"
+  __dirname,
+  "../../../../test/fixtures/contracts/repositories"
 );
 
 const loadFixture = (relativePath: string): unknown => {
