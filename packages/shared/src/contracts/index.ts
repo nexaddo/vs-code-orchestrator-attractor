@@ -89,7 +89,7 @@ export const PlanRecordSchema = z
     status: PlanStatusSchema,
     repositories: z.array(PlanRepositoryRefSchema).min(1),
     primaryExecutableRepositoryId: z.string().min(1),
-    graphSource: z.string(),
+    graphSource: z.string().min(1),
     createdAt: z.string().min(1),
     updatedAt: z.string().min(1)
   })
