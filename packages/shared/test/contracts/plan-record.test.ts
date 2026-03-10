@@ -1,13 +1,17 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
 import { PlanRecordSchema } from "../../src/contracts";
 
+// Use file-relative path instead of process.cwd() for robustness
+// Resolve relative to this test file's directory
+const testDir = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.resolve(
-  process.cwd(),
-  "test/fixtures/contracts/plans"
+  testDir,
+  "../../../../test/fixtures/contracts/plans"
 );
 
 const loadFixture = (relativePath: string): unknown => {
@@ -68,6 +72,14 @@ describe("PlanRecordSchema", () => {
   it("rejects a plan with multiple executable repositories", () => {
     const result = PlanRecordSchema.safeParse(
       loadFixture("invalid/multiple-executable-repos.json")
+    );
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a primary repository that is a context role", () => {
+    const result = PlanRecordSchema.safeParse(
+      loadFixture("invalid/primary-context-repo.json")
     );
 
     expect(result.success).toBe(false);

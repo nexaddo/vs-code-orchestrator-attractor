@@ -59,16 +59,26 @@ export const PlanRepositoryRoleSchema = z.enum(["executable", "context"]);
 
 export const PlanRepositoryAccessSchema = z.enum(["read_write", "read_only"]);
 
-export const PlanRepositorySchema = z.object({
+export const PlanRepositoryRefSchema = z.object({
   repositoryId: z.string().min(1),
   role: PlanRepositoryRoleSchema,
   access: PlanRepositoryAccessSchema,
-  mountAlias: z.string().min(1)
+  mountAlias: z.string().min(1),
+  ref: z.string().min(1).optional()
 });
 
-export type PlanRepository = z.infer<typeof PlanRepositorySchema>;
+export type PlanRepositoryRef = z.infer<typeof PlanRepositoryRefSchema>;
 
-export const PlanStatusSchema = z.enum(["draft", "active", "completed"]);
+export const PlanStatusSchema = z.enum([
+  "draft",
+  "ready",
+  "queued",
+  "running",
+  "paused",
+  "completed",
+  "failed",
+  "canceled"
+]);
 
 export const PlanRecordSchema = z
   .object({
@@ -77,11 +87,11 @@ export const PlanRecordSchema = z
     title: z.string().min(1),
     goal: z.string().min(1),
     status: PlanStatusSchema,
-    repositories: z.array(PlanRepositorySchema).min(1),
+    repositories: z.array(PlanRepositoryRefSchema).min(1),
     primaryExecutableRepositoryId: z.string().min(1),
     graphSource: z.string(),
-    createdAt: z.string().datetime(),
-    updatedAt: z.string().datetime()
+    createdAt: z.string().min(1),
+    updatedAt: z.string().min(1)
   })
   .refine(
     (plan) => {
@@ -100,6 +110,15 @@ export const PlanRecordSchema = z
       return primaryRepo && primaryRepo.access === "read_write";
     },
     { message: "Primary executable repository must be writable" }
+  )
+  .refine(
+    (plan) => {
+      const primaryRepo = plan.repositories.find(
+        (r) => r.repositoryId === plan.primaryExecutableRepositoryId
+      );
+      return primaryRepo && primaryRepo.role === "executable";
+    },
+    { message: "Primary executable repository must have executable role" }
   )
   .refine(
     (plan) => {
