@@ -1,6 +1,5 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
@@ -8,9 +7,8 @@ import { RepositoryRecordSchema } from "../../src/contracts";
 
 // Use file-relative path instead of process.cwd() for robustness
 // Resolve relative to this test file's directory
-const testDir = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.resolve(
-  testDir,
+  __dirname,
   "../../../../test/fixtures/contracts/repositories"
 );
 

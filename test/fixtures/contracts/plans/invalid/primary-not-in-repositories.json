@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "id": "plan_release_prep",
+  "title": "Release Prep",
+  "goal": "Prepare a release in the primary repo",
+  "status": "draft",
+  "repositories": [
+    {
+      "repositoryId": "repo_alpha",
+      "role": "executable",
+      "access": "read_write",
+      "mountAlias": "app"
+    },
+    {
+      "repositoryId": "repo_docs",
+      "role": "context",
+      "access": "read_only",
+      "mountAlias": "docs"
+    }
+  ],
+  "primaryExecutableRepositoryId": "repo_nonexistent",
+  "graphSource": "digraph { start -> finish }",
+  "createdAt": "2026-03-10T00:00:00Z",
+  "updatedAt": "2026-03-10T00:00:00Z"
+}
