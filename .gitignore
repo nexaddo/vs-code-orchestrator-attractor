@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+.pnpm-store/
+.turbo/
+.cache/
+.DS_Store
+*.log
+*.vsix
+.vscode-test/
+.ruff_cache/

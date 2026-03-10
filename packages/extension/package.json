@@ -1,0 +1,32 @@
+{
+  "name": "@attractor/extension",
+  "version": "0.0.0",
+  "private": true,
+  "displayName": "Attractor",
+  "engines": {
+    "vscode": "^1.103.0"
+  },
+  "main": "dist/src/extension.js",
+  "types": "dist/src/extension.d.ts",
+  "activationEvents": [
+    "onCommand:attractor.hello"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "attractor.hello",
+        "title": "Attractor: Hello"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@attractor/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@vscode/test-electron": "^2.5.2",
+    "vscode": "^1.1.37"
+  }
+}
