@@ -8,6 +8,12 @@
 - Use `@code-reviewer` for review loops, risk checks, and merge-readiness feedback.
 - Use `@plan-drift-reviewer` at the end of each plan/implement/review/commit loop to compare implementation against the documented plan.
 
+## Invocation Note
+
+- `@plan-drift-reviewer` is defined as an OpenCode subagent in `.opencode/agents/plan-drift-reviewer.md`.
+- In OpenCode sessions, invoke it by mention as `@plan-drift-reviewer`.
+- In this harness, the built-in Task tool only supports its fixed subagent types, so drift checks here should use `@code-reviewer` or `@ttd-planner` as the fallback reviewers for plan alignment.
+
 ## Preferred Models
 
 - Orchestration and planning: GPT-5.4 via GitHub Copilot

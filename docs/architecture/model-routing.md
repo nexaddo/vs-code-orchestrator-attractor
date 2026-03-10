@@ -44,3 +44,10 @@ Update this file and `opencode.json` when:
 - a cheaper model proves equally reliable for a role
 - a new provider becomes the preferred review model
 - agent routing changes materially for v1 or v1.1
+
+## OpenCode Runtime Note
+
+- `plan-drift-reviewer` is a valid OpenCode subagent and appears in `opencode agent list`.
+- Subagents are not invokable through `opencode run --agent <name>` because `run --agent` expects a primary agent.
+- Invoke the drift reviewer inside OpenCode by mention as `@plan-drift-reviewer`, or let a primary agent delegate to it.
+- In external harnesses that only expose fixed subagent types, use the primary reviewer or planner as the fallback drift-check mechanism.
