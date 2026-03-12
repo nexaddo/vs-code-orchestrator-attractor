@@ -31,6 +31,36 @@ This plan marks the first safe split from the M0 scaffold baseline into parallel
 - worktree: `wt/m1-webview-shell`
 - acceptance: read-only overview shell with typed outbound state consumption
 
+#### Current Lane 3 Slice
+
+- consume exactly one outbound message type: `overview.state`
+- decode a typed overview payload into a local read model
+- render only:
+  - `WorkspaceSummaryCard`
+  - `RepositoryListPanel`
+- keep rendering read-only and static for this slice
+- no inbound commands, no runtime bridge wiring, no graph, no timeline, no run actions
+
+#### Implemented Lane 3 Modules
+
+- `packages/webview/src/overview/model.ts`
+- `packages/webview/src/overview/decoder.ts`
+- `packages/webview/src/overview/renderer.ts`
+- `packages/webview/src/overview/index.ts`
+- `packages/webview/test/overview/decoder.test.ts`
+- `packages/webview/test/overview/renderer.test.ts`
+- `packages/webview/vitest.config.ts`
+- `test/fixtures/webview/overview/**`
+
+#### Next Lane 3 Follow-Up Slices
+
+- isolate and fix any review feedback on decoder error handling without widening the slice
+- add empty-state rendering coverage for:
+  - no repositories configured
+  - repositories present but no active runs
+- add a thin shell wrapper entrypoint that can host the overview markup without introducing runtime bridge logic yet
+- defer `ActiveRunsPanel`, `RecentFailuresPanel`, actions, and page chrome until a second webview slice
+
 ### Lane 4 - Extension Runtime Spine
 
 - scope: `packages/extension` only, consuming shared contracts

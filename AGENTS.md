@@ -2,6 +2,7 @@
 
 ## Model Routing
 
+- Treat the primary OpenCode agent as the Queen of the swarm. It reports directly to the user and orchestrates all subagents.
 - Use `@ttd-orchestrator` for fast decomposition, dependency ordering, and slice planning.
 - Use `@ttd-planner` for tight TTD loops, acceptance criteria, and failing-test design.
 - Use `@ttd-implementer` for focused implementation iterations and small refactors.
@@ -10,6 +11,8 @@
 
 ## Invocation Note
 
+- `.opencode/agents/queen.md` defines the primary orchestration agent for OpenCode sessions.
+- Start OpenCode with `--agent queen` when you want the full swarm workflow driven automatically.
 - `@plan-drift-reviewer` is defined as an OpenCode subagent in `.opencode/agents/plan-drift-reviewer.md`.
 - In OpenCode sessions, invoke it by mention as `@plan-drift-reviewer`.
 - In this harness, the built-in Task tool only supports its fixed subagent types, so drift checks here should use `@code-reviewer` or `@ttd-planner` as the fallback reviewers for plan alignment.
@@ -32,6 +35,7 @@
 - Keep v1 scoped to one writable repository per plan.
 - Treat attached context repositories as read-only.
 - Keep prompts lean and use structured handoffs instead of full transcripts.
+- The Queen should autonomously invoke and coordinate subagents instead of doing direct implementation work where delegation is appropriate.
 - Run a drift check before declaring a loop complete or branching to the next lane.
 - Update `docs/architecture/model-routing.md` and `opencode.json` when model routing changes materially.
 - If `@code-reviewer` returns empty or no substantive feedback, immediately rerun review with `@code-reviewer-secondary` and `@ttd-planner` as fallback reviewers.

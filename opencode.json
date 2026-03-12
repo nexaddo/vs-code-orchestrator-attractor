@@ -4,6 +4,22 @@
   "small_model": "anthropic/claude-haiku-4-5",
   "instructions": ["AGENTS.md"],
   "mcp": {
+    "jcodemunch": {
+      "type": "local",
+      "command": [
+        "uv",
+        "run",
+        "--directory",
+        "C:\\_git\\jcodemunch-mcp",
+        "jcodemunch-mcp"
+      ],
+      "enabled": true,
+      "timeout": 30000,
+      "environment": {
+        "JCODEMUNCH_USE_AI_SUMMARIES": "0",
+        "JCODEMUNCH_SHARE_SAVINGS": "0"
+      }
+    },
     "context7": {
       "type": "remote",
       "url": "https://mcp.context7.com/mcp"

@@ -4,6 +4,12 @@
 
 This document records the preferred model routing for implementation work in this repository so future iterations stay fast and consistent.
 
+## Primary Agent
+
+- `queen`: `github-copilot/gpt-5.4`
+
+The Queen is the primary OpenCode agent for this repository. It orchestrates the swarm, delegates implementation to subagents, watches CI and PR state, and uses drift review before closing loops.
+
 ## Current Routing
 
 ### Orchestration And Planning

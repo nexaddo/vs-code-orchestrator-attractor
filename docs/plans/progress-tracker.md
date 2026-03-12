@@ -87,6 +87,28 @@ First commit-sized slices:
 - add a read-only overview shell
 - consume typed outbound state messages only
 
+### M1.2 - Observability Webview Shell
+
+Current focus:
+
+- keep Lane 3 scoped to a read-only overview surface
+- consume only `overview.state`
+- stabilize the first renderer/decoder slice before adding additional panels
+
+Implemented in the active Lane 3 worktree:
+
+- overview decoder
+- overview renderer
+- overview model types
+- overview fixtures and tests
+- webview Vitest project wiring
+
+Next intended follow-up inside Lane 3:
+
+- review/fix the first overview slice
+- commit and open the first webview shell PR
+- then add the next overview panel slice without introducing runtime bridge logic yet
+
 ### Lane 4 - Extension Runtime Spine
 
 - add storage layout and repository registry seams

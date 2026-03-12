@@ -9,3 +9,7 @@ coverage/
 *.vsix
 .vscode-test/
 .ruff_cache/
+
+# Copilot Orchestrator temporary files
+.orchestrator/
+.worktrees/
