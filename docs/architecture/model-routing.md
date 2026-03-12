@@ -10,6 +10,12 @@ This document records the preferred model routing for implementation work in thi
 
 The Queen is the primary OpenCode agent for this repository. It orchestrates the swarm, delegates implementation to subagents, watches CI and PR state, and uses drift review before closing loops.
 
+## Retrieval Preference
+
+- Prefer `jcodemunch` for indexed code retrieval, symbol search, file outlines, and targeted source loading.
+- Use raw file reads mainly for markdown/docs, JSON fixtures, workflow files, or when indexed symbol retrieval is not the right tool.
+- When reviewing implementation state in active worktrees, index the worktree and inspect symbols there instead of reading broad source files directly.
+
 ## Current Routing
 
 ### Orchestration And Planning

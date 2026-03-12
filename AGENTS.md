@@ -35,6 +35,8 @@
 - Keep v1 scoped to one writable repository per plan.
 - Treat attached context repositories as read-only.
 - Keep prompts lean and use structured handoffs instead of full transcripts.
+- Prefer `jcodemunch` for code reading, symbol discovery, file outlines, and targeted implementation context before falling back to raw file reads.
+- Use direct file reads primarily for docs, config, fixtures, or when `jcodemunch` does not cover the needed file type/content.
 - The Queen should autonomously invoke and coordinate subagents instead of doing direct implementation work where delegation is appropriate.
 - Run a drift check before declaring a loop complete or branching to the next lane.
 - Update `docs/architecture/model-routing.md` and `opencode.json` when model routing changes materially.
