@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "requestId": "req_001",
+  "type": "overview.state",
+  "payload": {
+    "summary": {
+      "totalRepositories": 0,
+      "totalPlans": 0,
+      "activeRuns": 0
+    }
+  }
+}

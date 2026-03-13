@@ -8,6 +8,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@attractor/shared": "workspace:*"
+    "@attractor/shared": "workspace:*",
+    "zod": "^3.25.76"
   }
 }
