@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "requestId": "req_overview_001",
+  "type": "overview.state",
+  "payload": {
+    "summary": {
+      "totalRepositories": 2,
+      "totalPlans": 1,
+      "activeRuns": 0
+    },
+    "repositories": [
+      {
+        "version": 1,
+        "id": "repo_alpha",
+        "name": "repo-alpha",
+        "rootUri": "file:///workspace/repo-alpha",
+        "defaultBranch": "main",
+        "labels": ["workspace", "primary"]
+      },
+      {
+        "version": 1,
+        "id": "repo_docs",
+        "name": "repo-docs",
+        "rootUri": "file:///workspace/repo-docs",
+        "defaultBranch": "main",
+        "labels": ["context"]
+      }
+    ]
+  }
+}

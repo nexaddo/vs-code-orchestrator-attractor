@@ -59,6 +59,9 @@ importers:
       "@attractor/shared":
         specifier: workspace:*
         version: link:../shared
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
 
 packages:
   "@esbuild/aix-ppc64@0.27.3":
