@@ -34,7 +34,7 @@ describe("decodeOverviewState", () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toMatch(/summary|Failed to decode/);
+      expect(result.error).toMatch(/Failed to decode/);
     }
   });
 
@@ -43,7 +43,7 @@ describe("decodeOverviewState", () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toMatch(/repositories|Failed to decode/);
+      expect(result.error).toMatch(/Failed to decode/);
     }
   });
 });
