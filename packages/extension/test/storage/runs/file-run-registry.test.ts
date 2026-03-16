@@ -201,6 +201,12 @@ describe("FileRunRegistry", () => {
       await expect(registry.getById("NUL")).rejects.toThrow(
         "reserved filename"
       );
+      await expect(registry.save({ ...record, id: "CON." })).rejects.toThrow(
+        "reserved filename"
+      );
+      await expect(registry.getById("NUL ")).rejects.toThrow(
+        "reserved filename"
+      );
     } finally {
       await rm(rootDirectory, { recursive: true, force: true });
     }

@@ -12,7 +12,7 @@ export interface PlanRegistry {
 const PLANS_DIRECTORY = path.join("storage", "plans");
 
 // Windows reserved device names that are illegal as filenames on any Windows path.
-const WINDOWS_RESERVED_NAMES = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
+const WINDOWS_RESERVED_NAMES = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])[. ]*$/i;
 
 const assertSafePlanId = (id: string): void => {
   if (id.includes("/") || id.includes("\\")) {
@@ -89,8 +89,7 @@ export class FilePlanRegistry implements PlanRegistry {
       const entries = await readdir(directoryPath, { withFileTypes: true });
       const planFiles = entries
         .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
-        .map((entry) => entry.name)
-        .sort((left, right) => left.localeCompare(right));
+        .map((entry) => entry.name);
 
       const plans: PlanRecord[] = [];
 
@@ -100,7 +99,8 @@ export class FilePlanRegistry implements PlanRegistry {
         plans.push(parsePlanRecord(serialized, filePath));
       }
 
-      return plans;
+      // Sort by the authoritative record id, independent of filename.
+      return plans.sort((left, right) => left.id.localeCompare(right.id));
     } catch (error) {
       if (this.isMissingFileError(error)) {
         return [];

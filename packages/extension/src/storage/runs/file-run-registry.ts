@@ -12,7 +12,7 @@ export interface RunRegistry {
 const RUNS_DIRECTORY = path.join("storage", "runs");
 
 // Windows reserved device names that are illegal as filenames on any Windows path.
-const WINDOWS_RESERVED_NAMES = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
+const WINDOWS_RESERVED_NAMES = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])[. ]*$/i;
 
 const assertSafeRunId = (id: string): void => {
   if (id.includes("/") || id.includes("\\")) {
@@ -89,8 +89,7 @@ export class FileRunRegistry implements RunRegistry {
       const entries = await readdir(directoryPath, { withFileTypes: true });
       const runFiles = entries
         .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
-        .map((entry) => entry.name)
-        .sort((left, right) => left.localeCompare(right));
+        .map((entry) => entry.name);
 
       const runs: RunRecord[] = [];
 
@@ -100,7 +99,8 @@ export class FileRunRegistry implements RunRegistry {
         runs.push(parseRunRecord(serialized, filePath));
       }
 
-      return runs;
+      // Sort by the authoritative record id, independent of filename.
+      return runs.sort((left, right) => left.id.localeCompare(right.id));
     } catch (error) {
       if (this.isMissingFileError(error)) {
         return [];

@@ -15,7 +15,7 @@ export interface RepositoryRegistry {
 const REPOSITORIES_DIRECTORY = path.join("storage", "repositories");
 
 // Windows reserved device names that are illegal as filenames on any Windows path.
-const WINDOWS_RESERVED_NAMES = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
+const WINDOWS_RESERVED_NAMES = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])[. ]*$/i;
 
 const assertSafeRepositoryId = (id: string): void => {
   if (id.includes("/") || id.includes("\\")) {
@@ -95,8 +95,7 @@ export class FileRepositoryRegistry implements RepositoryRegistry {
       const entries = await readdir(directoryPath, { withFileTypes: true });
       const repositoryFiles = entries
         .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
-        .map((entry) => entry.name)
-        .sort((left, right) => left.localeCompare(right));
+        .map((entry) => entry.name);
 
       const repositories: RepositoryRecord[] = [];
 
@@ -106,7 +105,10 @@ export class FileRepositoryRegistry implements RepositoryRegistry {
         repositories.push(parseRepositoryRecord(serialized, filePath));
       }
 
-      return repositories;
+      // Sort by the authoritative record id, independent of filename.
+      return repositories.sort((left, right) =>
+        left.id.localeCompare(right.id)
+      );
     } catch (error) {
       if (this.isMissingFileError(error)) {
         return [];
