@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "id": "lease_001",
+  "runId": "run_001",
+  "repositoryId": "repo_001",
+  "branchName": "attractor/ses001/repo001/a1",
+  "worktreePath": "/tmp/worktrees/repo_001",
+  "state": "active",
+  "createdAt": "2026-03-16T00:00:00Z"
+}
