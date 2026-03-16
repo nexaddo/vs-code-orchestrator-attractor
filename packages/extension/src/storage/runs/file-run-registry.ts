@@ -11,9 +11,21 @@ export interface RunRegistry {
 
 const RUNS_DIRECTORY = path.join("storage", "runs");
 
+// Windows reserved device names that are illegal as filenames on any Windows path.
+const WINDOWS_RESERVED_NAMES = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
+
 const assertSafeRunId = (id: string): void => {
   if (id.includes("/") || id.includes("\\")) {
     throw new Error(`Run id must not contain path separators: ${id}`);
+  }
+  if (id.includes(":")) {
+    throw new Error(`Run id must not contain a colon: ${id}`);
+  }
+  if (id.includes("\0")) {
+    throw new Error(`Run id must not contain null bytes: ${id}`);
+  }
+  if (WINDOWS_RESERVED_NAMES.test(id)) {
+    throw new Error(`Run id is a reserved filename on Windows: ${id}`);
   }
 };
 
@@ -46,6 +58,9 @@ export class FileRunRegistry implements RunRegistry {
 
     const filePath = this.getFilePath(parsedRecord.id);
     await mkdir(path.dirname(filePath), { recursive: true });
+    // NOTE: writeFile is not atomic. A crash mid-write can leave a partial
+    // .json file that will cause list() to throw until manually repaired.
+    // Atomic temp-file-plus-rename is deferred to a future hardening slice.
     await writeFile(filePath, `${JSON.stringify(parsedRecord, null, 2)}\n`);
 
     return parsedRecord;

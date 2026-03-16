@@ -24,26 +24,12 @@ export interface ExtensionContextLike {
   };
 }
 
-export interface StorageServicesLike {
-  repositoryRegistry: {
-    save(record: unknown): Promise<unknown>;
-    getById(id: string): Promise<unknown>;
-    list(): Promise<unknown[]>;
-  };
-  planRegistry: {
-    save(record: unknown): Promise<unknown>;
-    getById(id: string): Promise<unknown>;
-    list(): Promise<unknown[]>;
-  };
-  runRegistry: {
-    save(record: unknown): Promise<unknown>;
-    getById(id: string): Promise<unknown>;
-    list(): Promise<unknown[]>;
-  };
-}
+// Re-export StorageServices so callers (tests, future consumers) can import it
+// from a single runtime entry point rather than reaching into storage internals.
+export type { StorageServices as StorageServicesLike };
 
 export interface RuntimeDependencies {
-  createStorageServices?: (rootDirectory: string) => StorageServicesLike;
+  createStorageServices?: (rootDirectory: string) => StorageServices;
   storageRoot?: string;
 }
 
@@ -70,6 +56,10 @@ export const activateAttractor = (
       ((rootDirectory: string): StorageServices =>
         createStorageServices(rootDirectory));
 
+    // v1 seam: storage services are constructed to validate the seam exists.
+    // The result is intentionally not wired to any consumer yet — runtime
+    // orchestration is deferred to M2. Replace this with assignment once a
+    // consumer (e.g. command handler or orchestrator) is introduced.
     buildStorageServices(storageRoot);
   }
 

@@ -193,4 +193,44 @@ describe("FileRepositoryRegistry", () => {
       await rm(rootDirectory, { recursive: true, force: true });
     }
   });
+
+  it("rejects Windows reserved filenames as ids", async () => {
+    const rootDirectory = await mkdtemp(path.join(os.tmpdir(), "attractor-"));
+    try {
+      const registry = new FileRepositoryRegistry(rootDirectory);
+      const record = await createRecord();
+      await expect(registry.save({ ...record, id: "CON" })).rejects.toThrow(
+        "reserved filename"
+      );
+      await expect(registry.getById("NUL")).rejects.toThrow(
+        "reserved filename"
+      );
+    } finally {
+      await rm(rootDirectory, { recursive: true, force: true });
+    }
+  });
+
+  it("list() returns records keyed by their JSON id field, not by filename (v1 known behaviour)", async () => {
+    // Documents that there is no filename→id integrity check in v1.
+    // A file named "a.json" containing { id: "z" } will be listed as id "z".
+    const rootDirectory = await mkdtemp(path.join(os.tmpdir(), "attractor-"));
+    try {
+      const registry = new FileRepositoryRegistry(rootDirectory);
+      const record = await createRecord();
+      // Save a valid record then manually rename the backing file to mismatch the id.
+      await registry.save(record);
+      const repoDir = getRepositoriesDirectory(rootDirectory);
+      const { rename } = await import("node:fs/promises");
+      await rename(
+        path.join(repoDir, `${record.id}.json`),
+        path.join(repoDir, `different_name.json`)
+      );
+      const listed = await registry.list();
+      // list() returns the record as stored in the JSON; the filename is irrelevant.
+      expect(listed).toHaveLength(1);
+      expect(listed[0]?.id).toBe(record.id);
+    } finally {
+      await rm(rootDirectory, { recursive: true, force: true });
+    }
+  });
 });
