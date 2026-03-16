@@ -146,3 +146,24 @@ export const PlanRecordSchema = z
   );
 
 export type PlanRecord = z.infer<typeof PlanRecordSchema>;
+
+export const RunStatusSchema = z.enum([
+  "queued",
+  "running",
+  "paused",
+  "completed",
+  "failed",
+  "canceled"
+]);
+
+export const RunRecordSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  id: z.string().min(1),
+  planId: z.string().min(1),
+  status: RunStatusSchema,
+  attempt: z.number().int().min(1),
+  createdAt: z.string().min(1),
+  updatedAt: z.string().min(1)
+});
+
+export type RunRecord = z.infer<typeof RunRecordSchema>;
