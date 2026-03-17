@@ -35,7 +35,7 @@ export function decodeOverviewState(
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: `Invalid overview.state message: ${error.errors
+        error: `Failed to decode overview.state: ${error.errors
           .map((e) => {
             const location = e.path.length > 0 ? e.path.join(".") : "(root)";
             return `${location}: ${e.message}`;
