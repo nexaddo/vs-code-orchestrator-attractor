@@ -41,88 +41,70 @@ This file tracks completed phases, current work, and the next intended handoff s
 - Committed the scaffold baseline to `main`
 - Pushed `main` to `origin/main`
 
+### M1 - First Parallel Lanes (all merged)
+
+- **PR #1** (`feat/m1-shared-contracts-core`): Lane 1 — Shared Contracts Core merged
+- **PR #2** (`chore/m0-test-ci-hardening`): Lane 2 — CI Hardening merged
+- **PR #3** (webview shell): Lane 3 — Webview Shell merged
+- **PR #5** (extension runtime spine): Lane 4 — Extension Runtime Spine merged at `b28634d`
+
+### M2 Wave 1 — Contracts + DOT Validator (both merged, 2026-03-17)
+
+- **PR #6** (`m2/00-shared-contracts`): Lane 00 — Shared Contracts Foundation merged at `7ffdbe3`
+  - Added `ExtensionEventSchema`, `WorktreeLeaseSchema`, `MilestoneRecordSchema`, `RunSnapshotSchema`
+  - 85/85 tests; typecheck and lint clean
+- **PR #7** (`m2/10-dot-validator`): Lane 10 — DOT Validation Pipeline merged at `039e962`
+  - Implemented `validateDot()` with `@ts-graphviz/parser`
+  - Diagnostics: missing-start, missing-exit, unsupported-node-type, unreachable-node, parse-error
+  - 87/87 tests; typecheck and lint clean
+- `main` is now at `039e962`
+
 ## In Progress
 
-### M1 Prep - First Parallel Lanes
+### M2 Wave 2 — Event Log + Worktree Manager
 
 Current focus:
 
-- capture the first parallel lane plan in repo docs
-- add a dedicated drift-review agent spec for end-of-loop checks
-- prepare worktree/branch boundaries for the first concurrent slices
+- **Lane 20** (`m2/20-event-log`): `EventLog` interface + JSONL file implementation per run
+- **Lane 30** (`m2/30-worktree-manager`): `WorktreeManager` skeleton with acquire/release/reconcile
 
-Known issues to address next:
-
-- split work into safe parallel lanes without widening the v1 scope
-- keep docs and implemented contracts synchronized as lanes start
-- add the first drift review artifact after lane kickoff
-
-### M1.1 - Parallel Lane Kickoff
+Both lanes depend on Lane 00 (now merged). They can run in parallel.
 
 Active worktrees:
 
-- `C:\_git\wt-m0-test-ci` -> `chore/m0-test-ci-hardening`
-- `C:\_git\wt-m1-shared-contracts` -> `feat/m1-shared-contracts-core`
-
-First commit-sized slices:
-
-- lane 2: add a `ci:fast-checks` source-of-truth script plus a workflow drift meta test
-- lane 1: add `PlanRepositoryRef` and `PlanRecord` shared contract schemas plus fixtures/tests
+- `C:/_git/vs-code-orchestrator-attractor-lane20` → `m2/20-event-log`
+- `C:/_git/vs-code-orchestrator-attractor-lane30` → `m2/30-worktree-manager`
 
 ## Next Up
 
-### Lane 1 - Shared Contracts Core
+### M2 Wave 2 — Lane Details
 
-- tighten `PlanRecord`, `PlanRepositoryRef`, and `RunRecord`
-- add valid and invalid fixtures
-- keep the one-writable-repo rule enforced in schemas
+**Lane 20 — Event Log Storage**
 
-### Lane 2 - Test And CI Hardening
+- Define `EventLog` interface in `packages/extension/src/storage/events/index.ts`
+- Implement `packages/extension/src/storage/events/file-event-log.ts`
+- Use append-only JSONL at `storage/runs/<run-id>/events.jsonl`
+- Consume `ExtensionEventSchema` from shared contracts
 
-- keep root tooling stable under parallel development
-- make sure branch work stays green on lint/typecheck/test
+**Lane 30 — Worktree Manager Skeleton**
 
-### Lane 3 - Webview Shell
+- Define `WorktreeManager` interface in `packages/extension/src/worktrees/index.ts`
+- Implement `packages/extension/src/worktrees/worktree-manager.ts`
+- Shell out to `git` through a thin Node `child_process` wrapper
+- Consume `WorktreeLeaseSchema` from shared contracts
 
-- add a read-only overview shell
-- consume typed outbound state messages only
+### M2 Wave 3 — Snapshot Projector
 
-### M1.2 - Observability Webview Shell
+**Lane 40** can start once Lane 00 merges (done); safest merge is after Lane 20.
 
-Current focus:
-
-- keep Lane 3 scoped to a read-only overview surface
-- consume only `overview.state`
-- stabilize the first renderer/decoder slice before adding additional panels
-
-Implemented in the active Lane 3 worktree:
-
-- overview decoder
-- overview renderer
-- overview model types
-- overview fixtures and tests
-- webview Vitest project wiring
-
-Next intended follow-up inside Lane 3:
-
-- review/fix the first overview slice
-- commit and open the first webview shell PR
-- then add the next overview panel slice without introducing runtime bridge logic yet
-
-### Lane 4 - Extension Runtime Spine
-
-- add storage layout and repository registry seams
-- keep runtime pure and testable
-
-## Planned After M0
-
-### Post-Lane Merge Order
-
-- lane 2: test and CI hardening
-- lane 1: shared contracts
-- lane 4: extension runtime spine
-- lane 3: webview shell
+- Define `SnapshotProjector` in `packages/extension/src/storage/snapshots/`
+- Project `RunSnapshot` from event stream via `EventLog.listByRun()`
+- Wire into `createStorageServices()` in `packages/extension/src/storage/services.ts`
 
 ## Session Resume Note
 
-If a future session resumes here, start from `M1 Prep - First Parallel Lanes` unless this file says otherwise.
+If a future session resumes here, start from **M2 Wave 2** (Lane 20 and Lane 30).
+Both Wave 1 lanes are merged. Wave 2 worktrees are at:
+
+- `C:/_git/vs-code-orchestrator-attractor-lane20` → `m2/20-event-log`
+- `C:/_git/vs-code-orchestrator-attractor-lane30` → `m2/30-worktree-manager`
