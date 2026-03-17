@@ -1,0 +1,6 @@
+digraph missing_start {
+  step1 [type=codergen]
+  done [type=exit]
+
+  step1 -> done
+}
