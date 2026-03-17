@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "id": "ms_001",
+  "planId": "plan_001",
+  "title": "Set up scaffold",
+  "order": 0,
+  "status": "pending",
+  "acceptanceCriteria": [],
+  "nodeIds": []
+}

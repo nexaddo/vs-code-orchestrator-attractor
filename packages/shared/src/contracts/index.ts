@@ -167,3 +167,97 @@ export const RunRecordSchema = z.object({
 });
 
 export type RunRecord = z.infer<typeof RunRecordSchema>;
+
+// ── M2 schemas ────────────────────────────────────────────────────────────────
+
+export const ExtensionEventEntityTypeSchema = z.enum([
+  "repository",
+  "plan",
+  "milestone",
+  "run",
+  "handoff",
+  "artifact",
+  "worktree"
+]);
+
+export const ExtensionEventKindSchema = z.enum([
+  "created",
+  "updated",
+  "status.changed",
+  "checkpoint.saved",
+  "checkpoint.restored",
+  "handoff.created",
+  "artifact.created",
+  "validation.failed",
+  "error"
+]);
+
+export const ExtensionEventSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  id: z.string().min(1),
+  requestId: z.string().min(1).optional(),
+  runId: z.string().min(1).optional(),
+  entityType: ExtensionEventEntityTypeSchema,
+  entityId: z.string().min(1),
+  kind: ExtensionEventKindSchema,
+  timestamp: z.string().min(1),
+  payload: z.record(z.string(), z.unknown())
+});
+
+export type ExtensionEvent = z.infer<typeof ExtensionEventSchema>;
+
+export const WorktreeLeaseStateSchema = z.enum([
+  "active",
+  "released",
+  "orphaned"
+]);
+
+export const WorktreeLeaseSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  id: z.string().min(1),
+  runId: z.string().min(1),
+  repositoryId: z.string().min(1),
+  branchName: z.string().min(1),
+  worktreePath: z.string().min(1),
+  state: WorktreeLeaseStateSchema,
+  headCommit: z.string().min(1).optional(),
+  createdAt: z.string().min(1),
+  releasedAt: z.string().min(1).optional()
+});
+
+export type WorktreeLease = z.infer<typeof WorktreeLeaseSchema>;
+
+export const MilestoneStatusSchema = z.enum([
+  "pending",
+  "ready",
+  "running",
+  "paused",
+  "completed",
+  "failed",
+  "canceled",
+  "blocked"
+]);
+
+export const MilestoneRecordSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  id: z.string().min(1),
+  planId: z.string().min(1),
+  title: z.string().min(1),
+  order: z.number().int().min(0),
+  status: MilestoneStatusSchema,
+  acceptanceCriteria: z.array(z.string()),
+  nodeIds: z.array(z.string())
+});
+
+export type MilestoneRecord = z.infer<typeof MilestoneRecordSchema>;
+
+export const RunSnapshotSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  runId: z.string().min(1),
+  status: RunStatusSchema,
+  currentMilestoneId: z.string().min(1).nullable(),
+  lastCheckpointId: z.string().min(1).nullable(),
+  snapshotAt: z.string().min(1)
+});
+
+export type RunSnapshot = z.infer<typeof RunSnapshotSchema>;
