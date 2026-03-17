@@ -49,6 +49,11 @@ describe("PlanRecordSchema", () => {
     );
 
     expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.message).toContain(
+        "Primary executable repository must be writable"
+      );
+    }
   });
 
   it("rejects a plan with zero writable repositories", () => {
@@ -89,6 +94,11 @@ describe("PlanRecordSchema", () => {
     );
 
     expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.message).toContain(
+        "Primary executable repository must exist in repositories"
+      );
+    }
   });
 
   it("survives a json round trip", () => {

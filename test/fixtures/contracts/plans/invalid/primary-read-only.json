@@ -14,7 +14,7 @@
     {
       "repositoryId": "repo_docs",
       "role": "context",
-      "access": "read_only",
+      "access": "read_write",
       "mountAlias": "docs"
     }
   ],
