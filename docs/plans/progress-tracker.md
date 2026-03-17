@@ -68,7 +68,7 @@ This file tracks completed phases, current work, and the next intended handoff s
   - 125/125 tests; typecheck and lint clean
 - `main` is now at `0149062`
 
-### M3 — First Dashboard Slice (Waves 1+2 merged, Wave 3 starting)
+### M3 — First Dashboard Slice ✅ COMPLETE (all 4 lanes merged, 2026-03-17)
 
 Plan: `docs/plans/m3-lanes.md` — 4 lanes, 2 parallelism waves.
 
@@ -77,24 +77,26 @@ Plan: `docs/plans/m3-lanes.md` — 4 lanes, 2 parallelism waves.
 | L1 — Storage read surface       | `m3/storage-read-surface`     | ✅ MERGED (PR #11, `0ec7756`) |
 | L2 — Overview projection        | `m3/overview-projection`      | ✅ MERGED (PR #13, `e38e276`) |
 | L3 — Webview overview shell     | `m3/webview-overview-shell`   | ✅ MERGED (PR #12, `9f2ed2b`) |
-| L4 — Dashboard bridge + runtime | `m3/dashboard-bridge-runtime` | 🔲 pending (unblocked)        |
+| L4 — Dashboard bridge + runtime | `m3/dashboard-bridge-runtime` | ✅ MERGED (PR #14, `9301d9a`) |
 
-**Wave 1 (parallel):** L1 + L3 — **complete**  
-**Wave 2:** L2 — **complete**  
-**Wave 3:** L4 — **starting now**
+**Wave 1 (parallel):** L1 + L3 — **complete**
+**Wave 2:** L2 — **complete**
+**Wave 3:** L4 — **complete**
+
+`main` is now at `9301d9a`.
+
+- **PR #14** (`m3/dashboard-bridge-runtime`): L4 — Dashboard Bridge + Runtime merged at `9301d9a`
+  - New `bridge.ts`: `handleWebviewMessage` + `WebviewPanelLike` seam
+  - `runtime.ts` wired: stores services, exposes `onWebviewMessage` handler with `safeParse` validation
+  - `webview/src/index.ts`: `sendReadyMessage()` + `bootWebview()` boot helpers; DOM lib added to webview tsconfig
+  - Schema fix: `"ready"` added to `WebviewInboundMessageTypeSchema`
+  - 144 tests, 20 files — all passing; typecheck + lint + format:check clean
 
 ## Next Up
 
-M3 Wave 3 — L4 Dashboard Bridge + Runtime:
-
-- Create worktree for L4 (`m3/dashboard-bridge-runtime`)
-- Add `"ready"` type to `WebviewInboundMessageTypeSchema` in shared contracts (the one allowed schema touch for L4 if blocking)
-- Implement bridge in `packages/extension/src/dashboard/` that handles webview `ready`, calls `projectOverview()`, posts `overview.state`
-- Wire into `packages/extension/src/runtime.ts`
-- Make `packages/webview/src/index.ts` send `ready` on boot
-- Tests: simulate `ready` message → observe valid `overview.state` response
+M4 planning — no next milestone planned yet. M3 is fully shipped.
 
 ## Session Resume Note
 
-If a future session resumes here, **M2 is complete**, **M3 Waves 1+2 (L1+L2+L3) are merged**.
-`main` is at `d0afcb3`. Next is L4 (`m3/dashboard-bridge-runtime`) in a new worktree.
+If a future session resumes here, **M3 is complete**. All 4 lanes merged.
+`main` is at `9301d9a`.

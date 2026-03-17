@@ -13,7 +13,7 @@ M3 ships one thin vertical slice: a live overview panel that loads through the e
 | L1 — Storage read surface       | `m3/storage-read-surface`     | Standardize minimal read APIs to enumerate repositories, plans, and runs         | —          | ✅ MERGED (PR #11, `0ec7756`) |
 | L2 — Overview projection        | `m3/overview-projection`      | Pure projection functions mapping `StorageServices` reads → `OverviewState`      | L1         | ✅ MERGED (PR #13, `e38e276`) |
 | L3 — Webview overview shell     | `m3/webview-overview-shell`   | Tighten overview renderer/decoder; lock UI to summary-only slice                 | —          | ✅ MERGED (PR #12, `9f2ed2b`) |
-| L4 — Dashboard bridge + runtime | `m3/dashboard-bridge-runtime` | Wire `ready`/`state.update` end-to-end between runtime, bridge, and webview boot | L2, L3     | pending                       |
+| L4 — Dashboard bridge + runtime | `m3/dashboard-bridge-runtime` | Wire `ready`/`state.update` end-to-end between runtime, bridge, and webview boot | L2, L3     | ✅ MERGED (PR #14, `9301d9a`) |
 
 ## Single-Owner File Reservations
 
