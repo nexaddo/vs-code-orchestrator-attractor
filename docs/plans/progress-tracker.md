@@ -70,29 +70,31 @@ This file tracks completed phases, current work, and the next intended handoff s
 
 ## In Progress
 
-### M3 — First Dashboard Slice (planning complete, implementation not started)
+### M3 — First Dashboard Slice (Wave 1 merged, Wave 2 in progress)
 
 Plan: `docs/plans/m3-lanes.md` — 4 lanes, 2 parallelism waves.
 
-| Lane                            | Branch                        | Status  |
-| ------------------------------- | ----------------------------- | ------- |
-| L1 — Storage read surface       | `m3/storage-read-surface`     | pending |
-| L2 — Overview projection        | `m3/overview-projection`      | pending |
-| L3 — Webview overview shell     | `m3/webview-overview-shell`   | pending |
-| L4 — Dashboard bridge + runtime | `m3/dashboard-bridge-runtime` | pending |
+| Lane                            | Branch                        | Status                        |
+| ------------------------------- | ----------------------------- | ----------------------------- |
+| L1 — Storage read surface       | `m3/storage-read-surface`     | ✅ MERGED (PR #11, `0ec7756`) |
+| L2 — Overview projection        | `m3/overview-projection`      | 🔲 pending (unblocked)        |
+| L3 — Webview overview shell     | `m3/webview-overview-shell`   | ✅ MERGED (PR #12, `9f2ed2b`) |
+| L4 — Dashboard bridge + runtime | `m3/dashboard-bridge-runtime` | 🔲 pending (blocked on L2+L3) |
 
-**Wave 1 (parallel):** L1 + L3  
-**Wave 2:** L2 (after L1)  
+**Wave 1 (parallel):** L1 + L3 — **complete**  
+**Wave 2:** L2 (unblocked, starting now)  
 **Wave 3:** L4 (after L2 + L3)
 
 ## Next Up
 
-Start M3 Wave 1:
+M3 Wave 2 — L2 Overview Projection:
 
-- Create worktrees for L1 (`m3/storage-read-surface`) and L3 (`m3/webview-overview-shell`) in parallel
-- Each lane must pass `pnpm typecheck`, `pnpm lint`, `pnpm test` before PR
+- Create worktree for L2 (`m3/overview-projection`)
+- Implement `packages/extension/src/dashboard/overview-projection.ts` — pure `projectOverview(services)` function
+- Tests: empty storage, mixed populations, mixed run statuses
+- Pass `pnpm typecheck`, `pnpm lint`, `pnpm test` before PR
 
 ## Session Resume Note
 
-If a future session resumes here, **M2 is complete** and **M3 is planned but not started**.
-Lane plan is at `docs/plans/m3-lanes.md`. Start with Wave 1: L1 and L3 in parallel worktrees.
+If a future session resumes here, **M2 is complete** and **M3 Wave 1 (L1 + L3) is merged**.
+`main` is at `6d8af13`. Next is L2 (`m3/overview-projection`) in a new worktree.

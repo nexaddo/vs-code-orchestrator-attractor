@@ -4,20 +4,20 @@ Repository planning workspace for a VS Code extension that implements Attractor-
 
 ## Current Focus
 
-- **M2 (Backend Spine) is complete** — all 5 lanes merged to `main` at `0149062`
+- **M3 (First Dashboard Slice) Wave 1 is complete** — L1 (storage read surface, PR #11) and L3 (webview overview shell, PR #12) merged to `main` at `6d8af13`
 - M0, M1, and M2 milestones are fully shipped
-- Next: M3 planning (runner execution loop, webview integration, CLI surface)
+- Next: M3 Wave 2 — L2 overview projection (`m3/overview-projection`)
 - Keep v1 scoped to one writable repository per plan, with additional read-only context repositories
 - Defer `parallel`, `fan_in`, `tool`, and `manager_loop` to v1.1
 
 ## Milestone Status
 
-| Milestone                  | Status     | Notes                                                                                        |
-| -------------------------- | ---------- | -------------------------------------------------------------------------------------------- |
-| M0 — Scaffold              | ✅ MERGED  | Tooling, CI, workspace                                                                       |
-| M1 — First Slices          | ✅ MERGED  | Contracts, webview shell, runtime spine (PRs #1–5)                                           |
-| M2 — Backend Spine         | ✅ MERGED  | Shared contracts, DOT validator, event log, worktree manager, snapshot projector (PRs #6–10) |
-| M3 — First Dashboard Slice | 🔲 Planned | Lane plan at `docs/plans/m3-lanes.md`                                                        |
+| Milestone                  | Status         | Notes                                                                                        |
+| -------------------------- | -------------- | -------------------------------------------------------------------------------------------- |
+| M0 — Scaffold              | ✅ MERGED      | Tooling, CI, workspace                                                                       |
+| M1 — First Slices          | ✅ MERGED      | Contracts, webview shell, runtime spine (PRs #1–5)                                           |
+| M2 — Backend Spine         | ✅ MERGED      | Shared contracts, DOT validator, event log, worktree manager, snapshot projector (PRs #6–10) |
+| M3 — First Dashboard Slice | 🔄 In Progress | L1 + L3 merged (PRs #11–12); L2 and L4 pending                                               |
 
 ## Planning Docs
 
@@ -39,7 +39,6 @@ Repository planning workspace for a VS Code extension that implements Attractor-
 
 ## Near-Term Next Steps
 
-1. Start M3 Wave 1: worktrees for `m3/storage-read-surface` (L1) and `m3/webview-overview-shell` (L3) in parallel
-2. L1 stabilizes storage enumeration → unblocks L2 overview projection
-3. L3 tightens webview renderer/decoder → unblocks L4 bridge wiring
-4. L4 wires `ready` → projection → `state.update` end-to-end
+1. M3 Wave 2: worktree for `m3/overview-projection` (L2) — pure `projectOverview(services)` function
+2. L2 merged → unblocks L4 (`m3/dashboard-bridge-runtime`)
+3. L4 wires `ready` → projection → `overview.state` end-to-end
