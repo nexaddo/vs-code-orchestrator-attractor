@@ -11,6 +11,11 @@ export interface RunRegistry {
 }
 
 const RUNS_DIRECTORY = path.join("storage", "runs");
+const ACTIVE_RUN_STATUSES = new Set<RunRecord["status"]>([
+  "queued",
+  "running",
+  "paused"
+]);
 
 // Windows reserved device names that are illegal as filenames on any Windows path.
 const WINDOWS_RESERVED_NAMES = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])[. ]*$/i;
@@ -112,13 +117,8 @@ export class FileRunRegistry implements RunRegistry {
   }
 
   async listActiveRuns(): Promise<RunRecord[]> {
-    const activeStatuses = new Set<RunRecord["status"]>([
-      "queued",
-      "running",
-      "paused"
-    ]);
     const all = await this.list();
-    return all.filter((r) => activeStatuses.has(r.status));
+    return all.filter((r) => ACTIVE_RUN_STATUSES.has(r.status));
   }
 
   private getRunsDirectory(): string {

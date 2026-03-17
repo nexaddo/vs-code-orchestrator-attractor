@@ -1,4 +1,6 @@
 import {
+  CONTRACT_VERSION,
+  RunStatusSchema,
   RunSnapshotSchema,
   type ExtensionEvent,
   type RunSnapshot
@@ -54,7 +56,7 @@ export class EventLogSnapshotProjector implements SnapshotProjector {
     }
 
     return RunSnapshotSchema.parse({
-      version: 1,
+      version: CONTRACT_VERSION,
       runId,
       status,
       currentMilestoneId,
@@ -70,16 +72,9 @@ export class EventLogSnapshotProjector implements SnapshotProjector {
  */
 function extractStatus(event: ExtensionEvent): RunSnapshot["status"] | null {
   const raw = event.payload["status"];
-  const valid: RunSnapshot["status"][] = [
-    "queued",
-    "running",
-    "paused",
-    "completed",
-    "failed",
-    "canceled"
-  ];
-  if (typeof raw === "string" && (valid as string[]).includes(raw)) {
-    return raw as RunSnapshot["status"];
+  const parsed = RunStatusSchema.safeParse(raw);
+  if (parsed.success) {
+    return parsed.data;
   }
   return null;
 }
