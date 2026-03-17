@@ -14,7 +14,7 @@ export interface AcquireInput {
   repoShort: string;
   /** Attempt number for this run (used in branch naming). */
   attempt: number;
-  /** Absolute path to the repository root to create the worktree under. */
+  /** Absolute path to the repository root whose git metadata owns the worktree. */
   repoPath: string;
   /** Absolute path where the worktree should be created. */
   worktreePath: string;
