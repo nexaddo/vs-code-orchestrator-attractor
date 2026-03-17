@@ -15,6 +15,7 @@ export const RepositoryRecordSchema = z.object({
 export type RepositoryRecord = z.infer<typeof RepositoryRecordSchema>;
 
 export const WebviewInboundMessageTypeSchema = z.enum([
+  "ready",
   "repository.open",
   "plan.create",
   "plan.run",
