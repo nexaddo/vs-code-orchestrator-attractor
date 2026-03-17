@@ -6,6 +6,9 @@ import { describe, expect, it } from "vitest";
 
 import { FileEventLog } from "../../../src/storage/events/file-event-log";
 
+const eventLogPath = (root: string, runId: string): string =>
+  path.join(root, "storage", "runs", runId, "events.jsonl");
+
 function makeEvent(overrides: Record<string, unknown> = {}) {
   return {
     version: 1 as const,
@@ -120,7 +123,7 @@ describe("FileEventLog", () => {
         // Append a valid event, then corrupt the file
         await log.append(makeEvent({ id: "evt_valid" }));
         const { writeFile } = await import("node:fs/promises");
-        const filePath = `${root}/runs/run_abc/events.jsonl`;
+        const filePath = eventLogPath(root, "run_abc");
         await writeFile(filePath, `not-json\n{"id":"evt_valid"}\n`);
 
         await expect(log.listByRun("run_abc")).rejects.toThrow(/invalid JSON/);
@@ -135,12 +138,35 @@ describe("FileEventLog", () => {
         const log = new FileEventLog(root);
         await log.append(makeEvent({ id: "evt_valid" }));
         const { writeFile } = await import("node:fs/promises");
-        const filePath = `${root}/runs/run_abc/events.jsonl`;
+        const filePath = eventLogPath(root, "run_abc");
         // Write a line that is valid JSON but fails ExtensionEventSchema
-        await writeFile(filePath, `{"id":"evt_valid"}\n{"broken":true}\n`);
+        await writeFile(
+          filePath,
+          `${JSON.stringify(makeEvent({ id: "evt_valid" }))}\n{"broken":true}\n`
+        );
 
         await expect(log.listByRun("run_abc")).rejects.toThrow(
           /schema validation failed/
+        );
+      } finally {
+        await rm(root, { recursive: true, force: true });
+      }
+    });
+
+    it("throws when a parsed event belongs to a different run", async () => {
+      const root = await mkdtemp(path.join(os.tmpdir(), "attractor-evtlog-"));
+      try {
+        const log = new FileEventLog(root);
+        await log.append(makeEvent({ id: "evt_valid" }));
+        const { writeFile } = await import("node:fs/promises");
+        const filePath = eventLogPath(root, "run_abc");
+        await writeFile(
+          filePath,
+          `${JSON.stringify(makeEvent({ id: "evt_other", runId: "run_other" }))}\n`
+        );
+
+        await expect(log.listByRun("run_abc")).rejects.toThrow(
+          /runId mismatch/
         );
       } finally {
         await rm(root, { recursive: true, force: true });
