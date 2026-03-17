@@ -63,7 +63,9 @@ describe("activateAttractor", () => {
         save: vi.fn(),
         getById: vi.fn(),
         list: vi.fn()
-      }
+      },
+      eventLog: { append: vi.fn(), listByRun: vi.fn() },
+      snapshotProjector: { project: vi.fn() }
     };
 
     const createStorageServices = vi.fn(() => storageServices);
@@ -106,7 +108,9 @@ describe("activateAttractor", () => {
     const storageServices: StorageServicesLike = {
       repositoryRegistry: { save: vi.fn(), getById: vi.fn(), list: vi.fn() },
       planRegistry: { save: vi.fn(), getById: vi.fn(), list: vi.fn() },
-      runRegistry: { save: vi.fn(), getById: vi.fn(), list: vi.fn() }
+      runRegistry: { save: vi.fn(), getById: vi.fn(), list: vi.fn() },
+      eventLog: { append: vi.fn(), listByRun: vi.fn() },
+      snapshotProjector: { project: vi.fn() }
     };
     const createStorageServices = vi.fn(() => storageServices);
 
@@ -135,7 +139,9 @@ describe("activateAttractor", () => {
     const storageServices: StorageServicesLike = {
       repositoryRegistry: { save: vi.fn(), getById: vi.fn(), list: vi.fn() },
       planRegistry: { save: vi.fn(), getById: vi.fn(), list: vi.fn() },
-      runRegistry: { save: vi.fn(), getById: vi.fn(), list: vi.fn() }
+      runRegistry: { save: vi.fn(), getById: vi.fn(), list: vi.fn() },
+      eventLog: { append: vi.fn(), listByRun: vi.fn() },
+      snapshotProjector: { project: vi.fn() }
     };
     const createStorageServices = vi.fn(() => storageServices);
 
