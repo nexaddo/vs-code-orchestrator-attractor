@@ -94,9 +94,14 @@ Plan: `docs/plans/m3-lanes.md` — 4 lanes, 2 parallelism waves.
 
 ## Next Up
 
-M4 planning — no next milestone planned yet. M3 is fully shipped.
+M3.5 — review cleanup and hardening
+
+- land the merged-PR cleanup fixes for unresolved High and Medium review feedback
+- then advance into M3.6 shared UI contract floor
+- M4 Copilot orchestration remains gated on the pre-UI contract, storage, projector, and webview-hosting layers
 
 ## Session Resume Note
 
 If a future session resumes here, **M3 is complete**. All 4 lanes merged.
 `main` is at `9301d9a`.
+Next execution lane is **M3.5 → M3.9**, then **M4**.
