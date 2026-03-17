@@ -70,21 +70,29 @@ This file tracks completed phases, current work, and the next intended handoff s
 
 ## In Progress
 
-_Nothing in progress. M2 is complete._
+### M3 — First Dashboard Slice (planning complete, implementation not started)
+
+Plan: `docs/plans/m3-lanes.md` — 4 lanes, 2 parallelism waves.
+
+| Lane                            | Branch                        | Status  |
+| ------------------------------- | ----------------------------- | ------- |
+| L1 — Storage read surface       | `m3/storage-read-surface`     | pending |
+| L2 — Overview projection        | `m3/overview-projection`      | pending |
+| L3 — Webview overview shell     | `m3/webview-overview-shell`   | pending |
+| L4 — Dashboard bridge + runtime | `m3/dashboard-bridge-runtime` | pending |
+
+**Wave 1 (parallel):** L1 + L3  
+**Wave 2:** L2 (after L1)  
+**Wave 3:** L4 (after L2 + L3)
 
 ## Next Up
 
-### M3 Planning
+Start M3 Wave 1:
 
-M2 (Backend Spine) is fully shipped. Next milestone (M3) has not been planned yet.
-
-Likely candidates based on roadmap:
-
-- Runner execution loop (wire contracts → worktree → event log → snapshot into a run lifecycle)
-- Webview integration (expose `StorageServices` snapshots to the overview dashboard)
-- CLI / command palette surface (trigger runs, inspect status)
+- Create worktrees for L1 (`m3/storage-read-surface`) and L3 (`m3/webview-overview-shell`) in parallel
+- Each lane must pass `pnpm typecheck`, `pnpm lint`, `pnpm test` before PR
 
 ## Session Resume Note
 
-If a future session resumes here, **M2 is complete** — all 5 lanes are merged to `main` at `0149062`.
-No active worktrees or feature branches remain. Start M3 planning from `docs/plans/roadmap.md`.
+If a future session resumes here, **M2 is complete** and **M3 is planned but not started**.
+Lane plan is at `docs/plans/m3-lanes.md`. Start with Wave 1: L1 and L3 in parallel worktrees.

@@ -12,12 +12,12 @@ Repository planning workspace for a VS Code extension that implements Attractor-
 
 ## Milestone Status
 
-| Milestone          | Status         | Notes                                                                                        |
-| ------------------ | -------------- | -------------------------------------------------------------------------------------------- |
-| M0 — Scaffold      | ✅ MERGED      | Tooling, CI, workspace                                                                       |
-| M1 — First Slices  | ✅ MERGED      | Contracts, webview shell, runtime spine (PRs #1–5)                                           |
-| M2 — Backend Spine | ✅ MERGED      | Shared contracts, DOT validator, event log, worktree manager, snapshot projector (PRs #6–10) |
-| M3 — Runner Loop   | 🔲 Not started |                                                                                              |
+| Milestone                  | Status     | Notes                                                                                        |
+| -------------------------- | ---------- | -------------------------------------------------------------------------------------------- |
+| M0 — Scaffold              | ✅ MERGED  | Tooling, CI, workspace                                                                       |
+| M1 — First Slices          | ✅ MERGED  | Contracts, webview shell, runtime spine (PRs #1–5)                                           |
+| M2 — Backend Spine         | ✅ MERGED  | Shared contracts, DOT validator, event log, worktree manager, snapshot projector (PRs #6–10) |
+| M3 — First Dashboard Slice | 🔲 Planned | Lane plan at `docs/plans/m3-lanes.md`                                                        |
 
 ## Planning Docs
 
@@ -39,6 +39,7 @@ Repository planning workspace for a VS Code extension that implements Attractor-
 
 ## Near-Term Next Steps
 
-1. Plan M3 milestone from `docs/plans/roadmap.md`
-2. Define M3 lanes: runner execution loop, webview integration, CLI surface
-3. Continue parallel-lane approach with worktrees and drift reviews at each loop end
+1. Start M3 Wave 1: worktrees for `m3/storage-read-surface` (L1) and `m3/webview-overview-shell` (L3) in parallel
+2. L1 stabilizes storage enumeration → unblocks L2 overview projection
+3. L3 tightens webview renderer/decoder → unblocks L4 bridge wiring
+4. L4 wires `ready` → projection → `state.update` end-to-end
