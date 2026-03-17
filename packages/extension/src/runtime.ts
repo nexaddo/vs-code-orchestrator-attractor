@@ -85,6 +85,10 @@ export const activateAttractor = (
     if (!parsed.success) {
       return;
     }
-    await handleWebviewMessage(parsed.data, services, panel);
+    try {
+      await handleWebviewMessage(parsed.data, services, panel);
+    } catch {
+      return;
+    }
   };
 };
