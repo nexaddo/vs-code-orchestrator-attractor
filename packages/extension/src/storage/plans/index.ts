@@ -1,1 +1,1 @@
-export * from "./file-plan-registry";
+export { PlanRegistry, FilePlanRegistry } from "./file-plan-registry";

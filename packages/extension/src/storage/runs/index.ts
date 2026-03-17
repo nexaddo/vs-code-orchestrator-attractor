@@ -1,1 +1,1 @@
-export * from "./file-run-registry";
+export { RunRegistry, FileRunRegistry } from "./file-run-registry";

@@ -1,1 +1,4 @@
-export * from "./file-repository-registry";
+export {
+  RepositoryRegistry,
+  FileRepositoryRegistry
+} from "./file-repository-registry";
