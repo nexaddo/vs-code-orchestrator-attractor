@@ -137,4 +137,13 @@ describe("renderOverview", () => {
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");
   });
+  it("should render zero counts when all values are zero", () => {
+    const state: OverviewState = {
+      summary: { totalRepositories: 0, totalPlans: 0, activeRuns: 0 },
+      repositories: []
+    };
+    const html = renderOverview(state);
+    const zeroMatches = html.match(/<span class="stat-value">0<\/span>/g);
+    expect(zeroMatches).toHaveLength(3);
+  });
 });
