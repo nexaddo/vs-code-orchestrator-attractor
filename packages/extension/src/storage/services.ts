@@ -9,6 +9,10 @@ import {
   type RepositoryRegistry
 } from "./repositories/file-repository-registry";
 import { FileRunRegistry, type RunRegistry } from "./runs/file-run-registry";
+import { FileEventLog } from "./events/file-event-log";
+import { type EventLog } from "./events/index";
+import { EventLogSnapshotProjector } from "./snapshots/snapshot-projector";
+import { type SnapshotProjector } from "./snapshots/index";
 
 export interface ExtensionStorageUriLike {
   fsPath: string;
@@ -23,15 +27,20 @@ export interface StorageServices {
   repositoryRegistry: RepositoryRegistry;
   planRegistry: PlanRegistry;
   runRegistry: RunRegistry;
+  eventLog: EventLog;
+  snapshotProjector: SnapshotProjector;
 }
 
 export const createStorageServices = (
   rootDirectory: string
 ): StorageServices => {
+  const eventLog = new FileEventLog(rootDirectory);
   return {
     repositoryRegistry: new FileRepositoryRegistry(rootDirectory),
     planRegistry: new FilePlanRegistry(rootDirectory),
-    runRegistry: new FileRunRegistry(rootDirectory)
+    runRegistry: new FileRunRegistry(rootDirectory),
+    eventLog,
+    snapshotProjector: new EventLogSnapshotProjector(eventLog)
   };
 };
 
