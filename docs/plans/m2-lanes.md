@@ -12,13 +12,13 @@ Split M2 into five lanes: one shared-contract foundation lane, one fully indepen
 
 ## Lane Summary
 
-| Lane                                  | Branch                     | Scope                                                     | Depends on                      | Status                  |
-| ------------------------------------- | -------------------------- | --------------------------------------------------------- | ------------------------------- | ----------------------- |
-| Lane 00 — Shared contracts foundation | `m2/00-shared-contracts`   | Add all M2 shared Zod schemas and exports                 | None                            | MERGED (PR #6, 7ffdbe3) |
-| Lane 10 — DOT validation pipeline     | `m2/10-dot-validator`      | Parse DOT and validate v1 node subset                     | None                            | MERGED (PR #7, 039e962) |
-| Lane 20 — Event log storage           | `m2/20-event-log`          | `EventLog` interface + JSONL file implementation per run  | Lane 00                         | in-progress             |
-| Lane 30 — Worktree manager skeleton   | `m2/30-worktree-manager`   | `WorktreeManager` skeleton with acquire/release/reconcile | Lane 00                         | in-progress             |
-| Lane 40 — Snapshot projector          | `m2/40-snapshot-projector` | `SnapshotProjector` + storage composition wiring          | Lane 00, then Lane 20 for merge | pending                 |
+| Lane                                  | Branch                     | Scope                                                     | Depends on                      | Status                   |
+| ------------------------------------- | -------------------------- | --------------------------------------------------------- | ------------------------------- | ------------------------ |
+| Lane 00 — Shared contracts foundation | `m2/00-shared-contracts`   | Add all M2 shared Zod schemas and exports                 | None                            | MERGED (PR #6, 7ffdbe3)  |
+| Lane 10 — DOT validation pipeline     | `m2/10-dot-validator`      | Parse DOT and validate v1 node subset                     | None                            | MERGED (PR #7, 039e962)  |
+| Lane 20 — Event log storage           | `m2/20-event-log`          | `EventLog` interface + JSONL file implementation per run  | Lane 00                         | MERGED (PR #8, ec7af5c)  |
+| Lane 30 — Worktree manager skeleton   | `m2/30-worktree-manager`   | `WorktreeManager` skeleton with acquire/release/reconcile | Lane 00                         | MERGED (PR #9, 0a8c0b8)  |
+| Lane 40 — Snapshot projector          | `m2/40-snapshot-projector` | `SnapshotProjector` + storage composition wiring          | Lane 00, then Lane 20 for merge | MERGED (PR #10, 0149062) |
 
 ## Lane Details
 

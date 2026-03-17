@@ -48,7 +48,7 @@ This file tracks completed phases, current work, and the next intended handoff s
 - **PR #3** (webview shell): Lane 3 — Webview Shell merged
 - **PR #5** (extension runtime spine): Lane 4 — Extension Runtime Spine merged at `b28634d`
 
-### M2 Wave 1 — Contracts + DOT Validator (both merged, 2026-03-17)
+### M2 — Backend Spine (all 5 lanes merged, 2026-03-17)
 
 - **PR #6** (`m2/00-shared-contracts`): Lane 00 — Shared Contracts Foundation merged at `7ffdbe3`
   - Added `ExtensionEventSchema`, `WorktreeLeaseSchema`, `MilestoneRecordSchema`, `RunSnapshotSchema`
@@ -57,54 +57,34 @@ This file tracks completed phases, current work, and the next intended handoff s
   - Implemented `validateDot()` with `@ts-graphviz/parser`
   - Diagnostics: missing-start, missing-exit, unsupported-node-type, unreachable-node, parse-error
   - 87/87 tests; typecheck and lint clean
-- `main` is now at `039e962`
+- **PR #8** (`m2/20-event-log`): Lane 20 — FileEventLog merged at `ec7af5c`
+  - Append-only JSONL event log; `append()`, `listByRun()` with schema validation
+  - 108/108 tests; typecheck and lint clean
+- **PR #9** (`m2/30-worktree-manager`): Lane 30 — GitWorktreeManager merged at `0a8c0b8`
+  - In-memory worktree lease manager with acquire/release/reconcile
+  - 107/107 tests; typecheck and lint clean
+- **PR #10** (`m2/40-snapshot-projector`): Lane 40 — SnapshotProjector + services wiring merged at `0149062`
+  - Event-sourced `EventLogSnapshotProjector`; `eventLog` + `snapshotProjector` wired into `StorageServices`
+  - 125/125 tests; typecheck and lint clean
+- `main` is now at `0149062`
 
 ## In Progress
 
-### M2 Wave 2 — Event Log + Worktree Manager
-
-Current focus:
-
-- **Lane 20** (`m2/20-event-log`): `EventLog` interface + JSONL file implementation per run
-- **Lane 30** (`m2/30-worktree-manager`): `WorktreeManager` skeleton with acquire/release/reconcile
-
-Both lanes depend on Lane 00 (now merged). They can run in parallel.
-
-Active worktrees:
-
-- `C:/_git/vs-code-orchestrator-attractor-lane20` → `m2/20-event-log`
-- `C:/_git/vs-code-orchestrator-attractor-lane30` → `m2/30-worktree-manager`
+_Nothing in progress. M2 is complete._
 
 ## Next Up
 
-### M2 Wave 2 — Lane Details
+### M3 Planning
 
-**Lane 20 — Event Log Storage**
+M2 (Backend Spine) is fully shipped. Next milestone (M3) has not been planned yet.
 
-- Define `EventLog` interface in `packages/extension/src/storage/events/index.ts`
-- Implement `packages/extension/src/storage/events/file-event-log.ts`
-- Use append-only JSONL at `storage/runs/<run-id>/events.jsonl`
-- Consume `ExtensionEventSchema` from shared contracts
+Likely candidates based on roadmap:
 
-**Lane 30 — Worktree Manager Skeleton**
-
-- Define `WorktreeManager` interface in `packages/extension/src/worktrees/index.ts`
-- Implement `packages/extension/src/worktrees/worktree-manager.ts`
-- Shell out to `git` through a thin Node `child_process` wrapper
-- Consume `WorktreeLeaseSchema` from shared contracts
-
-### M2 Wave 3 — Snapshot Projector
-
-**Lane 40** can start once Lane 00 merges (done); safest merge is after Lane 20.
-
-- Define `SnapshotProjector` in `packages/extension/src/storage/snapshots/`
-- Project `RunSnapshot` from event stream via `EventLog.listByRun()`
-- Wire into `createStorageServices()` in `packages/extension/src/storage/services.ts`
+- Runner execution loop (wire contracts → worktree → event log → snapshot into a run lifecycle)
+- Webview integration (expose `StorageServices` snapshots to the overview dashboard)
+- CLI / command palette surface (trigger runs, inspect status)
 
 ## Session Resume Note
 
-If a future session resumes here, start from **M2 Wave 2** (Lane 20 and Lane 30).
-Both Wave 1 lanes are merged. Wave 2 worktrees are at:
-
-- `C:/_git/vs-code-orchestrator-attractor-lane20` → `m2/20-event-log`
-- `C:/_git/vs-code-orchestrator-attractor-lane30` → `m2/30-worktree-manager`
+If a future session resumes here, **M2 is complete** — all 5 lanes are merged to `main` at `0149062`.
+No active worktrees or feature branches remain. Start M3 planning from `docs/plans/roadmap.md`.

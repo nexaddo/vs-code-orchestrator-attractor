@@ -4,12 +4,20 @@ Repository planning workspace for a VS Code extension that implements Attractor-
 
 ## Current Focus
 
-- M0 scaffold is complete and committed on `main`
-- M1 prep is in progress: parallel lane definition, drift control, and first contract/runtime/webview slices
-- Define the backend architecture, contracts, and persistence model
-- Define the v1 repository-first dashboard and first mockups
+- **M2 (Backend Spine) is complete** — all 5 lanes merged to `main` at `0149062`
+- M0, M1, and M2 milestones are fully shipped
+- Next: M3 planning (runner execution loop, webview integration, CLI surface)
 - Keep v1 scoped to one writable repository per plan, with additional read-only context repositories
 - Defer `parallel`, `fan_in`, `tool`, and `manager_loop` to v1.1
+
+## Milestone Status
+
+| Milestone          | Status         | Notes                                                                                        |
+| ------------------ | -------------- | -------------------------------------------------------------------------------------------- |
+| M0 — Scaffold      | ✅ MERGED      | Tooling, CI, workspace                                                                       |
+| M1 — First Slices  | ✅ MERGED      | Contracts, webview shell, runtime spine (PRs #1–5)                                           |
+| M2 — Backend Spine | ✅ MERGED      | Shared contracts, DOT validator, event log, worktree manager, snapshot projector (PRs #6–10) |
+| M3 — Runner Loop   | 🔲 Not started |                                                                                              |
 
 ## Planning Docs
 
@@ -31,7 +39,6 @@ Repository planning workspace for a VS Code extension that implements Attractor-
 
 ## Near-Term Next Steps
 
-1. Start the first parallel lanes with worktrees and feature branches
-2. Tighten shared contracts for plans, runs, milestones, and events
-3. Build the first runtime spine and webview shell slices in parallel
-4. Add a drift-review pass at the end of each loop to keep implementation aligned with the plan
+1. Plan M3 milestone from `docs/plans/roadmap.md`
+2. Define M3 lanes: runner execution loop, webview integration, CLI surface
+3. Continue parallel-lane approach with worktrees and drift reviews at each loop end
