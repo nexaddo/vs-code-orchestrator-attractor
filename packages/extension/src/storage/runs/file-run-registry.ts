@@ -7,6 +7,7 @@ export interface RunRegistry {
   save(record: RunRecord): Promise<RunRecord>;
   getById(id: string): Promise<RunRecord | null>;
   list(): Promise<RunRecord[]>;
+  listActiveRuns(): Promise<RunRecord[]>;
 }
 
 const RUNS_DIRECTORY = path.join("storage", "runs");
@@ -108,6 +109,16 @@ export class FileRunRegistry implements RunRegistry {
 
       throw error;
     }
+  }
+
+  async listActiveRuns(): Promise<RunRecord[]> {
+    const activeStatuses = new Set<RunRecord["status"]>([
+      "queued",
+      "running",
+      "paused"
+    ]);
+    const all = await this.list();
+    return all.filter((r) => activeStatuses.has(r.status));
   }
 
   private getRunsDirectory(): string {
