@@ -56,7 +56,7 @@ describe("validateDot", () => {
     });
   });
 
-  describe("missing-start diagnostic", () => {
+  describe("start-node diagnostics", () => {
     it("returns missing-start diagnostic when no start node exists", () => {
       const source = loadFixture("invalid/missing-start.dot");
       const result = validateDot(source);
@@ -66,9 +66,9 @@ describe("validateDot", () => {
       expect(codes).toContain("missing-start");
     });
 
-    it("returns missing-start when node id is start but no type attribute matches", () => {
-      // A node named 'start' with wrong type attribute should NOT satisfy the start check
-      // unless its id alone matches (allowed fall-through). Here we confirm id-based fallthrough works.
+    it("accepts id-based fallthrough when a node id is start", () => {
+      // A node named 'start' with no explicit type should still satisfy the
+      // start check via id-based fallthrough.
       const source = `
         digraph id_based {
           start
@@ -91,6 +91,42 @@ describe("validateDot", () => {
       expect(result.valid).toBe(false);
       const codes = result.diagnostics.map((d) => d.code);
       expect(codes).toContain("missing-exit");
+    });
+
+    it("returns invalid-exit-count when multiple exit nodes exist", () => {
+      const source = `
+        digraph many_exit {
+          start [type=start]
+          done1 [type=exit]
+          done2 [type=exit]
+          start -> done1
+          start -> done2
+        }
+      `;
+      const result = validateDot(source);
+
+      expect(result.valid).toBe(false);
+      const codes = result.diagnostics.map((d) => d.code);
+      expect(codes).toContain("invalid-exit-count");
+    });
+  });
+
+  describe("invalid-start-count diagnostic", () => {
+    it("returns invalid-start-count when multiple start nodes exist", () => {
+      const source = `
+        digraph many_start {
+          start1 [type=start]
+          start2 [type=start]
+          done [type=exit]
+          start1 -> done
+          start2 -> done
+        }
+      `;
+      const result = validateDot(source);
+
+      expect(result.valid).toBe(false);
+      const codes = result.diagnostics.map((d) => d.code);
+      expect(codes).toContain("invalid-start-count");
     });
   });
 
