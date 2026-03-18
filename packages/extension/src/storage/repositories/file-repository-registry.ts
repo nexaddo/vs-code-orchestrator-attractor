@@ -6,6 +6,8 @@ import {
   type RepositoryRecord
 } from "@attractor/shared";
 
+import { assertSafeStorageId } from "../path-safety";
+
 export interface RepositoryRegistry {
   save(record: RepositoryRecord): Promise<RepositoryRecord>;
   getById(id: string): Promise<RepositoryRecord | null>;
@@ -13,24 +15,6 @@ export interface RepositoryRegistry {
 }
 
 const REPOSITORIES_DIRECTORY = path.join("storage", "repositories");
-
-// Windows reserved device names that are illegal as filenames on any Windows path.
-const WINDOWS_RESERVED_NAMES = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])[. ]*$/i;
-
-const assertSafeRepositoryId = (id: string): void => {
-  if (id.includes("/") || id.includes("\\")) {
-    throw new Error(`Repository id must not contain path separators: ${id}`);
-  }
-  if (id.includes(":")) {
-    throw new Error(`Repository id must not contain a colon: ${id}`);
-  }
-  if (id.includes("\0")) {
-    throw new Error(`Repository id must not contain null bytes: ${id}`);
-  }
-  if (WINDOWS_RESERVED_NAMES.test(id)) {
-    throw new Error(`Repository id is a reserved filename on Windows: ${id}`);
-  }
-};
 
 const parseRepositoryRecord = (
   serialized: string,
@@ -60,7 +44,7 @@ export class FileRepositoryRegistry implements RepositoryRegistry {
 
   async save(record: RepositoryRecord): Promise<RepositoryRecord> {
     const parsedRecord = RepositoryRecordSchema.parse(record);
-    assertSafeRepositoryId(parsedRecord.id);
+    assertSafeStorageId(parsedRecord.id, "Repository id");
 
     const filePath = this.getFilePath(parsedRecord.id);
     await mkdir(path.dirname(filePath), { recursive: true });
@@ -73,7 +57,7 @@ export class FileRepositoryRegistry implements RepositoryRegistry {
   }
 
   async getById(id: string): Promise<RepositoryRecord | null> {
-    assertSafeRepositoryId(id);
+    assertSafeStorageId(id, "Repository id");
     const filePath = this.getFilePath(id);
 
     try {

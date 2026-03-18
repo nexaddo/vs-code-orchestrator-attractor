@@ -3,6 +3,8 @@ import path from "node:path";
 
 import { PlanRecordSchema, type PlanRecord } from "@attractor/shared";
 
+import { assertSafeStorageId } from "../path-safety";
+
 export interface PlanRegistry {
   save(record: PlanRecord): Promise<PlanRecord>;
   getById(id: string): Promise<PlanRecord | null>;
@@ -10,24 +12,6 @@ export interface PlanRegistry {
 }
 
 const PLANS_DIRECTORY = path.join("storage", "plans");
-
-// Windows reserved device names that are illegal as filenames on any Windows path.
-const WINDOWS_RESERVED_NAMES = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])[. ]*$/i;
-
-const assertSafePlanId = (id: string): void => {
-  if (id.includes("/") || id.includes("\\")) {
-    throw new Error(`Plan id must not contain path separators: ${id}`);
-  }
-  if (id.includes(":")) {
-    throw new Error(`Plan id must not contain a colon: ${id}`);
-  }
-  if (id.includes("\0")) {
-    throw new Error(`Plan id must not contain null bytes: ${id}`);
-  }
-  if (WINDOWS_RESERVED_NAMES.test(id)) {
-    throw new Error(`Plan id is a reserved filename on Windows: ${id}`);
-  }
-};
 
 const parsePlanRecord = (serialized: string, filePath: string): PlanRecord => {
   let parsed: unknown;
@@ -54,7 +38,7 @@ export class FilePlanRegistry implements PlanRegistry {
 
   async save(record: PlanRecord): Promise<PlanRecord> {
     const parsedRecord = PlanRecordSchema.parse(record);
-    assertSafePlanId(parsedRecord.id);
+    assertSafeStorageId(parsedRecord.id, "Plan id");
 
     const filePath = this.getFilePath(parsedRecord.id);
     await mkdir(path.dirname(filePath), { recursive: true });
@@ -67,7 +51,7 @@ export class FilePlanRegistry implements PlanRegistry {
   }
 
   async getById(id: string): Promise<PlanRecord | null> {
-    assertSafePlanId(id);
+    assertSafeStorageId(id, "Plan id");
     const filePath = this.getFilePath(id);
 
     try {
