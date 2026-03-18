@@ -33,14 +33,15 @@ export function decodeOverviewState(
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const detail = error.errors
+        .map((e) => {
+          const location = e.path.length > 0 ? e.path.join(".") : "(root)";
+          return `${location}: ${e.message}`;
+        })
+        .join(", ");
       return {
         success: false,
-        error: `Invalid overview.state message: ${error.errors
-          .map((e) => {
-            const location = e.path.length > 0 ? e.path.join(".") : "(root)";
-            return `${location}: ${e.message}`;
-          })
-          .join(", ")}`
+        error: `Failed to decode overview.state: ${detail}`
       };
     }
     return {

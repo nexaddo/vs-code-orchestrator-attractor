@@ -9,13 +9,28 @@
   "main": "dist/src/extension.js",
   "types": "dist/src/extension.d.ts",
   "activationEvents": [
-    "onCommand:attractor.hello"
+    "onCommand:attractor.hello",
+    "onCommand:attractor.run.start",
+    "onCommand:attractor.run.cancel",
+    "onCommand:attractor.plan.create"
   ],
   "contributes": {
     "commands": [
       {
         "command": "attractor.hello",
         "title": "Attractor: Hello"
+      },
+      {
+        "command": "attractor.run.start",
+        "title": "Attractor: Start Run"
+      },
+      {
+        "command": "attractor.run.cancel",
+        "title": "Attractor: Cancel Run"
+      },
+      {
+        "command": "attractor.plan.create",
+        "title": "Attractor: Create Plan"
       }
     ]
   },

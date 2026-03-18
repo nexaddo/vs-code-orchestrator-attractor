@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "id": "run_001",
+  "planId": "plan_001",
+  "graphId": "graph_001",
+  "worktreeId": "worktree_001",
+  "status": "queued",
+  "createdAt": "2026-01-01T00:00:00.000Z",
+  "updatedAt": "2026-01-01T00:00:00.000Z"
+}

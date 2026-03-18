@@ -146,3 +146,64 @@ export const PlanRecordSchema = z
   );
 
 export type PlanRecord = z.infer<typeof PlanRecordSchema>;
+
+// ── RunRecord ──────────────────────────────────────────────────────────────
+
+export const RunStatusSchema = z.enum([
+  "queued",
+  "running",
+  "paused",
+  "completed",
+  "failed",
+  "canceled"
+]);
+
+export const RunRecordSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  id: z.string().min(1),
+  planId: z.string().min(1),
+  graphId: z.string().min(1),
+  worktreeId: z.string().min(1),
+  status: RunStatusSchema,
+  createdAt: z.string().min(1),
+  updatedAt: z.string().min(1),
+  startedAt: z.string().min(1).optional(),
+  completedAt: z.string().min(1).optional()
+});
+
+export type RunRecord = z.infer<typeof RunRecordSchema>;
+
+// ── GraphRecord ────────────────────────────────────────────────────────────
+
+export const GraphNodeSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  dependsOn: z.array(z.string())
+});
+
+export const GraphRecordSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  id: z.string().min(1),
+  planId: z.string().min(1),
+  source: z.string().min(1),
+  nodes: z.array(GraphNodeSchema).min(1),
+  createdAt: z.string().min(1)
+});
+
+export type GraphNode = z.infer<typeof GraphNodeSchema>;
+export type GraphRecord = z.infer<typeof GraphRecordSchema>;
+
+// ── EventEnvelope ──────────────────────────────────────────────────────────
+
+export const EventEnvelopeSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  id: z.string().min(1),
+  name: z.string().min(1),
+  aggregateType: z.string().min(1),
+  aggregateId: z.string().min(1),
+  correlationId: z.string().min(1),
+  timestamp: z.string().min(1),
+  payload: z.record(z.string(), z.unknown())
+});
+
+export type EventEnvelope = z.infer<typeof EventEnvelopeSchema>;
