@@ -14,7 +14,7 @@ const readJson = <T>(filePath: string): T => {
 
 // Resolve root from test file location (test/meta/workflow-drift.test.ts)
 // Go up 2 levels to reach the repository root.
-// Uses import.meta.url so this works in both ESM and CJS contexts.
+// Uses import.meta.url; requires ESM (or a test runner that supports import.meta.url).
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, "../..");
