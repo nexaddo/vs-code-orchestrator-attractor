@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CONTRACT_VERSION,
   type PlanRecord,
   type RepositoryRecord,
   type RunRecord
@@ -14,7 +15,7 @@ import { projectOverview } from "../../src/dashboard/overview-projection";
 // ---------------------------------------------------------------------------
 
 const makeRepo = (id: string): RepositoryRecord => ({
-  version: 1,
+  version: CONTRACT_VERSION,
   id,
   name: `repo-${id}`,
   rootUri: `/workspace/${id}`,
@@ -23,7 +24,7 @@ const makeRepo = (id: string): RepositoryRecord => ({
 });
 
 const makeRun = (id: string, status: RunRecord["status"]): RunRecord => ({
-  version: 1,
+  version: CONTRACT_VERSION,
   id,
   planId: "plan-1",
   status,
@@ -37,7 +38,7 @@ const notImplemented = (): never => {
 };
 
 const makePlan = (id: string): PlanRecord => ({
-  version: 1,
+  version: CONTRACT_VERSION,
   id,
   title: `plan-${id}`,
   goal: `goal-${id}`,
