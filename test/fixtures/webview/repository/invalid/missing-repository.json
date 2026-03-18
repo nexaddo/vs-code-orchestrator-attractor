@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "requestId": "req-repo-invalid-002",
+  "type": "repository.state",
+  "payload": {
+    "plans": []
+  }
+}

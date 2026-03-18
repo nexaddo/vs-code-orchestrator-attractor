@@ -207,3 +207,87 @@ export const EventEnvelopeSchema = z.object({
 });
 
 export type EventEnvelope = z.infer<typeof EventEnvelopeSchema>;
+
+// ── WorktreeLease ───────────────────────────────────────────────────────────
+
+export const WorktreeLeaseStatusSchema = z.enum([
+  "allocated",
+  "preparing",
+  "busy",
+  "releasing",
+  "retained"
+]);
+
+export const WorktreeLeaseSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  runId: z.string().min(1),
+  worktreePath: z.string().min(1),
+  status: WorktreeLeaseStatusSchema,
+  createdAt: z.string().min(1),
+  updatedAt: z.string().min(1)
+});
+
+export type WorktreeLeaseStatus = z.infer<typeof WorktreeLeaseStatusSchema>;
+export type WorktreeLease = z.infer<typeof WorktreeLeaseSchema>;
+
+export const WorktreeLeaseStoreRecordSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  leases: z.array(WorktreeLeaseSchema)
+});
+
+export type WorktreeLeaseStoreRecord = z.infer<
+  typeof WorktreeLeaseStoreRecordSchema
+>;
+
+// ── Typed webview payload schemas ───────────────────────────────────────────
+
+export const RepositoryStatePayloadSchema = z.object({
+  repository: RepositoryRecordSchema,
+  plans: z.array(PlanRecordSchema)
+});
+
+export type RepositoryStatePayload = z.infer<typeof RepositoryStatePayloadSchema>;
+
+export const NodeStatusValueSchema = z.enum(["pending", "running", "done", "failed"]);
+
+export type NodeStatusValue = z.infer<typeof NodeStatusValueSchema>;
+
+export const NodeStatusSchema = z.object({
+  nodeId: z.string().min(1),
+  status: NodeStatusValueSchema
+});
+
+export type NodeStatus = z.infer<typeof NodeStatusSchema>;
+
+export const PlanStatePayloadSchema = z.object({
+  plan: PlanRecordSchema,
+  graph: GraphRecordSchema.nullable(),
+  runs: z.array(RunRecordSchema),
+  activeRun: RunRecordSchema.nullable()
+});
+
+export type PlanStatePayload = z.infer<typeof PlanStatePayloadSchema>;
+
+export const RunStatePayloadSchema = z.object({
+  run: RunRecordSchema,
+  plan: PlanRecordSchema,
+  currentStep: z.string().nullable(),
+  logTail: z.array(z.string())
+});
+
+export type RunStatePayload = z.infer<typeof RunStatePayloadSchema>;
+
+export const TimelineUpdatePayloadSchema = z.object({
+  runId: z.string().min(1),
+  events: z.array(EventEnvelopeSchema)
+});
+
+export type TimelineUpdatePayload = z.infer<typeof TimelineUpdatePayloadSchema>;
+
+export const GraphUpdatePayloadSchema = z.object({
+  runId: z.string().min(1),
+  graph: GraphRecordSchema,
+  nodeStatuses: z.array(NodeStatusSchema)
+});
+
+export type GraphUpdatePayload = z.infer<typeof GraphUpdatePayloadSchema>;

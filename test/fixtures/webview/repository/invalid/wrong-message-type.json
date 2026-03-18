@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "requestId": "req-repo-invalid-001",
+  "type": "overview.state",
+  "payload": {
+    "repository": {
+      "version": 1,
+      "id": "repo_alpha",
+      "name": "repo-alpha",
+      "rootUri": "file:///workspace/repo-alpha",
+      "defaultBranch": "main",
+      "labels": []
+    },
+    "plans": []
+  }
+}

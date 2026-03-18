@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "requestId": "req-graph-invalid-002",
+  "type": "graph.update",
+  "payload": {
+    "runId": "run_001",
+    "nodeStatuses": []
+  }
+}

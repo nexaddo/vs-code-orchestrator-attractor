@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "requestId": "req-plan-invalid-002",
+  "type": "plan.state",
+  "payload": {
+    "graph": null,
+    "runs": [],
+    "activeRun": null
+  }
+}

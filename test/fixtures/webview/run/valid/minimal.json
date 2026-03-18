@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "requestId": "req-run-001",
+  "type": "run.state",
+  "payload": {
+    "run": {
+      "version": 1,
+      "id": "run_001",
+      "planId": "plan_001",
+      "graphId": "graph_001",
+      "worktreeId": "wt_001",
+      "status": "running",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:01:00.000Z",
+      "startedAt": "2026-01-01T00:00:30.000Z"
+    },
+    "plan": {
+      "version": 1,
+      "id": "plan_001",
+      "title": "Implement Feature X",
+      "goal": "Add feature X to the codebase",
+      "status": "running",
+      "repositories": [
+        {
+          "repositoryId": "repo_alpha",
+          "role": "executable",
+          "access": "read_write",
+          "mountAlias": "src"
+        }
+      ],
+      "primaryExecutableRepositoryId": "repo_alpha",
+      "graphSource": "digraph G { A -> B }",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    "currentStep": "A",
+    "logTail": ["[INFO] Starting step A", "[INFO] Processing..."]
+  }
+}

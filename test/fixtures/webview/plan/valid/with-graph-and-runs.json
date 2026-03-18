@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "requestId": "req-plan-002",
+  "type": "plan.state",
+  "payload": {
+    "plan": {
+      "version": 1,
+      "id": "plan_001",
+      "title": "Implement Feature X",
+      "goal": "Add feature X to the codebase",
+      "status": "running",
+      "repositories": [
+        {
+          "repositoryId": "repo_alpha",
+          "role": "executable",
+          "access": "read_write",
+          "mountAlias": "src"
+        }
+      ],
+      "primaryExecutableRepositoryId": "repo_alpha",
+      "graphSource": "digraph G { A -> B }",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-02T00:00:00.000Z"
+    },
+    "graph": {
+      "version": 1,
+      "id": "graph_001",
+      "planId": "plan_001",
+      "source": "digraph G { A -> B }",
+      "nodes": [
+        { "id": "A", "label": "Step A", "dependsOn": [] },
+        { "id": "B", "label": "Step B", "dependsOn": ["A"] }
+      ],
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    "runs": [
+      {
+        "version": 1,
+        "id": "run_001",
+        "planId": "plan_001",
+        "graphId": "graph_001",
+        "worktreeId": "wt_001",
+        "status": "running",
+        "createdAt": "2026-01-02T00:00:00.000Z",
+        "updatedAt": "2026-01-02T00:01:00.000Z",
+        "startedAt": "2026-01-02T00:00:30.000Z"
+      }
+    ],
+    "activeRun": {
+      "version": 1,
+      "id": "run_001",
+      "planId": "plan_001",
+      "graphId": "graph_001",
+      "worktreeId": "wt_001",
+      "status": "running",
+      "createdAt": "2026-01-02T00:00:00.000Z",
+      "updatedAt": "2026-01-02T00:01:00.000Z",
+      "startedAt": "2026-01-02T00:00:30.000Z"
+    }
+  }
+}

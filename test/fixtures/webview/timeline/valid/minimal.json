@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "requestId": "req-timeline-001",
+  "type": "timeline.update",
+  "payload": {
+    "runId": "run_001",
+    "events": [
+      {
+        "version": 1,
+        "id": "evt_001",
+        "name": "run.started",
+        "aggregateType": "Run",
+        "aggregateId": "run_001",
+        "correlationId": "corr_001",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "payload": {}
+      },
+      {
+        "version": 1,
+        "id": "evt_002",
+        "name": "step.started",
+        "aggregateType": "Run",
+        "aggregateId": "run_001",
+        "correlationId": "corr_001",
+        "timestamp": "2026-01-01T00:00:01.000Z",
+        "payload": { "stepId": "A" }
+      }
+    ]
+  }
+}
