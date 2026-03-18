@@ -3,28 +3,10 @@ import path from "node:path";
 
 import { ExtensionEventSchema, type ExtensionEvent } from "@attractor/shared";
 
+import { assertSafeStorageId } from "../path-safety";
 import { type EventLog } from "./index";
 
 const RUNS_DIRECTORY = path.join("storage", "runs");
-const WINDOWS_RESERVED_NAMES = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])[. ]*$/i;
-
-const assertSafeRunId = (id: string): void => {
-  if (!id) {
-    throw new Error("Run id must not be empty");
-  }
-  if (id.includes("/") || id.includes("\\")) {
-    throw new Error(`Run id must not contain path separators: ${id}`);
-  }
-  if (id.includes(":")) {
-    throw new Error(`Run id must not contain a colon: ${id}`);
-  }
-  if (id.includes("\0")) {
-    throw new Error(`Run id must not contain null bytes: ${id}`);
-  }
-  if (WINDOWS_RESERVED_NAMES.test(id)) {
-    throw new Error(`Run id is a reserved filename on Windows: ${id}`);
-  }
-};
 
 /**
  * File-backed EventLog implementation.
@@ -40,7 +22,7 @@ export class FileEventLog implements EventLog {
   constructor(private readonly storageRoot: string) {}
 
   private logPath(runId: string): string {
-    assertSafeRunId(runId);
+    assertSafeStorageId(runId, "Run id");
     return path.join(this.storageRoot, RUNS_DIRECTORY, runId, "events.jsonl");
   }
 
