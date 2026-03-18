@@ -3,8 +3,7 @@ import type { EventPublisher } from "../application/ports";
 
 export class NoOpEventPublisher implements EventPublisher {
   async publish(event: DomainEvent): Promise<void> {
-    // TODO(M2): persist to events.ndjson
     void event;
-    await Promise.resolve();
+    // No-op: in M4 this will broadcast to webview via Copilot adapter
   }
 }

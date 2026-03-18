@@ -246,9 +246,16 @@ export const RepositoryStatePayloadSchema = z.object({
   plans: z.array(PlanRecordSchema)
 });
 
-export type RepositoryStatePayload = z.infer<typeof RepositoryStatePayloadSchema>;
+export type RepositoryStatePayload = z.infer<
+  typeof RepositoryStatePayloadSchema
+>;
 
-export const NodeStatusValueSchema = z.enum(["pending", "running", "done", "failed"]);
+export const NodeStatusValueSchema = z.enum([
+  "pending",
+  "running",
+  "done",
+  "failed"
+]);
 
 export type NodeStatusValue = z.infer<typeof NodeStatusValueSchema>;
 

@@ -1,9 +1,14 @@
-import { commands, type ExtensionContext } from "vscode";
+import { commands, type ExtensionContext, workspace } from "vscode";
 
 import { activateAttractor } from "./runtime";
 
 export const activate = (context: ExtensionContext): void => {
-  activateAttractor(context, commands);
+  const folders = workspace.workspaceFolders;
+  const workspaceRoot =
+    folders !== undefined && folders.length > 0 && folders[0] !== undefined
+      ? folders[0].uri.fsPath
+      : context.extensionPath;
+  activateAttractor(context, commands, workspaceRoot);
 };
 
 export const deactivate = (): void => {
