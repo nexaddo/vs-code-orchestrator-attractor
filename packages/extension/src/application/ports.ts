@@ -54,3 +54,26 @@ export interface RepositoryRegistry {
   list(): Promise<RepositoryRecord[]>;
   find(repoId: string): Promise<RepositoryRecord | undefined>;
 }
+
+// ── ModelGateway port ────────────────────────────────────────────────────────
+
+export interface ModelMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ModelRequestOptions {
+  systemPrompt?: string;
+}
+
+export interface ModelGateway {
+  send(
+    messages: ModelMessage[],
+    options?: ModelRequestOptions
+  ): Promise<string>;
+  stream(
+    messages: ModelMessage[],
+    onChunk: (text: string) => void,
+    options?: ModelRequestOptions
+  ): Promise<void>;
+}

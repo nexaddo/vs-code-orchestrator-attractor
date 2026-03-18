@@ -41,6 +41,7 @@ export const WebviewOutboundMessageTypeSchema = z.enum([
   "run.state",
   "timeline.update",
   "graph.update",
+  "orchestration.state",
   "toast"
 ]);
 
@@ -270,7 +271,8 @@ export const PlanStatePayloadSchema = z.object({
   plan: PlanRecordSchema,
   graph: GraphRecordSchema.nullable(),
   runs: z.array(RunRecordSchema),
-  activeRun: RunRecordSchema.nullable()
+  activeRun: RunRecordSchema.nullable(),
+  repositories: z.array(RepositoryRecordSchema).optional()
 });
 
 export type PlanStatePayload = z.infer<typeof PlanStatePayloadSchema>;
@@ -279,7 +281,8 @@ export const RunStatePayloadSchema = z.object({
   run: RunRecordSchema,
   plan: PlanRecordSchema,
   currentStep: z.string().nullable(),
-  logTail: z.array(z.string())
+  logTail: z.array(z.string()),
+  repositories: z.array(RepositoryRecordSchema).optional()
 });
 
 export type RunStatePayload = z.infer<typeof RunStatePayloadSchema>;
@@ -298,3 +301,92 @@ export const GraphUpdatePayloadSchema = z.object({
 });
 
 export type GraphUpdatePayload = z.infer<typeof GraphUpdatePayloadSchema>;
+
+// ── Orchestration / Agent Role schemas ─────────────────────────────────────
+
+export const AgentRoleSchema = z.enum([
+  "orchestrator",
+  "planner",
+  "implementer",
+  "reviewer"
+]);
+
+export type AgentRole = z.infer<typeof AgentRoleSchema>;
+
+export const AgentRoleStatusSchema = z.enum([
+  "done",
+  "running",
+  "waiting",
+  "failed",
+  "skipped"
+]);
+
+export type AgentRoleStatus = z.infer<typeof AgentRoleStatusSchema>;
+
+export const AgentRolePhaseSchema = z.object({
+  role: AgentRoleSchema,
+  status: AgentRoleStatusSchema,
+  taskSummary: z.string().optional(),
+  errorLabel: z.string().optional()
+});
+
+export type AgentRolePhase = z.infer<typeof AgentRolePhaseSchema>;
+
+export const OrchestrationStatePayloadSchema = z.object({
+  runId: z.string().min(1),
+  milestoneIndex: z.number().int().min(1),
+  milestoneCount: z.number().int().min(1),
+  milestoneName: z.string().min(1),
+  phases: z.array(AgentRolePhaseSchema).length(4)
+});
+
+export type OrchestrationStatePayload = z.infer<
+  typeof OrchestrationStatePayloadSchema
+>;
+
+// ── Handoff Artifacts ────────────────────────────────────────────────────────
+
+export const OrchestratorHandoffSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  milestoneId: z.string().min(1),
+  milestoneName: z.string().min(1),
+  description: z.string().min(1),
+  acceptanceCriteria: z.array(z.string()).min(1)
+});
+
+export type OrchestratorHandoff = z.infer<typeof OrchestratorHandoffSchema>;
+
+export const PlannerTaskSchema = z.object({
+  id: z.string().min(1),
+  description: z.string().min(1),
+  testFirst: z.boolean()
+});
+
+export const PlannerHandoffSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  milestoneId: z.string().min(1),
+  tasks: z.array(PlannerTaskSchema).min(1),
+  filesLikelyAffected: z.array(z.string())
+});
+
+export type PlannerHandoff = z.infer<typeof PlannerHandoffSchema>;
+
+export const ImplementerHandoffSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  milestoneId: z.string().min(1),
+  tasksCompleted: z.array(z.string()),
+  summary: z.string().min(1),
+  testsPassed: z.boolean()
+});
+
+export type ImplementerHandoff = z.infer<typeof ImplementerHandoffSchema>;
+
+export const ReviewerHandoffSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  milestoneId: z.string().min(1),
+  approved: z.boolean(),
+  comments: z.array(z.string()),
+  requiresChanges: z.boolean()
+});
+
+export type ReviewerHandoff = z.infer<typeof ReviewerHandoffSchema>;

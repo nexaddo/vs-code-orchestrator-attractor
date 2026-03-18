@@ -1,4 +1,5 @@
-import { RunCommandHandler } from "./application";
+import { OrchestrationLoop, RunCommandHandler } from "./application";
+import type { ModelGateway } from "./application";
 import {
   FileGraphRepository,
   FileRepositoryRegistry,
@@ -6,7 +7,10 @@ import {
   FileWorktreeLeaseStore,
   GitWorktreeManager,
   NdjsonEventLog,
-  NoOpEventPublisher
+  NoOpEventPublisher,
+  registerChatParticipant,
+  WebviewBridge,
+  type ChatApiLike
 } from "./infrastructure";
 
 export const ATTRACTOR_HELLO_COMMAND = "attractor.hello";
@@ -29,12 +33,28 @@ export interface ExtensionContextLike {
   subscriptions: DisposableLike[];
 }
 
+class NoOpModelGateway implements ModelGateway {
+  async send(): Promise<string> {
+    return "";
+  }
+  async stream(): Promise<void> {
+    return;
+  }
+}
+
 export interface AttractorContainer {
   runCommandHandler: RunCommandHandler;
   repositoryRegistry: FileRepositoryRegistry;
+  graphRepo: FileGraphRepository;
+  leaseStore: FileWorktreeLeaseStore;
+  orchestrationLoop: OrchestrationLoop;
+  webviewBridge: WebviewBridge;
 }
 
-export function createContainer(workspaceRoot: string): AttractorContainer {
+export function createContainer(
+  workspaceRoot: string,
+  modelGateway: ModelGateway = new NoOpModelGateway()
+): AttractorContainer {
   const publisher = new NoOpEventPublisher();
   const runRepo = new FileRunRepository(workspaceRoot);
   const graphRepo = new FileGraphRepository(workspaceRoot);
@@ -42,9 +62,8 @@ export function createContainer(workspaceRoot: string): AttractorContainer {
   const eventLog = new NdjsonEventLog(workspaceRoot);
   const worktreeManager = new GitWorktreeManager(workspaceRoot);
   const repositoryRegistry = new FileRepositoryRegistry(workspaceRoot);
-
-  // graphRepo is available for M3+ use (stored in container scope)
-  void graphRepo;
+  const orchestrationLoop = new OrchestrationLoop(modelGateway);
+  const webviewBridge = new WebviewBridge();
 
   return {
     runCommandHandler: new RunCommandHandler(
@@ -54,7 +73,11 @@ export function createContainer(workspaceRoot: string): AttractorContainer {
       leaseStore,
       worktreeManager
     ),
-    repositoryRegistry
+    repositoryRegistry,
+    graphRepo,
+    leaseStore,
+    orchestrationLoop,
+    webviewBridge
   };
 }
 
@@ -67,12 +90,27 @@ export const registerAttractorCommands = (
       return;
     }),
     commandsApi.registerCommand(ATTRACTOR_RUN_START_COMMAND, () => {
-      // planId and graphId will be provided via args in M4+
-      void container.runCommandHandler.startRun({
-        planId: "",
-        graphId: "",
-        correlationId: crypto.randomUUID()
-      });
+      void (async () => {
+        const run = await container.runCommandHandler.startRun({
+          planId: "",
+          graphId: "",
+          correlationId: crypto.randomUUID()
+        });
+        if (run.graphId.length > 0) {
+          const graph = await container.graphRepo.find(run.graphId);
+          const lease = await container.leaseStore.findByRunId(run.id);
+          if (graph !== undefined && lease !== undefined) {
+            void container.orchestrationLoop.execute({
+              runId: run.id,
+              graph,
+              worktreePath: lease.worktreePath,
+              onStateUpdate: (state) => {
+                container.webviewBridge.postOrchestrationState(state);
+              }
+            });
+          }
+        }
+      })();
     }),
     commandsApi.registerCommand(ATTRACTOR_RUN_CANCEL_COMMAND, () => {
       return;
@@ -95,9 +133,14 @@ export const registerAttractorCommands = (
 export const activateAttractor = (
   context: ExtensionContextLike,
   commandsApi: CommandsApiLike,
-  workspaceRoot: string
+  workspaceRoot: string,
+  chatApi?: ChatApiLike,
+  modelGateway?: ModelGateway
 ): void => {
-  const container = createContainer(workspaceRoot);
+  const container = createContainer(workspaceRoot, modelGateway);
   const disposables = registerAttractorCommands(commandsApi, container);
   context.subscriptions.push(...disposables);
+  if (chatApi !== undefined) {
+    registerChatParticipant(chatApi, context);
+  }
 };
