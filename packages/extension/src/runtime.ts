@@ -87,8 +87,8 @@ export const activateAttractor = (
     }
     try {
       await handleWebviewMessage(parsed.data, services, panel);
-    } catch {
-      return;
+    } catch (error) {
+      console.error("Failed to handle webview message:", error);
     }
   };
 };
