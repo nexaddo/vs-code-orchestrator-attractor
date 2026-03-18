@@ -3,7 +3,11 @@ import crypto from "node:crypto";
 import path from "node:path";
 import { promisify } from "node:util";
 
-import { WorktreeLeaseSchema, type WorktreeLease } from "@attractor/shared";
+import {
+  CONTRACT_VERSION,
+  WorktreeLeaseSchema,
+  type WorktreeLease
+} from "@attractor/shared";
 
 import {
   type AcquireInput,
@@ -58,7 +62,7 @@ export class GitWorktreeManager implements WorktreeManager {
     }
 
     const lease = WorktreeLeaseSchema.parse({
-      version: 1,
+      version: CONTRACT_VERSION,
       id: leaseId,
       runId: input.runId,
       repositoryId: input.repositoryId,
