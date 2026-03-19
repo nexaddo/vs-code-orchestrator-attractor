@@ -96,6 +96,14 @@ export const PlanRecordSchema = z
   })
   .refine(
     (plan) => {
+      return plan.repositories.some(
+        (r) => r.repositoryId === plan.primaryExecutableRepositoryId
+      );
+    },
+    { message: "Primary executable repository must exist in repositories" }
+  )
+  .refine(
+    (plan) => {
       const writableRepos = plan.repositories.filter(
         (r) => r.access === "read_write"
       );
@@ -136,14 +144,6 @@ export const PlanRecordSchema = z
       return new Set(ids).size === ids.length;
     },
     { message: "Repository IDs must be unique" }
-  )
-  .refine(
-    (plan) => {
-      return plan.repositories.some(
-        (r) => r.repositoryId === plan.primaryExecutableRepositoryId
-      );
-    },
-    { message: "Primary executable repository must exist in repositories" }
   );
 
 export type PlanRecord = z.infer<typeof PlanRecordSchema>;

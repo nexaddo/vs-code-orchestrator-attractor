@@ -3,7 +3,11 @@ import crypto from "node:crypto";
 import path from "node:path";
 import { promisify } from "node:util";
 
-import { WorktreeLeaseSchema, type WorktreeLease } from "@attractor/shared";
+import {
+  CONTRACT_VERSION,
+  WorktreeLeaseSchema,
+  type WorktreeLease
+} from "@attractor/shared";
 
 import {
   type AcquireInput,
@@ -34,41 +38,43 @@ export class GitWorktreeManager implements WorktreeManager {
   }
 
   async acquire(input: AcquireInput): Promise<WorktreeLease> {
+    const repoPath = path.resolve(input.repoPath);
+    const worktreePath = path.resolve(input.worktreePath);
     const branchName = `attractor/${input.sessionShort}/${input.repoShort}/a${input.attempt}`;
     const now = new Date().toISOString();
     const leaseId = crypto.randomUUID();
 
     // Create the branch and worktree
-    await this.git(input.repoPath, [
+    await this.git(repoPath, [
       "worktree",
       "add",
       "-b",
       branchName,
-      input.worktreePath
+      worktreePath
     ]);
 
     // Capture the HEAD commit of the new worktree
     let headCommit: string | undefined;
     try {
-      headCommit = await this.git(input.worktreePath, ["rev-parse", "HEAD"]);
+      headCommit = await this.git(worktreePath, ["rev-parse", "HEAD"]);
     } catch {
       // Not a fatal error if we can't read HEAD (empty repo etc.)
     }
 
     const lease = WorktreeLeaseSchema.parse({
-      version: 1,
+      version: CONTRACT_VERSION,
       id: leaseId,
       runId: input.runId,
       repositoryId: input.repositoryId,
       branchName,
-      worktreePath: path.resolve(input.worktreePath),
+      worktreePath,
       state: "active",
       headCommit,
       createdAt: now
     });
 
     this.leases.set(leaseId, lease);
-    this.repoPathByLease.set(leaseId, path.resolve(input.repoPath));
+    this.repoPathByLease.set(leaseId, repoPath);
     return lease;
   }
 
@@ -97,6 +103,7 @@ export class GitWorktreeManager implements WorktreeManager {
     };
 
     this.leases.set(leaseId, released);
+    this.repoPathByLease.delete(leaseId);
   }
 
   async reconcile(): Promise<ReconcileResult> {

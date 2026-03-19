@@ -2,7 +2,9 @@ import { AST } from "@ts-graphviz/parser";
 
 export type DiagnosticCode =
   | "missing-start"
+  | "invalid-start-count"
   | "missing-exit"
+  | "invalid-exit-count"
   | "unsupported-node-type"
   | "unreachable-node"
   | "parse-error";
@@ -100,8 +102,9 @@ function reachableFrom(
 ): Set<string> {
   const visited = new Set<string>();
   const queue = [startId];
-  while (queue.length > 0) {
-    const current = queue.shift();
+  let index = 0;
+  while (index < queue.length) {
+    const current = queue[index++];
     if (current === undefined) continue;
     if (visited.has(current)) continue;
     visited.add(current);
@@ -118,13 +121,13 @@ export function validateDot(source: string): ValidationResult {
   let ast: AST.Dot;
   try {
     ast = AST.parse(source);
-  } catch {
+  } catch (error) {
     return {
       valid: false,
       diagnostics: [
         {
           code: "parse-error",
-          message: "Failed to parse DOT source"
+          message: `Failed to parse DOT source: ${String(error)}`
         }
       ]
     };
@@ -150,7 +153,7 @@ export function validateDot(source: string): ValidationResult {
 
   if (startNodes.length !== 1) {
     diagnostics.push({
-      code: "missing-start",
+      code: startNodes.length === 0 ? "missing-start" : "invalid-start-count",
       message:
         startNodes.length === 0
           ? "Graph must contain exactly one start node"
@@ -160,7 +163,7 @@ export function validateDot(source: string): ValidationResult {
 
   if (exitNodes.length !== 1) {
     diagnostics.push({
-      code: "missing-exit",
+      code: exitNodes.length === 0 ? "missing-exit" : "invalid-exit-count",
       message:
         exitNodes.length === 0
           ? "Graph must contain exactly one exit node"

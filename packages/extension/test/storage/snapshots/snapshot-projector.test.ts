@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { type ExtensionEvent } from "@attractor/shared";
+import { CONTRACT_VERSION, type ExtensionEvent } from "@attractor/shared";
 
 import { type EventLog } from "../../../src/storage/events/index";
 import { EventLogSnapshotProjector } from "../../../src/storage/snapshots/snapshot-projector";
@@ -150,9 +150,21 @@ describe("EventLogSnapshotProjector", () => {
       ];
       const projector = new EventLogSnapshotProjector(makeEventLog(events));
       const snapshot = await projector.project("run_abc");
-      expect(snapshot?.version).toBe(1);
+      expect(snapshot?.version).toBe(CONTRACT_VERSION);
       expect(snapshot?.runId).toBe("run_abc");
       expect(typeof snapshot?.snapshotAt).toBe("string");
+    });
+
+    it("uses the final event timestamp as snapshotAt", async () => {
+      const events: ExtensionEvent[] = [
+        makeEvent({ id: "e1", timestamp: "2026-03-17T00:00:00.000Z" }),
+        makeEvent({ id: "e2", timestamp: "2026-03-17T00:01:00.000Z" }),
+        makeEvent({ id: "e3", timestamp: "2026-03-17T00:02:00.000Z" })
+      ];
+      const projector = new EventLogSnapshotProjector(makeEventLog(events));
+      const snapshot = await projector.project("run_abc");
+
+      expect(snapshot?.snapshotAt).toBe("2026-03-17T00:02:00.000Z");
     });
 
     it("is deterministic — same event sequence always produces same snapshot", async () => {

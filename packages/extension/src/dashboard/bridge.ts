@@ -9,7 +9,7 @@ import { projectOverview } from "./overview-projection";
  * for the initial load flow.
  */
 export interface WebviewPanelLike {
-  postMessage(message: unknown): void;
+  postMessage(message: unknown): void | PromiseLike<boolean>;
 }
 
 /**
@@ -34,7 +34,7 @@ export async function handleWebviewMessage(
 
   const state = await projectOverview(services);
 
-  panel.postMessage({
+  await panel.postMessage({
     version: 1,
     requestId: message.requestId,
     type: "overview.state",

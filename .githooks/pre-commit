@@ -1,5 +1,5 @@
 #!/bin/sh
-# Pre-commit hook: format and lint staged files only
-# Uses lint-staged to run prettier and eslint on staged files
+# Pre-commit hook: format staged files only
+# Uses lint-staged to run formatting (currently prettier) on staged files
 
 exec pnpm lint-staged

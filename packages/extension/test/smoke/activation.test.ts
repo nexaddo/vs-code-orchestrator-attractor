@@ -219,7 +219,11 @@ describe("activateAttractor — runtime webview wiring", () => {
     });
 
     const posted: unknown[] = [];
-    const panel: WebviewPanelLike = { postMessage: (m) => posted.push(m) };
+    const panel: WebviewPanelLike = {
+      postMessage: (m) => {
+        posted.push(m);
+      }
+    };
 
     await context.onWebviewMessage!(
       { version: 1, requestId: "wiring-test", type: "ready", payload: {} },
@@ -240,7 +244,11 @@ describe("activateAttractor — runtime webview wiring", () => {
     });
 
     const posted: unknown[] = [];
-    const panel: WebviewPanelLike = { postMessage: (m) => posted.push(m) };
+    const panel: WebviewPanelLike = {
+      postMessage: (m) => {
+        posted.push(m);
+      }
+    };
 
     // Invalid: missing required fields
     await context.onWebviewMessage!({ not: "a valid message" }, panel);
@@ -254,7 +262,11 @@ describe("activateAttractor — runtime webview wiring", () => {
     activateAttractor(context, makeMinimalCommandsApi(), {});
 
     const posted: unknown[] = [];
-    const panel: WebviewPanelLike = { postMessage: (m) => posted.push(m) };
+    const panel: WebviewPanelLike = {
+      postMessage: (m) => {
+        posted.push(m);
+      }
+    };
 
     await context.onWebviewMessage!(
       { version: 1, requestId: "no-storage", type: "ready", payload: {} },

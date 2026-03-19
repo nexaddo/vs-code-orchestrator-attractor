@@ -18,3 +18,5 @@ export interface EventLog {
    */
   listByRun(runId: string): Promise<ExtensionEvent[]>;
 }
+
+export { FileEventLog } from "./file-event-log";

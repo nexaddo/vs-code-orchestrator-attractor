@@ -1,5 +1,7 @@
 export const WEBVIEW_SHELL_VERSION = 1;
 
+let didBoot = false;
+
 export * from "./overview";
 
 /**
@@ -38,6 +40,11 @@ export function sendReadyMessage(): void {
  * per page lifecycle.
  */
 export function bootWebview(): void {
+  if (didBoot) {
+    return;
+  }
+  didBoot = true;
+
   if (
     document.readyState === "complete" ||
     document.readyState === "interactive"

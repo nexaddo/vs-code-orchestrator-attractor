@@ -3,6 +3,8 @@ import path from "node:path";
 
 import { RunRecordSchema, type RunRecord } from "@attractor/shared";
 
+import { assertSafeStorageId } from "../path-safety";
+
 export interface RunRegistry {
   save(record: RunRecord): Promise<RunRecord>;
   getById(id: string): Promise<RunRecord | null>;
@@ -11,24 +13,11 @@ export interface RunRegistry {
 }
 
 const RUNS_DIRECTORY = path.join("storage", "runs");
-
-// Windows reserved device names that are illegal as filenames on any Windows path.
-const WINDOWS_RESERVED_NAMES = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])[. ]*$/i;
-
-const assertSafeRunId = (id: string): void => {
-  if (id.includes("/") || id.includes("\\")) {
-    throw new Error(`Run id must not contain path separators: ${id}`);
-  }
-  if (id.includes(":")) {
-    throw new Error(`Run id must not contain a colon: ${id}`);
-  }
-  if (id.includes("\0")) {
-    throw new Error(`Run id must not contain null bytes: ${id}`);
-  }
-  if (WINDOWS_RESERVED_NAMES.test(id)) {
-    throw new Error(`Run id is a reserved filename on Windows: ${id}`);
-  }
-};
+const ACTIVE_RUN_STATUSES = new Set<RunRecord["status"]>([
+  "queued",
+  "running",
+  "paused"
+]);
 
 const parseRunRecord = (serialized: string, filePath: string): RunRecord => {
   let parsed: unknown;
@@ -55,7 +44,7 @@ export class FileRunRegistry implements RunRegistry {
 
   async save(record: RunRecord): Promise<RunRecord> {
     const parsedRecord = RunRecordSchema.parse(record);
-    assertSafeRunId(parsedRecord.id);
+    assertSafeStorageId(parsedRecord.id, "Run id");
 
     const filePath = this.getFilePath(parsedRecord.id);
     await mkdir(path.dirname(filePath), { recursive: true });
@@ -68,7 +57,7 @@ export class FileRunRegistry implements RunRegistry {
   }
 
   async getById(id: string): Promise<RunRecord | null> {
-    assertSafeRunId(id);
+    assertSafeStorageId(id, "Run id");
     const filePath = this.getFilePath(id);
 
     try {
@@ -112,13 +101,8 @@ export class FileRunRegistry implements RunRegistry {
   }
 
   async listActiveRuns(): Promise<RunRecord[]> {
-    const activeStatuses = new Set<RunRecord["status"]>([
-      "queued",
-      "running",
-      "paused"
-    ]);
     const all = await this.list();
-    return all.filter((r) => activeStatuses.has(r.status));
+    return all.filter((r) => ACTIVE_RUN_STATUSES.has(r.status));
   }
 
   private getRunsDirectory(): string {

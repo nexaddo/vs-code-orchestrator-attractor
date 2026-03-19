@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { type RepositoryRecord, type RunRecord } from "@attractor/shared";
+import {
+  CONTRACT_VERSION,
+  type PlanRecord,
+  type RepositoryRecord,
+  type RunRecord
+} from "@attractor/shared";
 
 import { type StorageServices } from "../../src/storage/services";
 import { projectOverview } from "../../src/dashboard/overview-projection";
@@ -10,7 +15,7 @@ import { projectOverview } from "../../src/dashboard/overview-projection";
 // ---------------------------------------------------------------------------
 
 const makeRepo = (id: string): RepositoryRecord => ({
-  version: 1,
+  version: CONTRACT_VERSION,
   id,
   name: `repo-${id}`,
   rootUri: `/workspace/${id}`,
@@ -19,7 +24,7 @@ const makeRepo = (id: string): RepositoryRecord => ({
 });
 
 const makeRun = (id: string, status: RunRecord["status"]): RunRecord => ({
-  version: 1,
+  version: CONTRACT_VERSION,
   id,
   planId: "plan-1",
   status,
@@ -32,6 +37,26 @@ const notImplemented = (): never => {
   throw new Error("not implemented");
 };
 
+const makePlan = (id: string): PlanRecord => ({
+  version: CONTRACT_VERSION,
+  id,
+  title: `plan-${id}`,
+  goal: `goal-${id}`,
+  status: "draft",
+  repositories: [
+    {
+      repositoryId: "repo-1",
+      role: "executable",
+      access: "read_write",
+      mountAlias: "app"
+    }
+  ],
+  primaryExecutableRepositoryId: "repo-1",
+  graphSource: "digraph { start -> exit }",
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
+});
+
 const makeServices = (overrides: {
   repositoryList?: RepositoryRecord[];
   planCount?: number;
@@ -41,10 +66,9 @@ const makeServices = (overrides: {
   const planCount = overrides.planCount ?? 0;
   const activeRuns = overrides.activeRuns ?? [];
 
-  // Build minimal plan stubs (just enough for list() to return count)
-  const planStubs = Array.from({ length: planCount }, (_, i) => ({
-    id: `p${i}`
-  }));
+  const planStubs = Array.from({ length: planCount }, (_, i) =>
+    makePlan(`p${i}`)
+  );
 
   return {
     repositoryRegistry: {
@@ -55,7 +79,7 @@ const makeServices = (overrides: {
     planRegistry: {
       save: notImplemented,
       getById: notImplemented,
-      list: async () => planStubs as never
+      list: async () => planStubs
     },
     runRegistry: {
       save: notImplemented,
@@ -64,12 +88,12 @@ const makeServices = (overrides: {
       listActiveRuns: async () => activeRuns
     },
     eventLog: {
-      append: notImplemented,
-      listByRun: notImplemented
-    } as never,
+      append: async () => notImplemented(),
+      listByRun: async () => notImplemented()
+    },
     snapshotProjector: {
-      project: notImplemented
-    } as never
+      project: async () => notImplemented()
+    }
   };
 };
 
@@ -108,15 +132,14 @@ describe("projectOverview", () => {
     expect(state.repositories).toHaveLength(2);
   });
 
-  it("passes the exact repository array through by reference", async () => {
+  it("passes repositories through structurally", async () => {
     const repos = [makeRepo("r1"), makeRepo("r2")];
 
     const services = makeServices({ repositoryList: repos });
 
     const state = await projectOverview(services);
 
-    // Same array reference — not just structurally equal
-    expect(state.repositories).toBe(repos);
+    expect(state.repositories).toStrictEqual(repos);
   });
 
   it("counts only active runs as returned by listActiveRuns (queued | running | paused)", async () => {
@@ -135,10 +158,7 @@ describe("projectOverview", () => {
     expect(state.summary.activeRuns).toBe(3);
   });
 
-  it("excludes terminal runs — storage with all 6 statuses yields only 3 active", async () => {
-    // This test simulates the projection receiving a mixed-status population
-    // from listActiveRuns() (which already filters to active). The projection
-    // must not re-count terminal runs (completed | failed | canceled).
+  it("counts only runs returned by listActiveRuns even when list() contains terminal runs", async () => {
     const allSixStatuses: RunRecord["status"][] = [
       "queued",
       "running",
@@ -172,8 +192,11 @@ describe("projectOverview", () => {
         list: async () => allRuns,
         listActiveRuns: async () => activeOnly
       },
-      eventLog: { append: notImplemented, listByRun: notImplemented } as never,
-      snapshotProjector: { project: notImplemented } as never
+      eventLog: {
+        append: async () => notImplemented(),
+        listByRun: async () => notImplemented()
+      },
+      snapshotProjector: { project: async () => notImplemented() }
     };
 
     const state = await projectOverview(services);

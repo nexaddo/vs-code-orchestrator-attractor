@@ -16,9 +16,7 @@ export interface OverviewState {
 /**
  * Projects the current storage state into an OverviewState for the dashboard.
  *
- * activeRunCount rule: queued | running | paused = active.
- * terminal statuses (completed | failed | canceled) are excluded.
- * This rule is enforced by runRegistry.listActiveRuns() — do not restate here.
+ * Active run counting is delegated to runRegistry.listActiveRuns().
  */
 export async function projectOverview(
   services: StorageServices
