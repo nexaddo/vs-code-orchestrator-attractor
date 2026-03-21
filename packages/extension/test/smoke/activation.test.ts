@@ -74,6 +74,12 @@ describe("activateAttractor", () => {
         listByRunId: vi.fn(),
         listByMilestoneId: vi.fn()
       },
+      milestoneRegistry: {
+        save: vi.fn(),
+        getById: vi.fn(),
+        list: vi.fn(),
+        listByPlanId: vi.fn()
+      },
       artifactRegistry: {
         save: vi.fn(),
         getById: vi.fn(),
@@ -136,6 +142,12 @@ describe("activateAttractor", () => {
         listByRunId: vi.fn(),
         listByMilestoneId: vi.fn()
       },
+      milestoneRegistry: {
+        save: vi.fn(),
+        getById: vi.fn(),
+        list: vi.fn(),
+        listByPlanId: vi.fn()
+      },
       artifactRegistry: {
         save: vi.fn(),
         getById: vi.fn(),
@@ -184,6 +196,12 @@ describe("activateAttractor", () => {
         listByRunId: vi.fn(),
         listByMilestoneId: vi.fn()
       },
+      milestoneRegistry: {
+        save: vi.fn(),
+        getById: vi.fn(),
+        list: vi.fn(),
+        listByPlanId: vi.fn()
+      },
       artifactRegistry: {
         save: vi.fn(),
         getById: vi.fn(),
@@ -229,7 +247,7 @@ const makeServicesWithMocks = (): StorageServicesLike => ({
   runRegistry: {
     save: vi.fn(),
     getById: vi.fn(),
-    list: vi.fn(),
+    list: vi.fn().mockResolvedValue([]),
     listActiveRuns: vi.fn().mockResolvedValue([])
   },
   eventLog: { append: vi.fn(), listByRun: vi.fn() },
@@ -239,6 +257,12 @@ const makeServicesWithMocks = (): StorageServicesLike => ({
     getById: vi.fn(),
     listByRunId: vi.fn(),
     listByMilestoneId: vi.fn()
+  },
+  milestoneRegistry: {
+    save: vi.fn(),
+    getById: vi.fn(),
+    list: vi.fn(),
+    listByPlanId: vi.fn()
   },
   artifactRegistry: {
     save: vi.fn(),

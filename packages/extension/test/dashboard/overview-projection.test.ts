@@ -60,11 +60,11 @@ const makePlan = (id: string): PlanRecord => ({
 const makeServices = (overrides: {
   repositoryList?: RepositoryRecord[];
   planCount?: number;
-  activeRuns?: RunRecord[];
+  allRuns?: RunRecord[];
 }): StorageServices => {
   const repos = overrides.repositoryList ?? [];
   const planCount = overrides.planCount ?? 0;
-  const activeRuns = overrides.activeRuns ?? [];
+  const allRuns = overrides.allRuns ?? [];
 
   const planStubs = Array.from({ length: planCount }, (_, i) =>
     makePlan(`p${i}`)
@@ -84,8 +84,8 @@ const makeServices = (overrides: {
     runRegistry: {
       save: notImplemented,
       getById: notImplemented,
-      list: notImplemented,
-      listActiveRuns: async () => activeRuns
+      list: async () => allRuns,
+      listActiveRuns: notImplemented
     },
     eventLog: {
       append: async () => notImplemented(),
@@ -99,6 +99,12 @@ const makeServices = (overrides: {
       getById: notImplemented,
       listByRunId: notImplemented,
       listByMilestoneId: notImplemented
+    },
+    milestoneRegistry: {
+      save: notImplemented,
+      getById: notImplemented,
+      list: notImplemented,
+      listByPlanId: notImplemented
     },
     artifactRegistry: {
       save: notImplemented,
@@ -114,34 +120,47 @@ const makeServices = (overrides: {
 // ---------------------------------------------------------------------------
 
 describe("projectOverview", () => {
-  it("returns zero counts and empty repositories when storage is empty", async () => {
+  it("returns zero counts and empty arrays when storage is empty", async () => {
     const services = makeServices({});
 
     const state = await projectOverview(services);
 
-    expect(state.summary).toStrictEqual({
-      totalRepositories: 0,
-      totalPlans: 0,
-      activeRuns: 0
-    });
     expect(state.repositories).toStrictEqual([]);
+    expect(state.activeRuns).toStrictEqual([]);
+    expect(state.recentFailures).toStrictEqual([]);
+    expect(state.stats).toStrictEqual({
+      totalRepos: 0,
+      totalPlans: 0,
+      activeRuns: 0,
+      pausedRuns: 0,
+      failedRuns24h: 0
+    });
   });
 
   it("counts mixed populations correctly", async () => {
+    const allRuns = [
+      makeRun("run-1", "running"),
+      makeRun("run-2", "paused"),
+      makeRun("run-3", "failed")
+    ];
     const services = makeServices({
       repositoryList: [makeRepo("r1"), makeRepo("r2")],
       planCount: 3,
-      activeRuns: [makeRun("run-1", "running")]
+      allRuns
     });
 
     const state = await projectOverview(services);
 
-    expect(state.summary).toStrictEqual({
-      totalRepositories: 2,
-      totalPlans: 3,
-      activeRuns: 1
-    });
     expect(state.repositories).toHaveLength(2);
+    expect(state.activeRuns).toHaveLength(2);
+    expect(state.recentFailures).toHaveLength(1);
+    expect(state.stats).toStrictEqual({
+      totalRepos: 2,
+      totalPlans: 3,
+      activeRuns: 2,
+      pausedRuns: 1,
+      failedRuns24h: 1
+    });
   });
 
   it("passes repositories through structurally", async () => {
@@ -154,78 +173,39 @@ describe("projectOverview", () => {
     expect(state.repositories).toStrictEqual(repos);
   });
 
-  it("counts only active runs as returned by listActiveRuns (queued | running | paused)", async () => {
-    // The active-run rule is enforced by listActiveRuns(); here we verify that
-    // projectOverview counts whatever listActiveRuns returns — exactly 3.
-    const activeRuns = [
+  it("correctly separates active runs (queued | running | paused)", async () => {
+    const allRuns = [
       makeRun("run-q", "queued"),
       makeRun("run-r", "running"),
       makeRun("run-p", "paused")
     ];
 
-    const services = makeServices({ activeRuns });
+    const services = makeServices({ allRuns });
 
     const state = await projectOverview(services);
 
-    expect(state.summary.activeRuns).toBe(3);
+    expect(state.activeRuns).toHaveLength(3);
+    expect(
+      state.activeRuns.every((r) =>
+        ["queued", "running", "paused"].includes(r.status)
+      )
+    ).toBe(true);
+    expect(state.recentFailures).toHaveLength(0);
   });
 
-  it("counts only runs returned by listActiveRuns even when list() contains terminal runs", async () => {
-    const allSixStatuses: RunRecord["status"][] = [
-      "queued",
-      "running",
-      "paused",
-      "completed",
-      "failed",
-      "canceled"
+  it("counts paused runs correctly in stats", async () => {
+    const allRuns = [
+      makeRun("run-1", "queued"),
+      makeRun("run-2", "paused"),
+      makeRun("run-3", "paused"),
+      makeRun("run-4", "running")
     ];
-    const allRuns = allSixStatuses.map((s, i) => makeRun(`run-${i}`, s));
-    const activeOnly = allRuns.filter((r) =>
-      (["queued", "running", "paused"] as RunRecord["status"][]).includes(
-        r.status
-      )
-    );
 
-    // Use a custom services object so we can wire both list() and listActiveRuns()
-    const services: StorageServices = {
-      repositoryRegistry: {
-        save: notImplemented,
-        getById: notImplemented,
-        list: async () => []
-      },
-      planRegistry: {
-        save: notImplemented,
-        getById: notImplemented,
-        list: async () => []
-      },
-      runRegistry: {
-        save: notImplemented,
-        getById: notImplemented,
-        list: async () => allRuns,
-        listActiveRuns: async () => activeOnly
-      },
-      eventLog: {
-        append: async () => notImplemented(),
-        listByRun: async () => notImplemented()
-      },
-      snapshotProjector: { project: async () => notImplemented() },
-      milestoneRunRegistry: {
-        save: notImplemented,
-        getById: notImplemented,
-        listByRunId: notImplemented,
-        listByMilestoneId: notImplemented
-      },
-      artifactRegistry: {
-        save: notImplemented,
-        getById: notImplemented,
-        listByRunId: notImplemented,
-        listByNodeId: notImplemented
-      }
-    };
+    const services = makeServices({ allRuns });
 
     const state = await projectOverview(services);
 
-    expect(state.summary.activeRuns).toBe(3);
-    expect(state.summary.activeRuns).not.toBe(6);
+    expect(state.stats.pausedRuns).toBe(2);
+    expect(state.stats.activeRuns).toBe(4); // all three statuses: queued + running + paused
   });
 });
