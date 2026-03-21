@@ -7,6 +7,8 @@ import { FileRepositoryRegistry } from "../../src/storage/repositories";
 import { FileRunRegistry } from "../../src/storage/runs";
 import { FileEventLog } from "../../src/storage/events/file-event-log";
 import { EventLogSnapshotProjector } from "../../src/storage/snapshots/snapshot-projector";
+import { FileMilestoneRunRegistry } from "../../src/storage/milestone-runs";
+import { FileArtifactRegistry } from "../../src/storage/artifacts";
 import {
   createStorageServices,
   getStorageRoot,
@@ -33,6 +35,16 @@ describe("storage services composition", () => {
     );
   });
 
+  it("wires milestone run registry and artifact registry", () => {
+    const rootDirectory = "C:/tmp/attractor";
+    const services = createStorageServices(rootDirectory);
+
+    expect(services.milestoneRunRegistry).toBeInstanceOf(
+      FileMilestoneRunRegistry
+    );
+    expect(services.artifactRegistry).toBeInstanceOf(FileArtifactRegistry);
+  });
+
   it("resolves extension storage roots deterministically", () => {
     expect(getStorageRoot({ storageUri: { fsPath: "C:/tmp/ext" } })).toBe(
       path.resolve("C:/tmp/ext")
@@ -43,7 +55,9 @@ describe("storage services composition", () => {
     const services: StorageServices = createStorageServices("C:/tmp/attractor");
 
     expect(Object.keys(services).sort()).toEqual([
+      "artifactRegistry",
       "eventLog",
+      "milestoneRunRegistry",
       "planRegistry",
       "repositoryRegistry",
       "runRegistry",

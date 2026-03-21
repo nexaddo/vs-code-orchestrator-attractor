@@ -93,6 +93,18 @@ const makeServices = (overrides: {
     },
     snapshotProjector: {
       project: async () => notImplemented()
+    },
+    milestoneRunRegistry: {
+      save: notImplemented,
+      getById: notImplemented,
+      listByRunId: notImplemented,
+      listByMilestoneId: notImplemented
+    },
+    artifactRegistry: {
+      save: notImplemented,
+      getById: notImplemented,
+      listByRunId: notImplemented,
+      listByNodeId: notImplemented
     }
   };
 };
@@ -196,7 +208,19 @@ describe("projectOverview", () => {
         append: async () => notImplemented(),
         listByRun: async () => notImplemented()
       },
-      snapshotProjector: { project: async () => notImplemented() }
+      snapshotProjector: { project: async () => notImplemented() },
+      milestoneRunRegistry: {
+        save: notImplemented,
+        getById: notImplemented,
+        listByRunId: notImplemented,
+        listByMilestoneId: notImplemented
+      },
+      artifactRegistry: {
+        save: notImplemented,
+        getById: notImplemented,
+        listByRunId: notImplemented,
+        listByNodeId: notImplemented
+      }
     };
 
     const state = await projectOverview(services);
