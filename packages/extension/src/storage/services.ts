@@ -18,6 +18,10 @@ import {
   type MilestoneRunRegistry
 } from "./milestone-runs/file-milestone-run-registry";
 import {
+  FileMilestoneRegistry,
+  type MilestoneRegistry
+} from "./milestones/file-milestone-registry";
+import {
   FileArtifactRegistry,
   type ArtifactRegistry
 } from "./artifacts/file-artifact-registry";
@@ -38,6 +42,7 @@ export interface StorageServices {
   eventLog: EventLog;
   snapshotProjector: SnapshotProjector;
   milestoneRunRegistry: MilestoneRunRegistry;
+  milestoneRegistry: MilestoneRegistry;
   artifactRegistry: ArtifactRegistry;
 }
 
@@ -52,6 +57,7 @@ export const createStorageServices = (
     eventLog,
     snapshotProjector: new EventLogSnapshotProjector(eventLog),
     milestoneRunRegistry: new FileMilestoneRunRegistry(rootDirectory),
+    milestoneRegistry: new FileMilestoneRegistry(rootDirectory),
     artifactRegistry: new FileArtifactRegistry(rootDirectory)
   };
 };
