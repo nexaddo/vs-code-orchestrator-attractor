@@ -27,10 +27,10 @@ Use the highest-signal planning model for decomposition, dependency ordering, an
 
 ### Focused Implementation
 
-- `ttd-implementer`: `github-copilot/gpt-5.4`
-- `sisyphus-junior`: `github-copilot/gpt-5.4`
+- `ttd-implementer`: `github-copilot/claude-haiku-4-5`
+- `sisyphus-junior`: `github-copilot/claude-haiku-4-5`
 
-Use GPT-5.4 via GitHub Copilot for focused implementation loops and subagent delegation.
+Use Claude Haiku 4.5 via GitHub Copilot for focused implementation loops and subagent delegation.
 
 ### Review Loops
 
@@ -42,8 +42,8 @@ Use a higher-quality model for code review, design risk checks, and merge-readin
 
 ## Notes
 
-- `github-copilot/gpt-5.4` is the preferred orchestration, planning, and implementation model for this project.
-- Sisyphus-Junior (`small_model` in `opencode.json`) routes to `github-copilot/gpt-5.4`.
+- `github-copilot/gpt-5.4` is the preferred orchestration and planning model for this project.
+- Sisyphus-Junior (`small_model` in `opencode.json`) routes to `github-copilot/claude-haiku-4-5`.
 - GitHub Copilot Gemini 2.5 Pro is the primary review model (switched from Sonnet 4.6 due to repeated empty responses).
 - Claude Sonnet 4.6 via Anthropic powers the dedicated drift-review pass at the end of each loop.
 - GPT-5.4 provides a secondary independent review opinion when a second pass is useful.

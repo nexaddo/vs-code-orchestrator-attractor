@@ -105,10 +105,14 @@ This document defines the comprehensive UI design for the Attractor VS Code exte
   ```ts
   interface WorkspaceSummaryStats {
     totalRepos: number;
-    totalPlans: number;
     activeRuns: number;
     pausedRuns: number;
     failedRuns24h: number;
+    lastActivity: {
+      repoName: string;
+      planTitle: string;
+      timestamp: string;
+    };
   }
   ```
 - **Visual description**: Large, high-contrast metric blocks using `--vscode-notifications-background`. Icons are oversized Codicons. Layout is a horizontal flex row with centered content.
