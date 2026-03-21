@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+/*
+ * VS Code design token bridge.
+ *
+ * These CSS variables are injected by VS Code into every webview.  Mapping
+ * them into Tailwind theme values lets components use Tailwind utility classes
+ * that resolve to the host editor's current theme automatically.
+ */
+@theme {
+  /* ── Editor surface colours ──────────────────────────────────────────── */
+  --color-vscode-bg: var(--vscode-editor-background);
+  --color-vscode-fg: var(--vscode-editor-foreground);
+  --color-vscode-sidebar-bg: var(--vscode-sideBar-background);
+  --color-vscode-sidebar-fg: var(--vscode-sideBar-foreground);
+  --color-vscode-panel-bg: var(--vscode-panel-background);
+  --color-vscode-panel-border: var(--vscode-panel-border);
+
+  /* ── Interactive element colours ─────────────────────────────────────── */
+  --color-vscode-button-bg: var(--vscode-button-background);
+  --color-vscode-button-fg: var(--vscode-button-foreground);
+  --color-vscode-button-hover: var(--vscode-button-hoverBackground);
+  --color-vscode-input-bg: var(--vscode-input-background);
+  --color-vscode-input-fg: var(--vscode-input-foreground);
+  --color-vscode-input-border: var(--vscode-input-border);
+  --color-vscode-focus-border: var(--vscode-focusBorder);
+
+  /* ── Status / semantic colours ───────────────────────────────────────── */
+  --color-vscode-error: var(--vscode-errorForeground);
+  --color-vscode-warning: var(--vscode-editorWarning-foreground);
+  --color-vscode-info: var(--vscode-editorInfo-foreground);
+  --color-vscode-success: var(--vscode-testing-iconPassed);
+  --color-vscode-badge-bg: var(--vscode-badge-background);
+  --color-vscode-badge-fg: var(--vscode-badge-foreground);
+
+  /* ── List / tree colours ─────────────────────────────────────────────── */
+  --color-vscode-list-hover: var(--vscode-list-hoverBackground);
+  --color-vscode-list-active: var(--vscode-list-activeSelectionBackground);
+  --color-vscode-list-active-fg: var(--vscode-list-activeSelectionForeground);
+
+  /* ── Typography ──────────────────────────────────────────────────────── */
+  --font-sans: var(--vscode-font-family), system-ui, sans-serif;
+  --font-mono: var(--vscode-editor-font-family), "Menlo", "Consolas", monospace;
+  --text-base: var(--vscode-font-size, 13px);
+}
+
+/*
+ * Base reset — align with VS Code's native webview defaults.
+ */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+    font-family: var(--vscode-font-family), system-ui, sans-serif;
+    font-size: var(--vscode-font-size, 13px);
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+  }
+
+  a {
+    color: var(--vscode-textLink-foreground);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--vscode-textLink-activeForeground);
+    text-decoration: underline;
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 2px;
+  }
+}
