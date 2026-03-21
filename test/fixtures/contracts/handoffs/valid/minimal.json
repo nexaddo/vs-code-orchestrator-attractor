@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "id": "hoff_001",
+  "runId": "run_001",
+  "nodeId": "codergen_1",
+  "fromRole": "planner",
+  "toRole": "implementer",
+  "task": "Implement JWT authentication middleware for the Express REST API.",
+  "reason": "Planning phase complete. Implementation spec is ready.",
+  "context": {
+    "specFile": ".attractor/runs/run_001/task-pack.md",
+    "targetBranch": "feat/jwt-auth"
+  },
+  "createdAt": "2026-03-16T01:00:30Z"
+}

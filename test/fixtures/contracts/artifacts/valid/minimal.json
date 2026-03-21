@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "id": "art_001",
+  "runId": "run_001",
+  "nodeId": "codergen_1",
+  "milestoneId": "ms_001",
+  "type": "task-pack",
+  "title": "implement-auth.md",
+  "uri": "file:///workspace/.attractor/runs/run_001/artifacts/art_001/implement-auth.md",
+  "createdAt": "2026-03-16T01:05:00Z"
+}
