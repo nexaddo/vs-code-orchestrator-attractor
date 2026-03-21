@@ -67,7 +67,19 @@ const makeServices = (overrides: {
       listActiveRuns: async () => activeRunStubs
     },
     eventLog: { append: notImplemented, listByRun: notImplemented } as never,
-    snapshotProjector: { project: notImplemented } as never
+    snapshotProjector: { project: notImplemented } as never,
+    milestoneRunRegistry: {
+      save: notImplemented,
+      getById: notImplemented,
+      listByRunId: notImplemented,
+      listByMilestoneId: notImplemented
+    },
+    artifactRegistry: {
+      save: notImplemented,
+      getById: notImplemented,
+      listByRunId: notImplemented,
+      listByNodeId: notImplemented
+    }
   };
 };
 
@@ -208,7 +220,19 @@ describe("handleWebviewMessage — bridge", () => {
         listActiveRuns: listActiveRunsMock
       },
       eventLog: { append: notImplemented, listByRun: notImplemented } as never,
-      snapshotProjector: { project: notImplemented } as never
+      snapshotProjector: { project: notImplemented } as never,
+      milestoneRunRegistry: {
+        save: notImplemented,
+        getById: notImplemented,
+        listByRunId: notImplemented,
+        listByMilestoneId: notImplemented
+      },
+      artifactRegistry: {
+        save: notImplemented,
+        getById: notImplemented,
+        listByRunId: notImplemented,
+        listByNodeId: notImplemented
+      }
     };
     const { panel, posted } = makePanel();
 

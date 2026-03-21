@@ -67,7 +67,19 @@ describe("activateAttractor", () => {
         listActiveRuns: vi.fn()
       },
       eventLog: { append: vi.fn(), listByRun: vi.fn() },
-      snapshotProjector: { project: vi.fn() }
+      snapshotProjector: { project: vi.fn() },
+      milestoneRunRegistry: {
+        save: vi.fn(),
+        getById: vi.fn(),
+        listByRunId: vi.fn(),
+        listByMilestoneId: vi.fn()
+      },
+      artifactRegistry: {
+        save: vi.fn(),
+        getById: vi.fn(),
+        listByRunId: vi.fn(),
+        listByNodeId: vi.fn()
+      }
     };
 
     const createStorageServices = vi.fn(() => storageServices);
@@ -117,7 +129,19 @@ describe("activateAttractor", () => {
         listActiveRuns: vi.fn()
       },
       eventLog: { append: vi.fn(), listByRun: vi.fn() },
-      snapshotProjector: { project: vi.fn() }
+      snapshotProjector: { project: vi.fn() },
+      milestoneRunRegistry: {
+        save: vi.fn(),
+        getById: vi.fn(),
+        listByRunId: vi.fn(),
+        listByMilestoneId: vi.fn()
+      },
+      artifactRegistry: {
+        save: vi.fn(),
+        getById: vi.fn(),
+        listByRunId: vi.fn(),
+        listByNodeId: vi.fn()
+      }
     };
     const createStorageServices = vi.fn(() => storageServices);
 
@@ -153,7 +177,19 @@ describe("activateAttractor", () => {
         listActiveRuns: vi.fn()
       },
       eventLog: { append: vi.fn(), listByRun: vi.fn() },
-      snapshotProjector: { project: vi.fn() }
+      snapshotProjector: { project: vi.fn() },
+      milestoneRunRegistry: {
+        save: vi.fn(),
+        getById: vi.fn(),
+        listByRunId: vi.fn(),
+        listByMilestoneId: vi.fn()
+      },
+      artifactRegistry: {
+        save: vi.fn(),
+        getById: vi.fn(),
+        listByRunId: vi.fn(),
+        listByNodeId: vi.fn()
+      }
     };
     const createStorageServices = vi.fn(() => storageServices);
 
@@ -197,7 +233,19 @@ const makeServicesWithMocks = (): StorageServicesLike => ({
     listActiveRuns: vi.fn().mockResolvedValue([])
   },
   eventLog: { append: vi.fn(), listByRun: vi.fn() },
-  snapshotProjector: { project: vi.fn() }
+  snapshotProjector: { project: vi.fn() },
+  milestoneRunRegistry: {
+    save: vi.fn(),
+    getById: vi.fn(),
+    listByRunId: vi.fn(),
+    listByMilestoneId: vi.fn()
+  },
+  artifactRegistry: {
+    save: vi.fn(),
+    getById: vi.fn(),
+    listByRunId: vi.fn(),
+    listByNodeId: vi.fn()
+  }
 });
 
 describe("activateAttractor — runtime webview wiring", () => {
