@@ -9,7 +9,7 @@ Milestone Panel for Attractor extension (400px wide overlay).
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        
+
         <!-- Simulate underlying screen with some opacity -->
         <mxCell id="ms-overlay-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=none;opacity=50;" vertex="1" parent="1">
           <mxGeometry width="1440" height="900" as="geometry" />
@@ -19,7 +19,7 @@ Milestone Panel for Attractor extension (400px wide overlay).
         <mxCell id="ms-panel" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
           <mxGeometry x="1040" width="400" height="900" as="geometry" />
         </mxCell>
-        
+
         <!-- Header -->
         <mxCell id="ms-header" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
           <mxGeometry x="1040" width="400" height="40" as="geometry" />
@@ -30,7 +30,7 @@ Milestone Panel for Attractor extension (400px wide overlay).
         <mxCell id="ms-btn-close" value="X" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
           <mxGeometry x="1390" y="5" width="30" height="30" as="geometry" />
         </mxCell>
-        
+
         <!-- Info Section -->
         <mxCell id="ms-info-1" value="Milestone: Release Ready" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
           <mxGeometry x="1060" y="60" width="360" height="30" as="geometry" />
