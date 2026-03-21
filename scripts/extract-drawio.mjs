@@ -5,12 +5,16 @@
  *
  * Processes all wireframe directories under docs/ by default.
  * Pass directory names as arguments to process specific ones:
- *   node scripts/extract-drawio.js wireframes wireframes-v2
+ *   node scripts/extract-drawio.mjs wireframes wireframes-v2
  *
- * Usage: node scripts/extract-drawio.js
+ * Usage: node scripts/extract-drawio.mjs
  */
-const fs = require("fs");
-const path = require("path");
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const docsDir = path.join(__dirname, "..", "docs");
 
