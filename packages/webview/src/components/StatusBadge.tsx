@@ -15,7 +15,6 @@
  *   count – icon + numeric suffix (WorkspaceSummaryCard)
  */
 
-import { type ComponentChildren } from "preact";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 
@@ -191,7 +190,6 @@ export interface StatusBadgeProps extends VariantProps<typeof badgeVariants> {
   count?: number | undefined;
   /** Additional class names to merge. */
   class?: string | undefined;
-  children?: ComponentChildren | undefined;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────

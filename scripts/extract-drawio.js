@@ -57,7 +57,7 @@ for (const dirName of targetDirs) {
 
   for (const mdFile of mdFiles) {
     const content = fs.readFileSync(path.join(wireframesDir, mdFile), "utf8");
-    const match = content.match(/```drawio\s*\n([\s\S]*?)```/);
+    const match = content.match(/```drawio\s*\r?\n([\s\S]*?)```/);
     if (!match) {
       console.warn(`  ⚠  No drawio block found in ${mdFile}, skipping`);
       totalSkipped++;

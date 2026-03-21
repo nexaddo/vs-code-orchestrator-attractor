@@ -27,14 +27,19 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const watch = process.argv.includes("--watch");
-const production = process.env.NODE_ENV === "production";
+const production = process.env.NODE_ENV === "production" || !watch;
 
 const outDir = path.join(__dirname, "dist", "bundle");
 const cssIn = path.join(__dirname, "src", "styles", "index.css");
 const cssOut = path.join(outDir, "webview.css");
 
 // Resolve postcss binary from this package's node_modules
-const postcssBin = path.join(__dirname, "node_modules", ".bin", "postcss");
+const postcssBin = path.join(
+  __dirname,
+  "node_modules",
+  ".bin",
+  process.platform === "win32" ? "postcss.cmd" : "postcss"
+);
 
 // Ensure output directory exists
 mkdirSync(outDir, { recursive: true });

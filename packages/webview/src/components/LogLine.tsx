@@ -59,16 +59,13 @@ export interface LogLineProps extends VariantProps<typeof lineVariants> {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function formatTimestamp(iso: string): string {
-  try {
-    const d = new Date(iso);
-    const h = String(d.getHours()).padStart(2, "0");
-    const m = String(d.getMinutes()).padStart(2, "0");
-    const s = String(d.getSeconds()).padStart(2, "0");
-    const ms = String(d.getMilliseconds()).padStart(3, "0");
-    return `${h}:${m}:${s}.${ms}`;
-  } catch {
-    return iso;
-  }
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const h = String(d.getHours()).padStart(2, "0");
+  const m = String(d.getMinutes()).padStart(2, "0");
+  const s = String(d.getSeconds()).padStart(2, "0");
+  const ms = String(d.getMilliseconds()).padStart(3, "0");
+  return `${h}:${m}:${s}.${ms}`;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────

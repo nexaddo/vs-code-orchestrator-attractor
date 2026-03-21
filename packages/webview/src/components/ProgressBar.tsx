@@ -62,7 +62,7 @@ export function ProgressBar({
       aria-valuenow={isIndeterminate ? undefined : clampedValue}
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-label={label}
+      aria-label={label ?? "Progress"}
       aria-valuetext={isIndeterminate ? "Loading…" : `${clampedValue}%`}
       class={cn(
         "relative w-full overflow-hidden rounded-full",
