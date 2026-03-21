@@ -8,11 +8,15 @@
  * and loaded via a <link> tag in the extension's HTML shell (M3.9).
  *
  * Boot sequence:
- *  1. Call bootWebview() which acquires the VS Code API and sends the "ready"
+ *  1. Create the app store and mount the Preact app
+ *  2. Listen for inbound messages and dispatch to the store
+ *  3. Call bootWebview() which acquires the VS Code API and sends the "ready"
  *     handshake to the extension host
- *  2. Listen for inbound messages and dispatch to the appropriate view renderer
  */
-import { bootWebview, decodeOverviewState, renderOverview } from "./index";
+import { dispatchInboundMessage } from "./app/message-dispatch";
+import { createStore } from "./app/store";
+import { bootWebview } from "./index";
+import { mountApp } from "./mount";
 
 /**
  * Root mount point injected by the extension HTML shell.
@@ -22,28 +26,18 @@ function getRoot(): HTMLElement {
   return document.getElementById("root") ?? document.body;
 }
 
-/**
- * Handle inbound messages from the extension host.
- */
+// ---------------------------------------------------------------------------
+// Bootstrap
+// ---------------------------------------------------------------------------
+
+const store = createStore();
+
+// Mount the Preact app
+mountApp(store, getRoot());
+
+// Route inbound messages from the extension host to the store
 window.addEventListener("message", (event: MessageEvent) => {
-  const raw = event.data as unknown;
-  if (typeof raw !== "object" || raw === null) return;
-
-  const msg = raw as { type?: string; payload?: unknown; requestId?: string };
-
-  switch (msg.type) {
-    case "overview.state": {
-      const result = decodeOverviewState(raw);
-      if (result.success) {
-        getRoot().innerHTML = renderOverview(result.state);
-      }
-      break;
-    }
-
-    default:
-      // Unknown message types are silently ignored in v1.
-      break;
-  }
+  dispatchInboundMessage(store, event.data);
 });
 
 // Kick off the boot handshake — sends "ready" to the extension host.
