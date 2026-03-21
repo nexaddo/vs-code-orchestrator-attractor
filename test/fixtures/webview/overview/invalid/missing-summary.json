@@ -1,8 +1,17 @@
 {
   "version": 1,
-  "requestId": "req_001",
+  "requestId": "req-003",
   "type": "overview.state",
   "payload": {
-    "repositories": []
+    "repositories": [
+      {
+        "version": 1,
+        "id": "repo-alpha",
+        "name": "repo-alpha",
+        "rootUri": "file:///workspace/repo-alpha",
+        "defaultBranch": "main",
+        "labels": []
+      }
+    ]
   }
 }

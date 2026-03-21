@@ -1,9 +1,0 @@
-{
-  "version": 1,
-  "requestId": "req-run-invalid-002",
-  "type": "run.state",
-  "payload": {
-    "currentStep": null,
-    "logTail": []
-  }
-}

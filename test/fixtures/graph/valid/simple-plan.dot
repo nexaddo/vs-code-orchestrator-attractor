@@ -1,0 +1,10 @@
+digraph simple_plan {
+  start [type=start]
+  step1 [type=codergen]
+  check [type=conditional]
+  done [type=exit]
+
+  start -> step1
+  step1 -> check
+  check -> done
+}

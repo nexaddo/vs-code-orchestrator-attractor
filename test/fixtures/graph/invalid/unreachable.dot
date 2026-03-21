@@ -1,0 +1,7 @@
+digraph unreachable {
+  start [type=start]
+  done [type=exit]
+  orphan [type=codergen]
+
+  start -> done
+}

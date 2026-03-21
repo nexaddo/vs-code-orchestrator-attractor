@@ -14,7 +14,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run --config vitest.config.ts",
-    "postinstall": "git config core.hooksPath .githooks"
+    "postinstall": "node -e \"try{const{execSync}=require('child_process');execSync('git rev-parse --is-inside-work-tree',{stdio:'ignore'});execSync('git config core.hooksPath .githooks',{stdio:'ignore'});}catch(e){}\""
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "requestId": "req_001",
-  "type": "plan.state",
+  "requestId": "req-002",
+  "type": "run.state",
   "payload": {
     "summary": {
       "totalRepositories": 2,

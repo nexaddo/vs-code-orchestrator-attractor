@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "requestId": "req_overview_001",
+  "requestId": "req-001",
   "type": "overview.state",
   "payload": {
     "summary": {
@@ -11,19 +11,19 @@
     "repositories": [
       {
         "version": 1,
-        "id": "repo_alpha",
+        "id": "repo-alpha",
         "name": "repo-alpha",
         "rootUri": "file:///workspace/repo-alpha",
         "defaultBranch": "main",
-        "labels": ["workspace", "primary"]
+        "labels": []
       },
       {
         "version": 1,
-        "id": "repo_docs",
+        "id": "repo-docs",
         "name": "repo-docs",
         "rootUri": "file:///workspace/repo-docs",
         "defaultBranch": "main",
-        "labels": ["context"]
+        "labels": []
       }
     ]
   }

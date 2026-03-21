@@ -87,3 +87,39 @@ This plan marks the first safe split from the M0 scaffold baseline into parallel
 - run `@plan-drift-reviewer` at the end of each lane loop
 - update `docs/plans/progress-tracker.md` when a lane changes phase status
 - do not widen a lane beyond its stated acceptance criteria without recording the change in docs first
+
+## Next Lane Set After M3
+
+### M3.5 - Review Cleanup And Hardening
+
+- scope: unresolved High and Medium review feedback from merged PRs only
+- acceptance: `pnpm lint`, `pnpm typecheck`, and `pnpm test` green after cleanup
+
+### M3.6 - M3.9 Pre-UI Foundation Lanes
+
+#### Lane A - Shared Contracts / View Models
+
+- scope: `packages/shared`, fixtures, contract tests, architecture docs
+- acceptance: typed payload schemas for dashboard surfaces plus missing shared entities (`MilestoneRunRecord`, `ArtifactRecord`, `HandoffEnvelope`)
+
+#### Lane B - Run-Scoped Storage
+
+- scope: `packages/extension/src/storage/**`
+- acceptance: milestone-run and artifact registries wired into storage services under `storage/runs/<runId>/...`
+
+#### Lane C - Query / Projection Layer
+
+- scope: `packages/extension/src/dashboard/**` and projector tests
+- acceptance: one projector per outbound dashboard message type with pure testable joins
+
+#### Lane D - Webview Hosting / Build Foundation
+
+- scope: `packages/extension` webview host wiring plus `packages/webview` build/styling pipeline
+- acceptance: real panel registration, HTML shell, CSP, asset URIs, esbuild bundle, and Tailwind v4 output wired end-to-end
+
+### Dependencies For Next Lane Set
+
+- M3.5 lands first
+- Lane A lands before C and D depend on the typed payload contracts
+- Lane B lands before full run/plan detail projections in Lane C
+- Lane D can begin once Lane A freezes the payload floor, even if Lane B/C are still in progress

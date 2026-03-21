@@ -1,9 +1,0 @@
-{
-  "version": 1,
-  "requestId": "req-timeline-invalid-001",
-  "type": "graph.update",
-  "payload": {
-    "runId": "run_001",
-    "events": []
-  }
-}

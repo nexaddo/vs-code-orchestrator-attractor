@@ -1,0 +1,8 @@
+digraph unsupported_type {
+  start [type=start]
+  bad [type=parallel]
+  done [type=exit]
+
+  start -> bad
+  bad -> done
+}

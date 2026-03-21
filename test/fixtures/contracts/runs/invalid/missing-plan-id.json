@@ -1,9 +1,8 @@
 {
   "version": 1,
-  "id": "run_001",
-  "graphId": "graph_001",
-  "worktreeId": "worktree_001",
+  "id": "run_release_prep_attempt_1",
   "status": "queued",
-  "createdAt": "2026-01-01T00:00:00.000Z",
-  "updatedAt": "2026-01-01T00:00:00.000Z"
+  "attempt": 1,
+  "createdAt": "2026-03-10T00:05:00Z",
+  "updatedAt": "2026-03-10T00:05:00Z"
 }
