@@ -5,10 +5,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   ArtifactRecordSchema,
+  GraphUpdatePayloadSchema,
   HandoffEnvelopeSchema,
   MilestoneRunRecordSchema,
   OverviewStatePayloadSchema,
-  RunStatePayloadSchema
+  PlanStatePayloadSchema,
+  RepositoryStatePayloadSchema,
+  RunStatePayloadSchema,
+  ToastPayloadSchema
 } from "../../src/contracts";
 
 const fixturesDir = path.resolve(
@@ -255,5 +259,216 @@ describe("RunStatePayloadSchema", () => {
 
     expect(parsed.run.id).toBe("run_001");
     expect(parsed.currentHandoff).toBeUndefined();
+  });
+});
+
+// ── RepositoryStatePayloadSchema ──────────────────────────────────────────────
+
+describe("RepositoryStatePayloadSchema", () => {
+  const repo = {
+    version: 1,
+    id: "repo_001",
+    name: "my-app",
+    rootUri: "/workspace/my-app",
+    defaultBranch: "main",
+    labels: []
+  };
+
+  it("accepts a valid repository state payload with empty collections", () => {
+    const parsed = RepositoryStatePayloadSchema.parse({
+      repository: repo,
+      plans: [],
+      runs: [],
+      activity: []
+    });
+
+    expect(parsed.repository.id).toBe("repo_001");
+    expect(parsed.plans).toHaveLength(0);
+    expect(parsed.runs).toHaveLength(0);
+    expect(parsed.activity).toHaveLength(0);
+  });
+
+  it("rejects a payload missing the repository field", () => {
+    const result = RepositoryStatePayloadSchema.safeParse({
+      plans: [],
+      runs: [],
+      activity: []
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a payload with an invalid repository (missing defaultBranch)", () => {
+    const result = RepositoryStatePayloadSchema.safeParse({
+      repository: { ...repo, defaultBranch: undefined },
+      plans: [],
+      runs: [],
+      activity: []
+    });
+
+    expect(result.success).toBe(false);
+  });
+});
+
+// ── PlanStatePayloadSchema ────────────────────────────────────────────────────
+
+describe("PlanStatePayloadSchema", () => {
+  const plan = {
+    version: 1,
+    id: "plan_001",
+    title: "Auth Feature",
+    goal: "Implement authentication",
+    status: "ready",
+    repositories: [
+      {
+        repositoryId: "repo_001",
+        role: "executable",
+        access: "read_write",
+        mountAlias: "main"
+      }
+    ],
+    primaryExecutableRepositoryId: "repo_001",
+    graphSource: "digraph { start -> exit }",
+    createdAt: "2026-03-16T00:00:00Z",
+    updatedAt: "2026-03-16T00:00:00Z"
+  };
+
+  it("accepts a valid plan state payload with empty collections", () => {
+    const parsed = PlanStatePayloadSchema.parse({
+      plan,
+      milestones: [],
+      history: [],
+      validationEvents: []
+    });
+
+    expect(parsed.plan.id).toBe("plan_001");
+    expect(parsed.milestones).toHaveLength(0);
+    expect(parsed.history).toHaveLength(0);
+    expect(parsed.validationEvents).toHaveLength(0);
+  });
+
+  it("rejects a payload missing the plan field", () => {
+    const result = PlanStatePayloadSchema.safeParse({
+      milestones: [],
+      history: [],
+      validationEvents: []
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a payload with an invalid plan status", () => {
+    const result = PlanStatePayloadSchema.safeParse({
+      plan: { ...plan, status: "unknown_status" },
+      milestones: [],
+      history: [],
+      validationEvents: []
+    });
+
+    expect(result.success).toBe(false);
+  });
+});
+
+// ── GraphUpdatePayloadSchema ──────────────────────────────────────────────────
+
+describe("GraphUpdatePayloadSchema", () => {
+  it("accepts a valid graph update payload", () => {
+    const parsed = GraphUpdatePayloadSchema.parse({
+      nodeId: "codergen_1",
+      status: "running"
+    });
+
+    expect(parsed.nodeId).toBe("codergen_1");
+    expect(parsed.status).toBe("running");
+  });
+
+  it("accepts all valid node statuses", () => {
+    const statuses = [
+      "queued",
+      "running",
+      "blocked",
+      "failed",
+      "succeeded",
+      "canceled"
+    ] as const;
+
+    for (const status of statuses) {
+      const result = GraphUpdatePayloadSchema.safeParse({
+        nodeId: "node_1",
+        status
+      });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("rejects a payload with an invalid status", () => {
+    const result = GraphUpdatePayloadSchema.safeParse({
+      nodeId: "node_1",
+      status: "completed"
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a payload missing nodeId", () => {
+    const result = GraphUpdatePayloadSchema.safeParse({ status: "running" });
+
+    expect(result.success).toBe(false);
+  });
+});
+
+// ── ToastPayloadSchema ────────────────────────────────────────────────────────
+
+describe("ToastPayloadSchema", () => {
+  it("accepts a valid info toast with no actions", () => {
+    const parsed = ToastPayloadSchema.parse({
+      message: "Plan saved successfully",
+      severity: "info",
+      actions: []
+    });
+
+    expect(parsed.message).toBe("Plan saved successfully");
+    expect(parsed.severity).toBe("info");
+    expect(parsed.actions).toHaveLength(0);
+  });
+
+  it("accepts a warning toast with actions", () => {
+    const parsed = ToastPayloadSchema.parse({
+      message: "Validation warning",
+      severity: "warning",
+      actions: ["Dismiss", "View Details"]
+    });
+
+    expect(parsed.severity).toBe("warning");
+    expect(parsed.actions).toEqual(["Dismiss", "View Details"]);
+  });
+
+  it("accepts an error toast", () => {
+    const parsed = ToastPayloadSchema.parse({
+      message: "Run failed unexpectedly",
+      severity: "error",
+      actions: ["Retry"]
+    });
+
+    expect(parsed.severity).toBe("error");
+  });
+
+  it("rejects a toast with an invalid severity", () => {
+    const result = ToastPayloadSchema.safeParse({
+      message: "Something happened",
+      severity: "debug",
+      actions: []
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a toast missing message", () => {
+    const result = ToastPayloadSchema.safeParse({
+      severity: "info",
+      actions: []
+    });
+
+    expect(result.success).toBe(false);
   });
 });
