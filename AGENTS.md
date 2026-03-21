@@ -20,12 +20,12 @@
 ## Preferred Models
 
 - Orchestration and planning: GPT-5.4 via GitHub Copilot
-- Focused implementation loops: Claude Haiku 4.5 via Anthropic
+- Focused implementation loops: Claude Haiku 4.5 via GitHub Copilot
 - Code review loops: Gemini 2.5 Pro via GitHub Copilot (primary), GPT-5.4 fallback
 - Default portable project setup in this repo:
   - `@ttd-orchestrator` -> GPT-5.4 via GitHub Copilot
   - `@ttd-planner` -> GPT-5.4 via GitHub Copilot
-  - `@ttd-implementer` -> Claude Haiku 4.5 via Anthropic
+  - `@ttd-implementer` -> Claude Haiku 4.5 via GitHub Copilot
   - `@code-reviewer` -> Gemini 2.5 Pro via GitHub Copilot
   - `@code-reviewer-secondary` -> GPT-5.4 via GitHub Copilot
   - `@plan-drift-reviewer` -> Claude Sonnet 4.6 via Anthropic
