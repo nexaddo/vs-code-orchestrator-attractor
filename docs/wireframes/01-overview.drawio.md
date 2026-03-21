@@ -1,0 +1,133 @@
+# Overview
+
+Overview dashboard for Attractor extension.
+
+```drawio
+<mxfile version="21.2.8" type="device">
+  <diagram id="overview-diagram" name="Overview">
+    <mxGraphModel dx="1440" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1440" pageHeight="900">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ov-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry width="1440" height="900" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-top" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry width="1440" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-title" value="Attractor" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="5" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-btn-refresh" value="Refresh" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="5" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-btn-settings" value="Settings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="5" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-search" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry y="40" width="1440" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-search-text" value="Search repos / runs..." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="20" y="45" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-sidebar" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry y="80" width="300" height="820" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-sb-title" value="Repositories" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="90" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-sb-line" value="" style="line;strokeWidth=1;html=1;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="20" y="120" width="260" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-sb-r1" value="&gt; repo-alpha" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="20" y="130" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-sb-r2" value="&gt; repo-beta" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="20" y="160" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-sb-r3" value="&gt; repo-gamma" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="20" y="190" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-sb-r4" value="| repo-delta" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="20" y="220" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-sb-r5" value="+ Add Repository" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="20" y="250" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-sb-qf-title" value="Quick Filters" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="300" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-btn-all" value="All" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="20" y="340" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-btn-active" value="Active" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="90" y="340" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-btn-paused" value="Paused" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="20" y="380" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-btn-failed" value="Failed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="110" y="380" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-main-title" value="Overview" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontStyle=1;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="340" y="90" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-ws" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="340" y="140" width="1060" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-ws-title" value="Workspace Summary" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="150" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-ws-stats" value="Repositories: 12   Active Runs: 3   Paused: 1   Failed: 2" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="360" y="190" width="1000" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-ws-activity" value="Last Activity: repo-beta / Plan &quot;Release Prep&quot; / 4m ago" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="360" y="220" width="1000" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-ar" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="340" y="290" width="510" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-ar-title" value="Active Runs" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="300" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-ar-r1" value="repo-alpha   Build Graph   RUN" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="360" y="340" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-ar-badge" value="" style="ellipse;whiteSpace=wrap;html=1;strokeColor=none;fillColor=#4ec9b0;" vertex="1" parent="1">
+          <mxGeometry x="360" y="378" width="14" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-ar-r2" value="status: Running   3/8 nodes" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="380" y="370" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-btn-open-run" value="Open Run" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="360" y="400" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-btn-cancel-run" value="Cancel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="470" y="400" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-rp" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="890" y="290" width="510" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-rp-title" value="Recent Plans" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="910" y="300" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-rp-r1" value="repo-beta   Release Prep" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="910" y="340" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-rp-badge" value="" style="ellipse;whiteSpace=wrap;html=1;strokeColor=none;fillColor=#f44747;" vertex="1" parent="1">
+          <mxGeometry x="910" y="378" width="14" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-rp-r2" value="last run: Failed" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="930" y="370" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-btn-open-plan" value="Open Plan" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="910" y="400" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ov-btn-run-plan" value="Run" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="400" width="80" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+```
