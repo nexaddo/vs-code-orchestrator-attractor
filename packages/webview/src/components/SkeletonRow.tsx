@@ -52,7 +52,9 @@ export function SkeletonRow({
   class: className,
   width
 }: SkeletonRowProps) {
-  const items = Array.from({ length: count }, (_, i) => i);
+  const safeCount =
+    Number.isFinite(count) && count > 0 ? Math.min(Math.floor(count), 100) : 0;
+  const items = Array.from({ length: safeCount }, (_, i) => i);
 
   return (
     <>

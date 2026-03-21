@@ -43,8 +43,11 @@ let totalSkipped = 0;
 for (const dirName of targetDirs) {
   const wireframesDir = path.join(docsDir, dirName);
 
-  if (!fs.existsSync(wireframesDir)) {
-    console.warn(`⚠  Directory not found, skipping: docs/${dirName}`);
+  if (
+    !fs.existsSync(wireframesDir) ||
+    !fs.statSync(wireframesDir).isDirectory()
+  ) {
+    console.warn(`⚠  Not a valid directory, skipping: docs/${dirName}`);
     continue;
   }
 

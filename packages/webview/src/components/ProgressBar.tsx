@@ -52,8 +52,9 @@ export function ProgressBar({
   height = 4,
   class: className
 }: ProgressBarProps) {
-  const isIndeterminate = value === undefined;
-  const clampedValue = isIndeterminate ? 0 : Math.min(100, Math.max(0, value));
+  const hasFiniteValue = typeof value === "number" && Number.isFinite(value);
+  const isIndeterminate = !hasFiniteValue;
+  const clampedValue = hasFiniteValue ? Math.min(100, Math.max(0, value)) : 0;
   const color = STATUS_COLOR[status];
 
   return (

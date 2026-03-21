@@ -47,7 +47,7 @@ const buttonVariants = cva(
         ],
         link: [
           "bg-transparent underline-offset-2 text-[color:var(--color-vscode-link)]",
-          "hover:underline p-0 h-auto"
+          "hover:underline"
         ]
       },
       size: {
@@ -56,6 +56,10 @@ const buttonVariants = cva(
         lg: "h-8  px-4   text-[length:var(--text-base)]"
       }
     },
+    compoundVariants: [
+      // Link variant neutralises size height/padding so it renders inline.
+      { variant: "link", class: "p-0 h-auto" }
+    ],
     defaultVariants: {
       variant: "primary",
       size: "md"
