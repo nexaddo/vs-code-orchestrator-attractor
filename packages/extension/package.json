@@ -9,9 +9,28 @@
   "main": "dist/src/extension.js",
   "types": "dist/src/extension.d.ts",
   "activationEvents": [
-    "onCommand:attractor.hello"
+    "onCommand:attractor.hello",
+    "onView:attractor.dashboard"
   ],
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "attractor-explorer",
+          "title": "Attractor",
+          "icon": "resources/attractor-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "attractor-explorer": [
+        {
+          "type": "webview",
+          "id": "attractor.dashboard",
+          "name": "Dashboard"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "attractor.hello",

@@ -11,6 +11,13 @@ import {
 } from "./dashboard/bridge";
 
 export const ATTRACTOR_HELLO_COMMAND = "attractor.hello";
+export const ATTRACTOR_DASHBOARD_VIEW_TYPE = "attractor.dashboard";
+export const ATTRACTOR_WEBVIEW_BUNDLE_PATH = [
+  "packages",
+  "webview",
+  "dist",
+  "bundle"
+] as const;
 
 export interface DisposableLike {
   dispose(): void;
@@ -22,6 +29,9 @@ export interface CommandsApiLike {
 
 export interface ExtensionContextLike {
   subscriptions: DisposableLike[];
+  extensionUri?: {
+    fsPath: string;
+  };
   storageUri?: {
     fsPath: string;
   };
