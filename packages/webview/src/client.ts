@@ -8,19 +8,11 @@
  * and loaded via a <link> tag in the extension's HTML shell (M3.9).
  *
  * Boot sequence:
- *  1. Call bootWebview() which sends the "ready" handshake to the extension host
+ *  1. Call bootWebview() which acquires the VS Code API and sends the "ready"
+ *     handshake to the extension host
  *  2. Listen for inbound messages and dispatch to the appropriate view renderer
  */
 import { bootWebview, decodeOverviewState, renderOverview } from "./index";
-
-/**
- * Acquire VS Code API handle.  The global is injected by VS Code at runtime.
- */
-const vscode = (
-  globalThis as unknown as {
-    acquireVsCodeApi: () => { postMessage: (msg: unknown) => void };
-  }
-).acquireVsCodeApi();
 
 /**
  * Root mount point injected by the extension HTML shell.
@@ -56,5 +48,3 @@ window.addEventListener("message", (event: MessageEvent) => {
 
 // Kick off the boot handshake — sends "ready" to the extension host.
 bootWebview();
-
-export { vscode };

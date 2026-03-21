@@ -27,14 +27,21 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const watch = process.argv.includes("--watch");
-const production = process.env.NODE_ENV === "production";
+// Default to production for one-shot builds; dev only when watching unless
+// NODE_ENV is set explicitly.
+const production =
+  process.env.NODE_ENV !== undefined
+    ? process.env.NODE_ENV === "production"
+    : !watch;
 
 const outDir = path.join(__dirname, "dist", "bundle");
 const cssIn = path.join(__dirname, "src", "styles", "index.css");
 const cssOut = path.join(outDir, "webview.css");
 
-// Resolve postcss binary from this package's node_modules
-const postcssBin = path.join(__dirname, "node_modules", ".bin", "postcss");
+// Resolve postcss binary from this package's node_modules (platform-aware)
+const postcssBinBase = path.join(__dirname, "node_modules", ".bin", "postcss");
+const postcssBin =
+  process.platform === "win32" ? `${postcssBinBase}.cmd` : postcssBinBase;
 
 // Ensure output directory exists
 mkdirSync(outDir, { recursive: true });
@@ -48,7 +55,7 @@ const jsOptions = {
   format: "iife",
   target: ["chrome111", "safari16"],
   external: [],
-  sourcemap: production ? false : "inline",
+  sourcemap: watch ? "external" : false,
   minify: production
 };
 
@@ -61,7 +68,7 @@ if (watch) {
   const cssProc = spawn(
     postcssBin,
     [cssIn, "--output", cssOut, "--watch", "--poll"],
-    { stdio: "inherit", shell: true }
+    { stdio: "inherit", shell: false, cwd: __dirname }
   );
   cssProc.on("error", (err) => {
     console.error("[attractor/webview] postcss watch error:", err.message);
@@ -75,7 +82,8 @@ if (watch) {
   // CSS: postcss one-shot
   execFileSync(postcssBin, [cssIn, "--output", cssOut], {
     stdio: "inherit",
-    shell: true
+    shell: false,
+    cwd: __dirname
   });
 
   console.log("[attractor/webview] build complete");
