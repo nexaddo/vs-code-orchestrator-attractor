@@ -12,15 +12,30 @@ export interface WebviewLike {
   cspSource?: string;
   asWebviewUri(uri: { fsPath: string }): { toString(): string };
   onDidReceiveMessage: (listener: (e: unknown) => void) => { dispose(): void };
+  postMessage?(message: unknown): void | PromiseLike<boolean>;
 }
 
 export interface WebviewViewLike {
   webview: WebviewLike;
 }
 
+/**
+ * Thin adapter matching WebviewPanelLike from bridge.ts so we can post
+ * messages back to the webview without coupling to the VS Code API.
+ */
+export interface WebviewPostTarget {
+  postMessage(message: unknown): void | PromiseLike<boolean>;
+}
+
 export interface AttractorViewProviderDeps {
   extensionUri: { fsPath: string };
   webviewBundlePath: string[];
+  /**
+   * Bridge callback wired in runtime.ts — receives raw inbound messages
+   * from the webview and a post-target adapter.  When undefined the provider
+   * silently drops inbound messages (useful for headless tests).
+   */
+  onMessage?: (raw: unknown, panel: WebviewPostTarget) => Promise<void>;
 }
 
 const joinPathLike = (
@@ -63,6 +78,20 @@ export class AttractorViewProvider {
       cssUri,
       nonce,
       cspSource: webview.cspSource ?? "vscode-webview-resource:"
+    });
+
+    // --- Bridge adapter wiring ---
+    // Create a WebviewPostTarget that forwards outbound messages to the
+    // actual webview, then subscribe to inbound messages and route them
+    // through the bridge callback provided by runtime.ts.
+    const postTarget: WebviewPostTarget = {
+      postMessage: (message: unknown) => webview.postMessage?.(message)
+    };
+
+    webview.onDidReceiveMessage((raw: unknown) => {
+      if (this.deps.onMessage) {
+        void this.deps.onMessage(raw, postTarget);
+      }
     });
   }
 }

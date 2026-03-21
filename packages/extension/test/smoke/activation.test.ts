@@ -2,12 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   activateAttractor,
+  ATTRACTOR_DASHBOARD_VIEW_TYPE,
   ATTRACTOR_HELLO_COMMAND,
   type CommandsApiLike,
   type DisposableLike,
   type ExtensionContextLike,
   type StorageServicesLike,
-  type WebviewPanelLike
+  type WebviewPanelLike,
+  type WindowApiLike
 } from "../../src/runtime";
 
 describe("activateAttractor", () => {
@@ -346,5 +348,67 @@ describe("activateAttractor — runtime webview wiring", () => {
     );
 
     expect(posted).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Provider registration tests (Slice 2)
+// ---------------------------------------------------------------------------
+
+describe("activateAttractor — webview provider registration", () => {
+  it("registers the view provider when extensionUri and windowApi are both provided", () => {
+    const context: ExtensionContextLike = {
+      subscriptions: [],
+      extensionUri: { fsPath: "/repo-root" }
+    };
+
+    const registeredViewTypes: string[] = [];
+    const providerDisposable: DisposableLike = { dispose: vi.fn() };
+    const windowApi: WindowApiLike = {
+      registerWebviewViewProvider(viewType) {
+        registeredViewTypes.push(viewType);
+        return providerDisposable;
+      }
+    };
+
+    activateAttractor(context, makeMinimalCommandsApi(), {
+      createStorageServices: () => makeServicesWithMocks() as never,
+      storageRoot: "/tmp/storage",
+      windowApi
+    });
+
+    expect(registeredViewTypes).toEqual([ATTRACTOR_DASHBOARD_VIEW_TYPE]);
+    expect(context.subscriptions).toContain(providerDisposable);
+  });
+
+  it("does not register the view provider when extensionUri is absent", () => {
+    const context = makeMinimalContext();
+    const windowApi: WindowApiLike = {
+      registerWebviewViewProvider: vi.fn(() => ({ dispose: vi.fn() }))
+    };
+
+    activateAttractor(context, makeMinimalCommandsApi(), {
+      createStorageServices: () => makeServicesWithMocks() as never,
+      storageRoot: "/tmp/storage",
+      windowApi
+    });
+
+    expect(windowApi.registerWebviewViewProvider).not.toHaveBeenCalled();
+  });
+
+  it("does not register the view provider when windowApi is absent", () => {
+    const context: ExtensionContextLike = {
+      subscriptions: [],
+      extensionUri: { fsPath: "/repo-root" }
+    };
+
+    // No windowApi → should not throw
+    activateAttractor(context, makeMinimalCommandsApi(), {
+      createStorageServices: () => makeServicesWithMocks() as never,
+      storageRoot: "/tmp/storage"
+    });
+
+    // Only the command disposable should be present, no provider
+    expect(context.subscriptions).toHaveLength(1);
   });
 });
