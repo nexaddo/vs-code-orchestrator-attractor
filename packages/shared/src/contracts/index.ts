@@ -42,7 +42,8 @@ export const WebviewOutboundMessageTypeSchema = z.enum([
   "run.state",
   "timeline.update",
   "graph.update",
-  "toast"
+  "toast",
+  "orchestration.state"
 ]);
 
 export const WebviewOutboundMessageSchema = z.object({
@@ -164,7 +165,11 @@ export const RunRecordSchema = z.object({
   status: RunStatusSchema,
   attempt: z.number().int().min(1),
   createdAt: z.string().min(1),
-  updatedAt: z.string().min(1)
+  updatedAt: z.string().min(1),
+  graphId: z.string().min(1).optional(),
+  worktreeId: z.string().min(1).optional(),
+  startedAt: z.string().min(1).optional(),
+  completedAt: z.string().min(1).optional()
 });
 
 export type RunRecord = z.infer<typeof RunRecordSchema>;
@@ -398,3 +403,86 @@ export const ToastPayloadSchema = z.object({
 });
 
 export type ToastPayload = z.infer<typeof ToastPayloadSchema>;
+
+// ── M4 orchestration schemas ──────────────────────────────────────────────────
+
+export const AgentRoleStatusSchema = z.enum([
+  "done",
+  "running",
+  "waiting",
+  "failed",
+  "skipped"
+]);
+
+export type AgentRoleStatus = z.infer<typeof AgentRoleStatusSchema>;
+
+export const AgentRolePhaseSchema = z.object({
+  role: RoleSchema,
+  status: AgentRoleStatusSchema,
+  taskSummary: z.string().optional(),
+  errorLabel: z.string().optional()
+});
+
+export type AgentRolePhase = z.infer<typeof AgentRolePhaseSchema>;
+
+export const OrchestrationStatePayloadSchema = z.object({
+  runId: z.string().min(1),
+  milestoneIndex: z.number().int().min(0),
+  milestoneCount: z.number().int().min(1),
+  milestoneName: z.string().min(1),
+  phases: z.tuple([
+    AgentRolePhaseSchema,
+    AgentRolePhaseSchema,
+    AgentRolePhaseSchema,
+    AgentRolePhaseSchema
+  ])
+});
+
+export type OrchestrationStatePayload = z.infer<
+  typeof OrchestrationStatePayloadSchema
+>;
+
+export const OrchestratorHandoffSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  milestoneId: z.string().min(1),
+  milestoneName: z.string().min(1),
+  description: z.string().min(1),
+  acceptanceCriteria: z.array(z.string())
+});
+
+export type OrchestratorHandoff = z.infer<typeof OrchestratorHandoffSchema>;
+
+export const PlannerHandoffSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  milestoneId: z.string().min(1),
+  tasks: z.array(
+    z.object({
+      id: z.string().min(1),
+      description: z.string().min(1),
+      testFirst: z.boolean()
+    })
+  ),
+  filesLikelyAffected: z.array(z.string())
+});
+
+export type PlannerHandoff = z.infer<typeof PlannerHandoffSchema>;
+
+export const ImplementerHandoffSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  milestoneId: z.string().min(1),
+  tasksCompleted: z.array(z.string()),
+  summary: z.string().min(1),
+  testsPassed: z.boolean()
+});
+
+export type ImplementerHandoff = z.infer<typeof ImplementerHandoffSchema>;
+
+export const ReviewerHandoffSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  milestoneId: z.string().min(1),
+  approved: z.boolean(),
+  comments: z.array(z.string()),
+  requiresChanges: z.boolean()
+});
+
+export type ReviewerHandoff = z.infer<typeof ReviewerHandoffSchema>;

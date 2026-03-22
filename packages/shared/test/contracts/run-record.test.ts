@@ -47,4 +47,25 @@ describe("RunRecordSchema", () => {
 
     expect(RunRecordSchema.parse(roundTripped)).toEqual(parsed);
   });
+
+  it("accepts a run with optional M4 fields (graphId, worktreeId, startedAt, completedAt)", () => {
+    const parsed = RunRecordSchema.parse(
+      loadFixture("valid/with-m4-fields.json")
+    );
+
+    expect(parsed.id).toBe("run_auth_feature_attempt_1");
+    expect(parsed.graphId).toBe("graph_auth_001");
+    expect(parsed.worktreeId).toBe("wt_auth_001");
+    expect(parsed.startedAt).toBe("2026-03-20T00:01:00Z");
+    expect(parsed.completedAt).toBe("2026-03-20T01:00:00Z");
+  });
+
+  it("accepts a minimal run without M4 optional fields", () => {
+    const parsed = RunRecordSchema.parse(loadFixture("valid/minimal.json"));
+
+    expect(parsed.graphId).toBeUndefined();
+    expect(parsed.worktreeId).toBeUndefined();
+    expect(parsed.startedAt).toBeUndefined();
+    expect(parsed.completedAt).toBeUndefined();
+  });
 });
