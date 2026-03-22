@@ -123,8 +123,36 @@ export async function handleWebviewMessage(
     }
 
     case "plan.run": {
-      const planId = message.payload.planId as string;
-      const runId = message.payload.runId as string | undefined;
+      const planId = message.payload.planId;
+      const runId = message.payload.runId;
+      if (typeof planId !== "string" || planId.trim().length === 0) {
+        await panel.postMessage({
+          version: 1,
+          requestId: message.requestId,
+          type: "toast",
+          payload: {
+            message:
+              "Invalid plan.run payload: planId must be a non-empty string",
+            severity: "warning",
+            actions: []
+          }
+        });
+        break;
+      }
+      if (runId !== undefined && typeof runId !== "string") {
+        await panel.postMessage({
+          version: 1,
+          requestId: message.requestId,
+          type: "toast",
+          payload: {
+            message:
+              "Invalid plan.run payload: runId must be a string when provided",
+            severity: "warning",
+            actions: []
+          }
+        });
+        break;
+      }
       if (orchestration) {
         const resolvedRunId = runId ?? `run-${Date.now()}`;
         // Fire and forget — orchestration runs async, but catch rejections
@@ -161,7 +189,21 @@ export async function handleWebviewMessage(
     }
 
     case "run.cancel": {
-      const cancelRunId = message.payload.runId as string;
+      const cancelRunId = message.payload.runId;
+      if (typeof cancelRunId !== "string" || cancelRunId.trim().length === 0) {
+        await panel.postMessage({
+          version: 1,
+          requestId: message.requestId,
+          type: "toast",
+          payload: {
+            message:
+              "Invalid run.cancel payload: runId must be a non-empty string",
+            severity: "warning",
+            actions: []
+          }
+        });
+        break;
+      }
       if (orchestration) {
         orchestration.cancelOrchestration(cancelRunId);
       }

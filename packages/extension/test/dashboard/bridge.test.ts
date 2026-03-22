@@ -585,6 +585,78 @@ describe("handleWebviewMessage — bridge", () => {
       expect(msg.type).toBe("toast");
     });
 
+    it("plan.run posts warning toast when planId is missing", async () => {
+      const services = makeServices({});
+      const { panel, posted } = makePanel();
+      const startOrchestration = vi.fn();
+      const orchestration: BridgeOrchestrationContext = {
+        modelGateway: {
+          send: vi.fn(),
+          stream: vi.fn()
+        } as unknown as ModelGateway,
+        startOrchestration,
+        cancelOrchestration: vi.fn()
+      };
+
+      await handleWebviewMessage(
+        {
+          version: 1,
+          requestId: "req-run-invalid-plan",
+          type: "plan.run",
+          payload: {}
+        },
+        services,
+        panel,
+        orchestration
+      );
+
+      expect(startOrchestration).not.toHaveBeenCalled();
+      expect(posted).toHaveLength(1);
+      const msg = posted[0] as {
+        type: string;
+        payload: { severity: string; message: string };
+      };
+      expect(msg.type).toBe("toast");
+      expect(msg.payload.severity).toBe("warning");
+      expect(msg.payload.message).toContain("planId");
+    });
+
+    it("plan.run posts warning toast when runId is not a string", async () => {
+      const services = makeServices({});
+      const { panel, posted } = makePanel();
+      const startOrchestration = vi.fn();
+      const orchestration: BridgeOrchestrationContext = {
+        modelGateway: {
+          send: vi.fn(),
+          stream: vi.fn()
+        } as unknown as ModelGateway,
+        startOrchestration,
+        cancelOrchestration: vi.fn()
+      };
+
+      await handleWebviewMessage(
+        {
+          version: 1,
+          requestId: "req-run-invalid-runid",
+          type: "plan.run",
+          payload: { planId: "p1", runId: 123 }
+        },
+        services,
+        panel,
+        orchestration
+      );
+
+      expect(startOrchestration).not.toHaveBeenCalled();
+      expect(posted).toHaveLength(1);
+      const msg = posted[0] as {
+        type: string;
+        payload: { severity: string; message: string };
+      };
+      expect(msg.type).toBe("toast");
+      expect(msg.payload.severity).toBe("warning");
+      expect(msg.payload.message).toContain("runId");
+    });
+
     it("plan.run posts error toast when startOrchestration rejects", async () => {
       const services = makeServices({});
       const { panel, posted } = makePanel();
@@ -659,6 +731,42 @@ describe("handleWebviewMessage — bridge", () => {
       };
       expect(msg.type).toBe("toast");
       expect(msg.payload.message).toContain("run-1");
+    });
+
+    it("run.cancel posts warning toast when runId is missing", async () => {
+      const services = makeServices({});
+      const { panel, posted } = makePanel();
+      const cancelOrchestration = vi.fn();
+      const orchestration: BridgeOrchestrationContext = {
+        modelGateway: {
+          send: vi.fn(),
+          stream: vi.fn()
+        } as unknown as ModelGateway,
+        startOrchestration: vi.fn(),
+        cancelOrchestration
+      };
+
+      await handleWebviewMessage(
+        {
+          version: 1,
+          requestId: "req-cancel-invalid",
+          type: "run.cancel",
+          payload: {}
+        },
+        services,
+        panel,
+        orchestration
+      );
+
+      expect(cancelOrchestration).not.toHaveBeenCalled();
+      expect(posted).toHaveLength(1);
+      const msg = posted[0] as {
+        type: string;
+        payload: { severity: string; message: string };
+      };
+      expect(msg.type).toBe("toast");
+      expect(msg.payload.severity).toBe("warning");
+      expect(msg.payload.message).toContain("runId");
     });
 
     it("run.resume posts not-yet-supported toast", async () => {
