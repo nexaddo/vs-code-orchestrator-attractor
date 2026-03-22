@@ -1,0 +1,12 @@
+src/**
+test/**
+dist/src/**
+dist/test/**
+dist/tsconfig.tsbuildinfo
+node_modules/**
+*.map
+tsconfig*
+vitest*
+esbuild*
+.vscode/**
+.gitignore
