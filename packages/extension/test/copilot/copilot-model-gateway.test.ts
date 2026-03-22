@@ -136,6 +136,40 @@ describe("CopilotModelGateway", () => {
     });
   });
 
+  it("passes request options without passing AbortSignal as token argument", async () => {
+    const mockResponse: LanguageModelChatResponseLike = {
+      text: (async function* () {
+        yield "ok";
+      })()
+    };
+    const mockModel: ChatModelLike = {
+      sendRequest: vi.fn().mockResolvedValue(mockResponse)
+    };
+    const api: LanguageModelApiLike = {
+      selectChatModels: vi.fn().mockResolvedValue([mockModel]),
+      createChatMessage: vi
+        .fn()
+        .mockImplementation((role: number, content: string) => ({
+          role,
+          content
+        }))
+    };
+    const gateway = new CopilotModelGateway(api);
+    const abortController = new AbortController();
+
+    await gateway.send(
+      [{ role: "user", content: "Test abort option forwarding" }],
+      { signal: abortController.signal }
+    );
+
+    const sendRequestMock = vi.mocked(mockModel.sendRequest);
+    expect(sendRequestMock).toHaveBeenCalledTimes(1);
+    expect(sendRequestMock.mock.calls[0]?.length).toBe(2);
+    expect(sendRequestMock.mock.calls[0]?.[1]).toEqual({
+      signal: abortController.signal
+    });
+  });
+
   it("handles empty message list", async () => {
     const api = createMockApi(["response"]);
     const gateway = new CopilotModelGateway(api);
@@ -160,6 +194,24 @@ describe("CopilotModelGateway", () => {
     expect(api.createChatMessage).toHaveBeenCalledWith(
       1,
       "System instruction 1\n\nSystem instruction 2\n\nUser query"
+    );
+  });
+
+  it("converts system-only messages into a single user message", async () => {
+    const api = createMockApi(["response"]);
+    const gateway = new CopilotModelGateway(api);
+
+    const messages: ModelMessage[] = [
+      { role: "system", content: "System instruction 1" },
+      { role: "system", content: "System instruction 2" }
+    ];
+
+    await gateway.send(messages);
+
+    expect(api.createChatMessage).toHaveBeenCalledTimes(1);
+    expect(api.createChatMessage).toHaveBeenCalledWith(
+      1,
+      "System instruction 1\n\nSystem instruction 2"
     );
   });
 });

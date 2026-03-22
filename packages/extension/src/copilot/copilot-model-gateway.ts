@@ -97,11 +97,7 @@ export class CopilotModelGateway implements ModelGateway {
     const apiMessages = this.convertMessages(messages);
 
     // Send request
-    const response = await model.sendRequest(
-      apiMessages,
-      options,
-      options?.signal
-    );
+    const response = await model.sendRequest(apiMessages, options);
 
     // Stream the response
     for await (const chunk of response.text) {
@@ -134,6 +130,13 @@ export class CopilotModelGateway implements ModelGateway {
           this.api.createChatMessage(ROLE_MAP.assistant, msg.content)
         );
       }
+    }
+
+    if (systemPrefix && result.length === 0) {
+      const content = systemPrefix.endsWith("\n\n")
+        ? systemPrefix.slice(0, -2)
+        : systemPrefix;
+      result.push(this.api.createChatMessage(ROLE_MAP.user, content));
     }
 
     return result;
