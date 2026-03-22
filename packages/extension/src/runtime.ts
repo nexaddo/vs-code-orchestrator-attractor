@@ -1,4 +1,7 @@
-import { WebviewInboundMessageSchema } from "@attractor/shared";
+import {
+  CONTRACT_VERSION,
+  WebviewInboundMessageSchema
+} from "@attractor/shared";
 
 import {
   createStorageServices,
@@ -168,7 +171,7 @@ export const activateAttractor = (
       const parsed = WebviewInboundMessageSchema.safeParse(raw);
       if (parsed.success && parsed.data.type === "ready") {
         panel.postMessage({
-          version: 1,
+          version: CONTRACT_VERSION,
           requestId: parsed.data.requestId,
           type: "overview.state",
           payload: {
@@ -182,7 +185,8 @@ export const activateAttractor = (
               pausedRuns: 0,
               failedRuns24h: 0
             },
-            error: "Storage unavailable — check output channel for details"
+            error:
+              "Storage unavailable — extension storage failed to initialize"
           }
         });
       }

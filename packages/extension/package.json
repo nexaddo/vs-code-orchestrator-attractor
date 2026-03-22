@@ -19,7 +19,6 @@
   "license": "MIT",
   "homepage": "https://github.com/nexaddo/vs-code-orchestrator-attractor#readme",
   "main": "dist/bundle/extension.js",
-  "types": "dist/src/extension.d.ts",
   "activationEvents": [
     "onCommand:attractor.hello",
     "onView:attractor.dashboard",
@@ -31,7 +30,7 @@
         {
           "id": "attractor-explorer",
           "title": "Attractor",
-          "icon": "resources/attractor-icon.svg"
+          "icon": "resources/attractor-icon.png"
         }
       ]
     },

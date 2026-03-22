@@ -1,7 +1,7 @@
 // @ts-check
 
 import esbuild from "esbuild";
-import { cpSync, existsSync, mkdirSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -21,9 +21,22 @@ const stageWebviewBundle = () => {
   // Post-build: stage webview bundle into extension package
   const webviewSrc = path.join(__dirname, "..", "webview", "dist", "bundle");
   const webviewDest = path.join(outDir, "webview");
-  if (existsSync(webviewSrc)) {
-    cpSync(webviewSrc, webviewDest, { recursive: true });
+  if (!existsSync(webviewSrc)) {
+    if (watch) {
+      console.warn(
+        "[attractor/extension] webview bundle not found, skipping staging"
+      );
+      return;
+    }
+    throw new Error(
+      `Webview bundle not found at ${webviewSrc}. Run webview build first.`
+    );
   }
+  // Clean destination to avoid stale files from previous builds
+  if (existsSync(webviewDest)) {
+    rmSync(webviewDest, { recursive: true });
+  }
+  cpSync(webviewSrc, webviewDest, { recursive: true });
 };
 
 // Ensure output directory exists
