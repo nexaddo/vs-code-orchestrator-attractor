@@ -41,4 +41,18 @@ describe("webview message contracts", () => {
 
     expect(parsed.type).toBe("toast");
   });
+
+  it("accepts an outbound message with orchestration.state type", () => {
+    const parsed = WebviewOutboundMessageSchema.parse({
+      version: 1,
+      requestId: "req_3",
+      type: "orchestration.state",
+      payload: {
+        runId: "run_001",
+        milestoneIndex: 0
+      }
+    });
+
+    expect(parsed.type).toBe("orchestration.state");
+  });
 });

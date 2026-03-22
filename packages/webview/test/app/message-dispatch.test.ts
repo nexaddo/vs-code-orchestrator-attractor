@@ -174,4 +174,207 @@ describe("dispatchInboundMessage", () => {
 
     expect(store.getState().payloads.overview).toEqual({});
   });
+
+  it("dispatches orchestration.state and returns true", () => {
+    const store = createStore();
+    const result = dispatchInboundMessage(store, {
+      type: "orchestration.state",
+      requestId: "r-orch-1",
+      payload: {
+        runId: "run-42",
+        milestoneIndex: 1,
+        milestoneCount: 3,
+        milestoneName: "Setup Phase",
+        phases: [
+          { role: "orchestrator", status: "done" },
+          { role: "planner", status: "running" },
+          { role: "implementer", status: "waiting" },
+          { role: "reviewer", status: "waiting" }
+        ]
+      }
+    });
+
+    expect(result).toBe(true);
+    expect(store.getState().orchestration).toEqual({
+      runId: "run-42",
+      milestoneIndex: 1,
+      milestoneCount: 3,
+      milestoneName: "Setup Phase",
+      phases: [
+        {
+          role: "orchestrator",
+          status: "done",
+          model: "",
+          tokenUsage: { prompt: 0, completion: 0 }
+        },
+        {
+          role: "planner",
+          status: "running",
+          model: "",
+          tokenUsage: { prompt: 0, completion: 0 }
+        },
+        {
+          role: "implementer",
+          status: "waiting",
+          model: "",
+          tokenUsage: { prompt: 0, completion: 0 }
+        },
+        {
+          role: "reviewer",
+          status: "waiting",
+          model: "",
+          tokenUsage: { prompt: 0, completion: 0 }
+        }
+      ]
+    });
+  });
+
+  it("dispatches orchestration.state with defaults for missing fields", () => {
+    const store = createStore();
+    const result = dispatchInboundMessage(store, {
+      type: "orchestration.state",
+      requestId: "r-orch-2",
+      payload: {}
+    });
+
+    expect(result).toBe(true);
+    const orchestration = store.getState().orchestration;
+    expect(orchestration).not.toBeNull();
+    expect(orchestration!.runId).toBe("");
+    expect(orchestration!.phases).toHaveLength(4);
+  });
+
+  it("orchestration state is null in initial store", () => {
+    const store = createStore();
+    expect(store.getState().orchestration).toBeNull();
+  });
+
+  it("dispatches orchestration.state defaults when payload is null", () => {
+    const store = createStore();
+    const result = dispatchInboundMessage(store, {
+      type: "orchestration.state",
+      requestId: "r-orch-null",
+      payload: null
+    });
+
+    expect(result).toBe(true);
+    expect(store.getState().orchestration).toEqual({
+      runId: "",
+      milestoneIndex: 0,
+      milestoneCount: 1,
+      milestoneName: "",
+      phases: [
+        {
+          role: "orchestrator",
+          status: "queued",
+          model: "",
+          tokenUsage: { prompt: 0, completion: 0 }
+        },
+        {
+          role: "planner",
+          status: "queued",
+          model: "",
+          tokenUsage: { prompt: 0, completion: 0 }
+        },
+        {
+          role: "implementer",
+          status: "queued",
+          model: "",
+          tokenUsage: { prompt: 0, completion: 0 }
+        },
+        {
+          role: "reviewer",
+          status: "queued",
+          model: "",
+          tokenUsage: { prompt: 0, completion: 0 }
+        }
+      ]
+    });
+  });
+
+  it("normalizes orchestration phases when phases is not an array", () => {
+    const store = createStore();
+    const result = dispatchInboundMessage(store, {
+      type: "orchestration.state",
+      requestId: "r-orch-bad-phases",
+      payload: {
+        runId: "run-bad-phases",
+        phases: "not-an-array"
+      }
+    });
+
+    expect(result).toBe(true);
+    expect(store.getState().orchestration?.phases).toEqual([
+      {
+        role: "orchestrator",
+        status: "queued",
+        model: "",
+        tokenUsage: { prompt: 0, completion: 0 }
+      },
+      {
+        role: "planner",
+        status: "queued",
+        model: "",
+        tokenUsage: { prompt: 0, completion: 0 }
+      },
+      {
+        role: "implementer",
+        status: "queued",
+        model: "",
+        tokenUsage: { prompt: 0, completion: 0 }
+      },
+      {
+        role: "reviewer",
+        status: "queued",
+        model: "",
+        tokenUsage: { prompt: 0, completion: 0 }
+      }
+    ]);
+  });
+
+  it("normalizes orchestration phases to exactly four items", () => {
+    const store = createStore();
+    const result = dispatchInboundMessage(store, {
+      type: "orchestration.state",
+      requestId: "r-orch-normalized-phases",
+      payload: {
+        runId: "run-normalized",
+        phases: [
+          { role: "anything", status: "running" },
+          { role: "anything", status: "done" },
+          { role: "anything", status: "blocked" },
+          { role: "anything", status: "succeeded" },
+          { role: "extra", status: "failed" }
+        ]
+      }
+    });
+
+    expect(result).toBe(true);
+    expect(store.getState().orchestration?.phases).toEqual([
+      {
+        role: "orchestrator",
+        status: "running",
+        model: "",
+        tokenUsage: { prompt: 0, completion: 0 }
+      },
+      {
+        role: "planner",
+        status: "done",
+        model: "",
+        tokenUsage: { prompt: 0, completion: 0 }
+      },
+      {
+        role: "implementer",
+        status: "blocked",
+        model: "",
+        tokenUsage: { prompt: 0, completion: 0 }
+      },
+      {
+        role: "reviewer",
+        status: "succeeded",
+        model: "",
+        tokenUsage: { prompt: 0, completion: 0 }
+      }
+    ]);
+  });
 });

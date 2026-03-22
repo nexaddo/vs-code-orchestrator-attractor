@@ -6,7 +6,12 @@
  * maps to a store action that updates the active surface and its payload.
  */
 
-import type { AppStore, GraphUpdateItem, SurfaceId } from "./store";
+import type {
+  AppStore,
+  GraphUpdateItem,
+  SurfaceId,
+  OrchestrationPhaseItem
+} from "./store";
 
 /**
  * Map from outbound message type → surface id.
@@ -19,6 +24,64 @@ const MESSAGE_TO_SURFACE: Record<string, SurfaceId> = {
   "plan.state": "plan",
   "run.state": "run"
 };
+
+const ORCHESTRATION_ROLES = [
+  "orchestrator",
+  "planner",
+  "implementer",
+  "reviewer"
+] as const;
+
+function createDefaultPhase(role: string) {
+  return {
+    role,
+    status: "queued",
+    model: "",
+    tokenUsage: {
+      prompt: 0,
+      completion: 0
+    }
+  };
+}
+
+function normalizeOrchestrationPhases(
+  phases: unknown
+): [
+  OrchestrationPhaseItem,
+  OrchestrationPhaseItem,
+  OrchestrationPhaseItem,
+  OrchestrationPhaseItem
+] {
+  const normalizeAt = (role: string, index: number): OrchestrationPhaseItem => {
+    const defaultPhase = createDefaultPhase(role);
+    if (!Array.isArray(phases)) {
+      return defaultPhase;
+    }
+
+    const rawPhase = phases[index];
+    if (typeof rawPhase !== "object" || rawPhase === null) {
+      return defaultPhase;
+    }
+
+    const phase = rawPhase as Partial<OrchestrationPhaseItem>;
+    return {
+      ...defaultPhase,
+      ...phase,
+      role,
+      status:
+        typeof phase.status === "string" && phase.status.length > 0
+          ? phase.status
+          : defaultPhase.status
+    };
+  };
+
+  return [
+    normalizeAt(ORCHESTRATION_ROLES[0], 0),
+    normalizeAt(ORCHESTRATION_ROLES[1], 1),
+    normalizeAt(ORCHESTRATION_ROLES[2], 2),
+    normalizeAt(ORCHESTRATION_ROLES[3], 3)
+  ];
+}
 
 export interface InboundMessage {
   type?: string;
@@ -79,6 +142,31 @@ export function dispatchInboundMessage(store: AppStore, raw: unknown): boolean {
       status:
         ((msg.payload as { status?: string })
           ?.status as GraphUpdateItem["status"]) ?? "queued"
+    });
+    return true;
+  }
+
+  if (msg.type === "orchestration.state") {
+    const payload =
+      typeof msg.payload === "object" && msg.payload !== null
+        ? (msg.payload as {
+            runId?: string;
+            milestoneIndex?: number;
+            milestoneCount?: number;
+            milestoneName?: string;
+            phases?: unknown;
+          })
+        : undefined;
+
+    store.dispatch({
+      type: "orchestration.update",
+      orchestration: {
+        runId: payload?.runId ?? "",
+        milestoneIndex: payload?.milestoneIndex ?? 0,
+        milestoneCount: payload?.milestoneCount ?? 1,
+        milestoneName: payload?.milestoneName ?? "",
+        phases: normalizeOrchestrationPhases(payload?.phases)
+      }
     });
     return true;
   }
