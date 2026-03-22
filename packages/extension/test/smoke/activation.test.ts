@@ -4,6 +4,7 @@ import {
   activateAttractor,
   ATTRACTOR_DASHBOARD_VIEW_TYPE,
   ATTRACTOR_HELLO_COMMAND,
+  type ChatApiLike,
   type CommandsApiLike,
   type DisposableLike,
   type ExtensionContextLike,
@@ -409,6 +410,50 @@ describe("activateAttractor — webview provider registration", () => {
     });
 
     // Only the command disposable should be present, no provider
+    expect(context.subscriptions).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Chat participant registration tests (Slice 7)
+// ---------------------------------------------------------------------------
+
+describe("activateAttractor — chat participant registration", () => {
+  it("registers the chat participant when chatApi is provided", () => {
+    const context: ExtensionContextLike = {
+      subscriptions: []
+    };
+
+    const participantDisposable: DisposableLike = { dispose: vi.fn() };
+    const chatApi: ChatApiLike = {
+      createChatParticipant: vi.fn(() => participantDisposable)
+    };
+
+    activateAttractor(context, makeMinimalCommandsApi(), {
+      createStorageServices: () => makeServicesWithMocks() as never,
+      storageRoot: "/tmp/storage",
+      chatApi
+    });
+
+    expect(chatApi.createChatParticipant).toHaveBeenCalledWith(
+      "attractor.attractor",
+      expect.any(Function)
+    );
+    expect(context.subscriptions).toContain(participantDisposable);
+  });
+
+  it("does not register the chat participant when chatApi is undefined", () => {
+    const context: ExtensionContextLike = {
+      subscriptions: []
+    };
+
+    // No chatApi → should not throw
+    activateAttractor(context, makeMinimalCommandsApi(), {
+      createStorageServices: () => makeServicesWithMocks() as never,
+      storageRoot: "/tmp/storage"
+    });
+
+    // Only the command disposable should be present, no chat participant
     expect(context.subscriptions).toHaveLength(1);
   });
 });

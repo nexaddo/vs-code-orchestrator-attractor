@@ -13,6 +13,10 @@ import {
   AttractorViewProvider,
   type WebviewPostTarget
 } from "./dashboard/webview-provider";
+import {
+  registerChatParticipant,
+  type ChatApiLike
+} from "./chat/attractor-chat-participant";
 
 export const ATTRACTOR_HELLO_COMMAND = "attractor.hello";
 export const ATTRACTOR_DASHBOARD_VIEW_TYPE = "attractor.dashboard";
@@ -63,11 +67,13 @@ export interface ExtensionContextLike {
 // Re-export seam types so callers can import them without reaching into internals.
 export type { StorageServices as StorageServicesLike };
 export type { WebviewPanelLike };
+export type { ChatApiLike };
 
 export interface RuntimeDependencies {
   createStorageServices?: (rootDirectory: string) => StorageServices;
   storageRoot?: string;
   windowApi?: WindowApiLike;
+  chatApi?: ChatApiLike;
 }
 
 export const registerAttractorCommands = (
@@ -144,5 +150,11 @@ export const activateAttractor = (
         provider
       );
     context.subscriptions.push(providerDisposable);
+  }
+
+  // Register the chat participant when chatApi is available.
+  if (dependencies.chatApi) {
+    const participant = registerChatParticipant(dependencies.chatApi);
+    context.subscriptions.push(participant);
   }
 };
