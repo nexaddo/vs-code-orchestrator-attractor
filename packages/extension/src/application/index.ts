@@ -4,3 +4,5 @@ export {
   type ModelRequestOptions,
   NoOpModelGateway
 } from "./ports";
+
+export * from "./role-prompts";
