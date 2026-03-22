@@ -1,33 +1,47 @@
 /**
  * Root Preact component for the Attractor dashboard webview.
  *
- * Subscribes to the AppStore and renders the active surface based on
- * `state.activeSurface`.  In this slice (3), surfaces render placeholder
- * content — real compositions are wired in slices 5-8.
+ * Subscribes to the AppStore and renders the active surface inside a
+ * SurfaceFrame.  Loading and error states use the design-system
+ * SurfaceState primitives.  Real surface compositions are wired in
+ * slices 5-8; until then surfaces show SurfaceLoading placeholders.
  */
 
 import { Component, type JSX } from "preact";
 
 import type { AppState, AppStore } from "./store";
+import { SurfaceFrame } from "./SurfaceFrame";
+import { SurfaceError, SurfaceLoading } from "./SurfaceState";
+
+// ---------------------------------------------------------------------------
+// Surface title map
+// ---------------------------------------------------------------------------
+
+const SURFACE_TITLES: Record<string, string> = {
+  overview: "Dashboard",
+  repository: "Repository",
+  plan: "Plan",
+  run: "Run Inspector"
+};
 
 // ---------------------------------------------------------------------------
 // Surface placeholders (replaced in slices 5-8)
 // ---------------------------------------------------------------------------
 
 function OverviewPlaceholder(): JSX.Element {
-  return <div data-surface="overview">Overview surface loading…</div>;
+  return <SurfaceLoading rows={5} />;
 }
 
 function RepositoryPlaceholder(): JSX.Element {
-  return <div data-surface="repository">Repository surface loading…</div>;
+  return <SurfaceLoading rows={4} />;
 }
 
 function PlanPlaceholder(): JSX.Element {
-  return <div data-surface="plan">Plan surface loading…</div>;
+  return <SurfaceLoading rows={6} />;
 }
 
 function RunPlaceholder(): JSX.Element {
-  return <div data-surface="run">Run surface loading…</div>;
+  return <SurfaceLoading rows={4} />;
 }
 
 // ---------------------------------------------------------------------------
@@ -62,27 +76,28 @@ export class App extends Component<AppProps, AppComponentState> {
 
   override render(): JSX.Element {
     const { appState } = this.state;
+    const title = SURFACE_TITLES[appState.activeSurface] ?? "Attractor";
 
     if (appState.loading) {
       return (
-        <div class="attractor-app attractor-app--loading" data-loading="true">
-          Loading…
-        </div>
+        <SurfaceFrame title={title} testId="app-loading">
+          <SurfaceLoading />
+        </SurfaceFrame>
       );
     }
 
     if (appState.error) {
       return (
-        <div class="attractor-app attractor-app--error" data-error="true">
-          {appState.error}
-        </div>
+        <SurfaceFrame title={title} testId="app-error">
+          <SurfaceError message={appState.error} />
+        </SurfaceFrame>
       );
     }
 
     return (
-      <div class="attractor-app" data-surface={appState.activeSurface}>
+      <SurfaceFrame title={title} testId={`surface-${appState.activeSurface}`}>
         {this.renderSurface()}
-      </div>
+      </SurfaceFrame>
     );
   }
 
