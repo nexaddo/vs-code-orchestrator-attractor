@@ -31,8 +31,8 @@ export interface ExtensionStorageUriLike {
 }
 
 export interface ExtensionStorageContextLike {
-  storageUri?: ExtensionStorageUriLike;
-  globalStorageUri?: ExtensionStorageUriLike;
+  storageUri?: ExtensionStorageUriLike | undefined;
+  globalStorageUri?: ExtensionStorageUriLike | undefined;
 }
 
 export interface StorageServices {

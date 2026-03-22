@@ -47,12 +47,16 @@ export interface ExtensionContextLike {
   extensionUri?: {
     fsPath: string;
   };
-  storageUri?: {
-    fsPath: string;
-  };
-  globalStorageUri?: {
-    fsPath: string;
-  };
+  storageUri?:
+    | {
+        fsPath: string;
+      }
+    | undefined;
+  globalStorageUri?:
+    | {
+        fsPath: string;
+      }
+    | undefined;
   onWebviewMessage?: (raw: unknown, panel: WebviewPanelLike) => Promise<void>;
 }
 

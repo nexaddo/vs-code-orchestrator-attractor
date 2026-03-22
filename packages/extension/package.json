@@ -10,7 +10,8 @@
   "types": "dist/src/extension.d.ts",
   "activationEvents": [
     "onCommand:attractor.hello",
-    "onView:attractor.dashboard"
+    "onView:attractor.dashboard",
+    "onChatParticipant:attractor.attractor"
   ],
   "contributes": {
     "viewsContainers": {
@@ -35,6 +36,40 @@
       {
         "command": "attractor.hello",
         "title": "Attractor: Hello"
+      },
+      {
+        "command": "attractor.run.start",
+        "title": "Attractor: Start Run"
+      },
+      {
+        "command": "attractor.run.cancel",
+        "title": "Attractor: Cancel Run"
+      },
+      {
+        "command": "attractor.plan.create",
+        "title": "Attractor: Create Plan"
+      }
+    ],
+    "chatParticipants": [
+      {
+        "id": "attractor.attractor",
+        "name": "attractor",
+        "description": "AI orchestration assistant for Attractor plans",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "plan",
+            "description": "Create an orchestration plan"
+          },
+          {
+            "name": "run",
+            "description": "Start an orchestration run"
+          },
+          {
+            "name": "status",
+            "description": "Show current orchestration status"
+          }
+        ]
       }
     ]
   },
@@ -46,7 +81,7 @@
     "@ts-graphviz/parser": "^0.6.1"
   },
   "devDependencies": {
-    "@vscode/test-electron": "^2.5.2",
-    "vscode": "^1.1.37"
+    "@types/vscode": "^1.103.0",
+    "@vscode/test-electron": "^2.5.2"
   }
 }
