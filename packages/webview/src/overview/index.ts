@@ -1,3 +1,4 @@
 export { decodeOverviewState } from "./decoder";
-export { renderOverview } from "./renderer";
-export type { OverviewState, WorkspaceSummary } from "./model";
+export { OverviewSurface } from "./OverviewSurface";
+export type { OverviewSurfaceProps } from "./OverviewSurface";
+export type { OverviewState, WorkspaceSummaryStats } from "./model";

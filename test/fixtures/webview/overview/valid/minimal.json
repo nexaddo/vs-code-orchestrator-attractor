@@ -3,11 +3,6 @@
   "requestId": "req-001",
   "type": "overview.state",
   "payload": {
-    "summary": {
-      "totalRepositories": 2,
-      "totalPlans": 1,
-      "activeRuns": 0
-    },
     "repositories": [
       {
         "version": 1,
@@ -25,6 +20,25 @@
         "defaultBranch": "main",
         "labels": []
       }
-    ]
+    ],
+    "activeRuns": [
+      {
+        "version": 1,
+        "id": "run-001",
+        "planId": "plan-001",
+        "status": "running",
+        "attempt": 1,
+        "createdAt": "2025-01-01T00:00:00Z",
+        "updatedAt": "2025-01-01T00:01:00Z"
+      }
+    ],
+    "recentFailures": [],
+    "stats": {
+      "totalRepos": 2,
+      "totalPlans": 1,
+      "activeRuns": 1,
+      "pausedRuns": 0,
+      "failedRuns24h": 0
+    }
   }
 }

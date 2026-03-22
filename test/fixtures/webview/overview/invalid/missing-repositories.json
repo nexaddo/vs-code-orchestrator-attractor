@@ -3,10 +3,14 @@
   "requestId": "req-004",
   "type": "overview.state",
   "payload": {
-    "summary": {
-      "totalRepositories": 1,
+    "activeRuns": [],
+    "recentFailures": [],
+    "stats": {
+      "totalRepos": 0,
       "totalPlans": 0,
-      "activeRuns": 0
+      "activeRuns": 0,
+      "pausedRuns": 0,
+      "failedRuns24h": 0
     }
   }
 }

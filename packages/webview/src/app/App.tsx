@@ -12,6 +12,8 @@ import { Component, type JSX } from "preact";
 import type { AppState, AppStore } from "./store";
 import { SurfaceFrame } from "./SurfaceFrame";
 import { SurfaceError, SurfaceLoading } from "./SurfaceState";
+import { OverviewSurface } from "../overview/OverviewSurface";
+import type { OverviewState } from "../overview/model";
 
 // ---------------------------------------------------------------------------
 // Surface title map
@@ -28,8 +30,12 @@ const SURFACE_TITLES: Record<string, string> = {
 // Surface placeholders (replaced in slices 5-8)
 // ---------------------------------------------------------------------------
 
-function OverviewPlaceholder(): JSX.Element {
-  return <SurfaceLoading rows={5} />;
+function OverviewPlaceholder({ payload }: { payload: unknown }): JSX.Element {
+  if (payload === undefined || payload === null) {
+    return <SurfaceLoading rows={5} />;
+  }
+
+  return <OverviewSurface state={payload as OverviewState} />;
 }
 
 function RepositoryPlaceholder(): JSX.Element {
@@ -104,7 +110,11 @@ export class App extends Component<AppProps, AppComponentState> {
   private renderSurface(): JSX.Element {
     switch (this.state.appState.activeSurface) {
       case "overview":
-        return <OverviewPlaceholder />;
+        return (
+          <OverviewPlaceholder
+            payload={this.state.appState.payloads.overview}
+          />
+        );
       case "repository":
         return <RepositoryPlaceholder />;
       case "plan":

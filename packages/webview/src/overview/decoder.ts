@@ -1,22 +1,13 @@
 import { z } from "zod";
 import {
   WebviewOutboundMessageSchema,
-  RepositoryRecordSchema
+  OverviewStatePayloadSchema
 } from "@attractor/shared";
 import type { OverviewState } from "./model";
 
-const OverviewPayloadSchema = z.object({
-  summary: z.object({
-    totalRepositories: z.number().int().nonnegative(),
-    totalPlans: z.number().int().nonnegative(),
-    activeRuns: z.number().int().nonnegative()
-  }),
-  repositories: z.array(RepositoryRecordSchema)
-});
-
 const OverviewMessageSchema = WebviewOutboundMessageSchema.extend({
   type: z.literal("overview.state"),
-  payload: OverviewPayloadSchema
+  payload: OverviewStatePayloadSchema
 });
 
 export function decodeOverviewState(
@@ -27,8 +18,10 @@ export function decodeOverviewState(
     return {
       success: true,
       state: {
-        summary: parsed.payload.summary,
-        repositories: parsed.payload.repositories
+        repositories: parsed.payload.repositories,
+        activeRuns: parsed.payload.activeRuns,
+        recentFailures: parsed.payload.recentFailures,
+        stats: parsed.payload.stats
       }
     };
   } catch (error) {
