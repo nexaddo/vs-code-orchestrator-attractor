@@ -9,7 +9,7 @@
 
 import { Component, type JSX } from "preact";
 
-import type { AppState, AppStore } from "./store";
+import type { AppState, AppStore, ToastItem } from "./store";
 import { SurfaceFrame } from "./SurfaceFrame";
 import { SurfaceError, SurfaceLoading } from "./SurfaceState";
 import { OverviewSurface } from "../overview/OverviewSurface";
@@ -104,24 +104,36 @@ export class App extends Component<AppProps, AppComponentState> {
 
     if (appState.loading) {
       return (
-        <SurfaceFrame title={title} testId="app-loading">
-          <SurfaceLoading />
-        </SurfaceFrame>
+        <>
+          <SurfaceFrame title={title} testId="app-loading">
+            <SurfaceLoading />
+          </SurfaceFrame>
+          {this.renderToastBar()}
+        </>
       );
     }
 
     if (appState.error) {
       return (
-        <SurfaceFrame title={title} testId="app-error">
-          <SurfaceError message={appState.error} />
-        </SurfaceFrame>
+        <>
+          <SurfaceFrame title={title} testId="app-error">
+            <SurfaceError message={appState.error} />
+          </SurfaceFrame>
+          {this.renderToastBar()}
+        </>
       );
     }
 
     return (
-      <SurfaceFrame title={title} testId={`surface-${appState.activeSurface}`}>
-        {this.renderSurface()}
-      </SurfaceFrame>
+      <>
+        <SurfaceFrame
+          title={title}
+          testId={`surface-${appState.activeSurface}`}
+        >
+          {this.renderSurface()}
+        </SurfaceFrame>
+        {this.renderToastBar()}
+      </>
     );
   }
 
@@ -144,5 +156,74 @@ export class App extends Component<AppProps, AppComponentState> {
       case "run":
         return <RunPlaceholder payload={this.state.appState.payloads.run} />;
     }
+  }
+
+  private renderToastBar(): JSX.Element | null {
+    const { toasts } = this.state.appState;
+
+    if (toasts.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="pointer-events-none fixed bottom-3 left-3 right-3 z-50 flex flex-col gap-2">
+        {toasts.map((toast) => this.renderToast(toast))}
+      </div>
+    );
+  }
+
+  private renderToast(toast: ToastItem): JSX.Element {
+    const severityStyle =
+      toast.severity === "warning"
+        ? "text-[color:var(--color-status-blocked)]"
+        : toast.severity === "error"
+          ? "text-[color:var(--color-status-failed)]"
+          : "text-[color:var(--color-vscode-foreground,var(--color-foreground))]";
+
+    const iconClass =
+      toast.severity === "warning"
+        ? "codicon codicon-warning"
+        : toast.severity === "error"
+          ? "codicon codicon-error"
+          : "codicon codicon-info";
+
+    return (
+      <div
+        key={toast.id}
+        className="pointer-events-auto flex items-start gap-2 rounded-[--radius-sm] border border-[color:var(--color-vscode-panel-border,var(--color-border))] bg-[color:var(--color-vscode-editor-background,var(--color-background))] px-3 py-2 text-[length:var(--text-sm)] shadow-sm"
+      >
+        <span
+          className={`${iconClass} mt-0.5 ${severityStyle}`}
+          aria-hidden="true"
+        />
+        <div className="min-w-0 flex-1">
+          <p className={`break-words ${severityStyle}`}>{toast.message}</p>
+          {toast.actions.length > 0 ? (
+            <div className="mt-1 flex flex-wrap gap-2 text-[length:var(--text-xs)]">
+              {toast.actions.map((action) => (
+                <button
+                  key={action}
+                  type="button"
+                  className="rounded-[--radius-sm] border border-[color:var(--color-vscode-panel-border,var(--color-border))] px-2 py-0.5 text-[color:var(--color-vscode-description)]"
+                >
+                  {action}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          className="codicon codicon-close mt-0.5 text-[color:var(--color-vscode-description)]"
+          aria-label="Dismiss notification"
+          onClick={() => {
+            this.props.store.dispatch({
+              type: "toast.dismiss",
+              toastId: toast.id
+            });
+          }}
+        />
+      </div>
+    );
   }
 }

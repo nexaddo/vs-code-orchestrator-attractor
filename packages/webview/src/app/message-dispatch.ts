@@ -6,13 +6,12 @@
  * maps to a store action that updates the active surface and its payload.
  */
 
-import type { AppStore, SurfaceId } from "./store";
+import type { AppStore, GraphUpdateItem, SurfaceId } from "./store";
 
 /**
  * Map from outbound message type → surface id.
  *
  * Only message types that carry a surface payload are included.
- * Types like "toast" or "graph.update" are handled separately or deferred.
  */
 const MESSAGE_TO_SURFACE: Record<string, SurfaceId> = {
   "overview.state": "overview",
@@ -54,7 +53,36 @@ export function dispatchInboundMessage(store: AppStore, raw: unknown): boolean {
     return true;
   }
 
-  // graph.update, toast, timeline.update — deferred to slice 7-9.
+  if (msg.type === "toast") {
+    store.dispatch({
+      type: "toast.show",
+      toast: {
+        id: msg.requestId ?? crypto.randomUUID(),
+        message:
+          (msg.payload as { message?: string })?.message ??
+          "Unknown notification",
+        severity:
+          ((msg.payload as { severity?: string })?.severity as
+            | "info"
+            | "warning"
+            | "error") ?? "info",
+        actions: (msg.payload as { actions?: string[] })?.actions ?? []
+      }
+    });
+    return true;
+  }
+
+  if (msg.type === "graph.update") {
+    store.dispatch({
+      type: "graph.update",
+      nodeId: (msg.payload as { nodeId?: string })?.nodeId ?? "",
+      status:
+        ((msg.payload as { status?: string })
+          ?.status as GraphUpdateItem["status"]) ?? "queued"
+    });
+    return true;
+  }
+
   // Unknown types are silently ignored.
   return false;
 }

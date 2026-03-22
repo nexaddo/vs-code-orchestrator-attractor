@@ -15,6 +15,8 @@ describe("createInitialState", () => {
     expect(state.payloads).toEqual({});
     expect(state.error).toBeNull();
     expect(state.loading).toBe(true);
+    expect(state.toasts).toEqual([]);
+    expect(state.graphUpdate).toBeNull();
   });
 });
 
@@ -23,7 +25,9 @@ describe("appReducer", () => {
     activeSurface: "overview",
     payloads: {},
     error: null,
-    loading: true
+    loading: true,
+    toasts: [],
+    graphUpdate: null
   };
 
   it("surface.update sets surface, payload, loading=false, clears error", () => {
@@ -72,6 +76,118 @@ describe("appReducer", () => {
     const reloading = appReducer(loaded, { type: "loading", loading: true });
     expect(reloading.loading).toBe(true);
   });
+
+  it("toast.show adds a toast to the queue", () => {
+    const next = appReducer(base, {
+      type: "toast.show",
+      toast: {
+        id: "t1",
+        message: "Hello",
+        severity: "info",
+        actions: []
+      }
+    });
+
+    expect(next.toasts).toHaveLength(1);
+    expect(next.toasts[0]).toMatchObject({ id: "t1", message: "Hello" });
+  });
+
+  it("toast.show keeps only latest five toasts", () => {
+    const withFive = ["t1", "t2", "t3", "t4", "t5"].reduce((state, id) => {
+      return appReducer(state, {
+        type: "toast.show",
+        toast: {
+          id,
+          message: id,
+          severity: "info",
+          actions: []
+        }
+      });
+    }, base);
+
+    const next = appReducer(withFive, {
+      type: "toast.show",
+      toast: {
+        id: "t6",
+        message: "t6",
+        severity: "warning",
+        actions: []
+      }
+    });
+
+    expect(next.toasts).toHaveLength(5);
+    expect(next.toasts.map((toast) => toast.id)).toEqual([
+      "t2",
+      "t3",
+      "t4",
+      "t5",
+      "t6"
+    ]);
+  });
+
+  it("toast.dismiss removes a toast by id", () => {
+    const withToasts = appReducer(base, {
+      type: "toast.show",
+      toast: {
+        id: "remove-me",
+        message: "bye",
+        severity: "error",
+        actions: []
+      }
+    });
+
+    const next = appReducer(withToasts, {
+      type: "toast.dismiss",
+      toastId: "remove-me"
+    });
+
+    expect(next.toasts).toEqual([]);
+  });
+
+  it("toast.dismiss with unknown id is a no-op", () => {
+    const withToasts = appReducer(base, {
+      type: "toast.show",
+      toast: {
+        id: "keep-me",
+        message: "still here",
+        severity: "info",
+        actions: []
+      }
+    });
+
+    const next = appReducer(withToasts, {
+      type: "toast.dismiss",
+      toastId: "missing"
+    });
+
+    expect(next.toasts).toEqual(withToasts.toasts);
+  });
+
+  it("graph.update sets latest graphUpdate payload", () => {
+    const next = appReducer(base, {
+      type: "graph.update",
+      nodeId: "node-1",
+      status: "running"
+    });
+
+    expect(next.graphUpdate).toEqual({ nodeId: "node-1", status: "running" });
+  });
+
+  it("graph.update overwrites previous graphUpdate payload", () => {
+    const first = appReducer(base, {
+      type: "graph.update",
+      nodeId: "node-1",
+      status: "queued"
+    });
+
+    const next = appReducer(first, {
+      type: "graph.update",
+      nodeId: "node-2",
+      status: "failed"
+    });
+
+    expect(next.graphUpdate).toEqual({ nodeId: "node-2", status: "failed" });
+  });
 });
 
 describe("createStore", () => {
@@ -81,6 +197,8 @@ describe("createStore", () => {
 
     expect(state.activeSurface).toBe("overview");
     expect(state.loading).toBe(true);
+    expect(state.toasts).toEqual([]);
+    expect(state.graphUpdate).toBeNull();
   });
 
   it("dispatch updates state and notifies subscribers", () => {
@@ -117,7 +235,9 @@ describe("createStore", () => {
       activeSurface: "run",
       payloads: { run: { id: "r1" } },
       error: null,
-      loading: false
+      loading: false,
+      toasts: [],
+      graphUpdate: null
     };
 
     const store = createStore(custom);

@@ -60,16 +60,93 @@ describe("dispatchInboundMessage", () => {
     expect(store.getState().activeSurface).toBe("run");
   });
 
-  it("returns false for unknown message types", () => {
+  it("dispatches toast messages and returns true", () => {
+    const store = createStore();
+    const result = dispatchInboundMessage(store, {
+      type: "toast",
+      requestId: "r5",
+      payload: {
+        message: "Plan created",
+        severity: "warning",
+        actions: ["Open plan"]
+      }
+    });
+
+    expect(result).toBe(true);
+    expect(store.getState().toasts).toEqual([
+      {
+        id: "r5",
+        message: "Plan created",
+        severity: "warning",
+        actions: ["Open plan"]
+      }
+    ]);
+  });
+
+  it("dispatches toast with defaults when payload fields are missing", () => {
+    const store = createStore();
+    const result = dispatchInboundMessage(store, {
+      type: "toast",
+      requestId: "toast-defaults",
+      payload: {}
+    });
+
+    expect(result).toBe(true);
+    expect(store.getState().toasts).toEqual([
+      {
+        id: "toast-defaults",
+        message: "Unknown notification",
+        severity: "info",
+        actions: []
+      }
+    ]);
+  });
+
+  it("dispatches graph.update messages and returns true", () => {
     const store = createStore();
     const result = dispatchInboundMessage(store, {
       type: "graph.update",
-      requestId: "r5",
+      requestId: "r6",
+      payload: {
+        nodeId: "node-1",
+        status: "running"
+      }
+    });
+
+    expect(result).toBe(true);
+    expect(store.getState().graphUpdate).toEqual({
+      nodeId: "node-1",
+      status: "running"
+    });
+  });
+
+  it("dispatches graph.update payload fields to state", () => {
+    const store = createStore();
+    const result = dispatchInboundMessage(store, {
+      type: "graph.update",
+      requestId: "r7",
+      payload: {
+        nodeId: "node-xyz",
+        status: "failed"
+      }
+    });
+
+    expect(result).toBe(true);
+    expect(store.getState().graphUpdate).toEqual({
+      nodeId: "node-xyz",
+      status: "failed"
+    });
+  });
+
+  it("returns false for unknown message types", () => {
+    const store = createStore();
+    const result = dispatchInboundMessage(store, {
+      type: "timeline.update",
+      requestId: "r8",
       payload: {}
     });
 
     expect(result).toBe(false);
-    // State unchanged — still loading
     expect(store.getState().loading).toBe(true);
   });
 

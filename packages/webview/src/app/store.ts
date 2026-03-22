@@ -25,17 +25,46 @@ export interface AppState {
   error: string | null;
   /** True while waiting for initial state from the extension host. */
   loading: boolean;
+  /** Queue of active toasts. */
+  toasts: ToastItem[];
+  /** Latest graph update payload, if any. */
+  graphUpdate: GraphUpdateItem | null;
 }
 
 // ---------------------------------------------------------------------------
 // Actions
 // ---------------------------------------------------------------------------
 
+export interface ToastItem {
+  id: string;
+  message: string;
+  severity: "info" | "warning" | "error";
+  actions: string[];
+}
+
+export interface GraphUpdateItem {
+  nodeId: string;
+  status:
+    | "queued"
+    | "running"
+    | "blocked"
+    | "failed"
+    | "succeeded"
+    | "canceled";
+}
+
 export type AppAction =
   | { type: "surface.update"; surface: SurfaceId; payload: unknown }
   | { type: "surface.navigate"; surface: SurfaceId }
   | { type: "error"; message: string }
-  | { type: "loading"; loading: boolean };
+  | { type: "loading"; loading: boolean }
+  | { type: "toast.show"; toast: ToastItem }
+  | { type: "toast.dismiss"; toastId: string }
+  | {
+      type: "graph.update";
+      nodeId: string;
+      status: GraphUpdateItem["status"];
+    };
 
 // ---------------------------------------------------------------------------
 // Reducer
@@ -73,6 +102,29 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         loading: action.loading
       };
+
+    case "toast.show": {
+      const toasts = [...state.toasts, action.toast];
+      return {
+        ...state,
+        toasts: toasts.length > 5 ? toasts.slice(toasts.length - 5) : toasts
+      };
+    }
+
+    case "toast.dismiss":
+      return {
+        ...state,
+        toasts: state.toasts.filter((toast) => toast.id !== action.toastId)
+      };
+
+    case "graph.update":
+      return {
+        ...state,
+        graphUpdate: {
+          nodeId: action.nodeId,
+          status: action.status
+        }
+      };
   }
 }
 
@@ -93,7 +145,9 @@ export function createInitialState(): AppState {
     activeSurface: "overview",
     payloads: {},
     error: null,
-    loading: true
+    loading: true,
+    toasts: [],
+    graphUpdate: null
   };
 }
 
