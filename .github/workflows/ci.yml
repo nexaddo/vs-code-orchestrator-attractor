@@ -29,3 +29,45 @@ jobs:
 
       - name: Run fast checks
         run: pnpm ci:fast-checks
+
+  package-check:
+    needs: fast-checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Package VSIX
+        run: pnpm --filter attractor exec vsce package --no-dependencies
+
+      - name: Validate VSIX contents
+        run: |
+          output=$(pnpm --filter attractor exec vsce ls --no-dependencies)
+          echo "$output"
+          echo "$output" | grep -q "dist/bundle/extension.js" || { echo "FAIL: missing extension.js"; exit 1; }
+          echo "$output" | grep -q "dist/bundle/webview/webview.js" || { echo "FAIL: missing webview.js"; exit 1; }
+          echo "$output" | grep -q "dist/bundle/webview/webview.css" || { echo "FAIL: missing webview.css"; exit 1; }
+          if echo "$output" | grep -E '\.ts$' | grep -v '\.d\.ts$'; then
+            echo "FAIL: .ts source files found in package"; exit 1
+          fi
+          if echo "$output" | grep 'test/'; then
+            echo "FAIL: test files found in package"; exit 1
+          fi
+          echo "VSIX content validation passed"

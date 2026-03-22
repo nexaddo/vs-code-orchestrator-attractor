@@ -1,13 +1,24 @@
 {
-  "name": "@attractor/extension",
-  "version": "0.0.0",
+  "name": "attractor",
+  "version": "0.1.0",
+  "publisher": "attractor",
   "private": true,
   "displayName": "Attractor",
+  "icon": "resources/attractor-icon.png",
   "engines": {
     "vscode": "^1.103.0"
   },
-  "main": "dist/src/extension.js",
-  "types": "dist/src/extension.d.ts",
+  "categories": [
+    "AI",
+    "Machine Learning"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nexaddo/vs-code-orchestrator-attractor"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/nexaddo/vs-code-orchestrator-attractor#readme",
+  "main": "dist/bundle/extension.js",
   "activationEvents": [
     "onCommand:attractor.hello",
     "onView:attractor.dashboard",
@@ -19,7 +30,7 @@
         {
           "id": "attractor-explorer",
           "title": "Attractor",
-          "icon": "resources/attractor-icon.svg"
+          "icon": "resources/attractor-icon.png"
         }
       ]
     },
@@ -74,13 +85,15 @@
     ]
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "build:bundle": "node esbuild.config.mjs"
   },
   "dependencies": {
     "@attractor/shared": "workspace:*",
     "@ts-graphviz/parser": "^0.6.1"
   },
   "devDependencies": {
+    "esbuild": "^0.25.0",
     "@types/vscode": "^1.103.0",
     "@vscode/test-electron": "^2.5.2"
   }

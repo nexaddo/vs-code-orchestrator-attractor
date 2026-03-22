@@ -354,7 +354,8 @@ export const OverviewStatePayloadSchema = z.object({
   repositories: z.array(RepositoryRecordSchema),
   activeRuns: z.array(RunRecordSchema),
   recentFailures: z.array(RunRecordSchema),
-  stats: WorkspaceSummaryStatsSchema
+  stats: WorkspaceSummaryStatsSchema,
+  error: z.string().optional()
 });
 
 export type OverviewStatePayload = z.infer<typeof OverviewStatePayloadSchema>;

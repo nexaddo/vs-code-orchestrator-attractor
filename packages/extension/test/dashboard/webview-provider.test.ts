@@ -68,7 +68,7 @@ describe("AttractorViewProvider", () => {
     const { webview } = makeWebview();
     const provider = new AttractorViewProvider({
       extensionUri: { fsPath: "/repo-root" },
-      webviewBundlePath: ["packages", "webview", "dist", "bundle"]
+      webviewBundlePath: ["dist", "bundle", "webview"]
     });
 
     provider.resolveWebviewView({ webview });
@@ -80,7 +80,7 @@ describe("AttractorViewProvider", () => {
     const { webview } = makeWebview();
     const provider = new AttractorViewProvider({
       extensionUri: { fsPath: "/repo-root" },
-      webviewBundlePath: ["packages", "webview", "dist", "bundle"]
+      webviewBundlePath: ["dist", "bundle", "webview"]
     });
 
     provider.resolveWebviewView({ webview } satisfies WebviewViewLike);
@@ -92,7 +92,7 @@ describe("AttractorViewProvider", () => {
     const { webview } = makeWebview();
     const provider = new AttractorViewProvider({
       extensionUri: { fsPath: "/repo-root" },
-      webviewBundlePath: ["packages", "webview", "dist", "bundle"]
+      webviewBundlePath: ["dist", "bundle", "webview"]
     });
 
     provider.resolveWebviewView({ webview });
@@ -107,23 +107,19 @@ describe("AttractorViewProvider", () => {
     const { webview, asUriCalls } = makeWebview();
     const provider = new AttractorViewProvider({
       extensionUri: { fsPath: "/repo-root" },
-      webviewBundlePath: ["packages", "webview", "dist", "bundle"]
+      webviewBundlePath: ["dist", "bundle", "webview"]
     });
 
     provider.resolveWebviewView({ webview });
 
     expect(asUriCalls).toHaveLength(2);
-    expect(asUriCalls).toContain(
-      "/repo-root/packages/webview/dist/bundle/webview.css"
-    );
-    expect(asUriCalls).toContain(
-      "/repo-root/packages/webview/dist/bundle/webview.js"
+    expect(asUriCalls).toContain("/repo-root/dist/bundle/webview/webview.css");
+    expect(asUriCalls).toContain("/repo-root/dist/bundle/webview/webview.js");
+    expect(webview.html).toContain(
+      'href="vscode-resource://repo-root/dist/bundle/webview/webview.css"'
     );
     expect(webview.html).toContain(
-      'href="vscode-resource://repo-root/packages/webview/dist/bundle/webview.css"'
-    );
-    expect(webview.html).toContain(
-      'src="vscode-resource://repo-root/packages/webview/dist/bundle/webview.js"'
+      'src="vscode-resource://repo-root/dist/bundle/webview/webview.js"'
     );
   });
 
@@ -149,7 +145,7 @@ describe("AttractorViewProvider — bridge adapter wiring", () => {
     const { webview } = makeWebview();
     const provider = new AttractorViewProvider({
       extensionUri: { fsPath: "/repo-root" },
-      webviewBundlePath: ["packages", "webview", "dist", "bundle"]
+      webviewBundlePath: ["dist", "bundle", "webview"]
     });
 
     provider.resolveWebviewView({ webview });
@@ -165,7 +161,7 @@ describe("AttractorViewProvider — bridge adapter wiring", () => {
 
     const provider = new AttractorViewProvider({
       extensionUri: { fsPath: "/repo-root" },
-      webviewBundlePath: ["packages", "webview", "dist", "bundle"],
+      webviewBundlePath: ["dist", "bundle", "webview"],
       onMessage: async (raw, target) => {
         received.push({ raw, target });
       }
@@ -201,7 +197,7 @@ describe("AttractorViewProvider — bridge adapter wiring", () => {
 
     const provider = new AttractorViewProvider({
       extensionUri: { fsPath: "/repo-root" },
-      webviewBundlePath: ["packages", "webview", "dist", "bundle"]
+      webviewBundlePath: ["dist", "bundle", "webview"]
       // no onMessage
     });
 
@@ -218,7 +214,7 @@ describe("AttractorViewProvider — bridge adapter wiring", () => {
 
     const provider = new AttractorViewProvider({
       extensionUri: { fsPath: "/repo-root" },
-      webviewBundlePath: ["packages", "webview", "dist", "bundle"],
+      webviewBundlePath: ["dist", "bundle", "webview"],
       onMessage: async (_raw, target) => {
         // Simulate the bridge posting a response back
         target.postMessage({ type: "overview.state", payload: {} });

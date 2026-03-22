@@ -68,7 +68,11 @@ if (watch) {
   const cssProc = spawn(
     postcssBin,
     [cssIn, "--output", cssOut, "--watch", "--poll"],
-    { stdio: "inherit", shell: false, cwd: __dirname }
+    {
+      stdio: "inherit",
+      shell: process.platform === "win32",
+      cwd: __dirname
+    }
   );
   cssProc.on("error", (err) => {
     console.error("[attractor/webview] postcss watch error:", err.message);
@@ -82,7 +86,7 @@ if (watch) {
   // CSS: postcss one-shot
   execFileSync(postcssBin, [cssIn, "--output", cssOut], {
     stdio: "inherit",
-    shell: false,
+    shell: process.platform === "win32",
     cwd: __dirname
   });
 
