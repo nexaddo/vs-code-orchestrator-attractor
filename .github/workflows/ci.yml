@@ -32,7 +32,10 @@ jobs:
 
   package-check:
     needs: fast-checks
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -58,6 +61,7 @@ jobs:
         run: pnpm --filter attractor exec vsce package --no-dependencies
 
       - name: Validate VSIX contents
+        shell: bash
         run: |
           output=$(pnpm --filter attractor exec vsce ls --no-dependencies)
           echo "$output"
@@ -71,3 +75,20 @@ jobs:
             echo "FAIL: test files found in package"; exit 1
           fi
           echo "VSIX content validation passed"
+
+      - name: Check VSIX bundle size
+        shell: bash
+        run: |
+          vsix_file=$(find packages/extension -maxdepth 1 -name '*.vsix' | head -1)
+          if [ -z "$vsix_file" ]; then
+            echo "FAIL: no .vsix file found"; exit 1
+          fi
+          size=$(wc -c < "$vsix_file" | tr -d ' ')
+          size_kb=$((size / 1024))
+          echo "VSIX size: ${size_kb}KB ($size bytes)"
+          max_kb=200
+          if [ "$size_kb" -gt "$max_kb" ]; then
+            echo "FAIL: VSIX exceeds ${max_kb}KB threshold (${size_kb}KB)"
+            exit 1
+          fi
+          echo "VSIX size check passed (${size_kb}KB <= ${max_kb}KB)"
