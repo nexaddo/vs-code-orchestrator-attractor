@@ -20,11 +20,70 @@ type Role = "orchestrator" | "planner" | "implementer" | "reviewer";
  * @throws Error if no JSON found or JSON is invalid
  */
 export function parseHandoffResponse(rawText: string): unknown {
+  // Strategy 1: Extract from fenced code blocks (```json ... ``` or ``` ... ```)
+  const fenceMatch = /```(?:json)?\s*\n?([\s\S]*?)```/.exec(rawText);
+  if (fenceMatch && fenceMatch[1]) {
+    const trimmed = fenceMatch[1].trim();
+    if (trimmed.startsWith("{")) {
+      try {
+        return JSON.parse(trimmed);
+      } catch {
+        // fall through
+      }
+    }
+  }
+
+  // Strategy 2: Balanced brace scanning from `{` candidates
+  const firstBrace = rawText.indexOf("{");
+  if (firstBrace !== -1) {
+    for (let start = firstBrace; start < rawText.length; start++) {
+      if (rawText[start] !== "{") {
+        continue;
+      }
+
+      let depth = 0;
+      let inString = false;
+      let escape = false;
+
+      for (let i = start; i < rawText.length; i++) {
+        const ch = rawText[i];
+        if (escape) {
+          escape = false;
+          continue;
+        }
+        if (ch === "\\") {
+          escape = true;
+          continue;
+        }
+        if (ch === '"') {
+          inString = !inString;
+          continue;
+        }
+        if (inString) {
+          continue;
+        }
+        if (ch === "{") {
+          depth++;
+        }
+        if (ch === "}") {
+          depth--;
+          if (depth === 0) {
+            try {
+              return JSON.parse(rawText.slice(start, i + 1));
+            } catch {
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Strategy 3: Greedy regex fallback
   const match = /\{[\s\S]*\}/.exec(rawText);
   if (!match) {
     throw new Error("No JSON found in model response");
   }
-
   try {
     return JSON.parse(match[0]);
   } catch (error) {

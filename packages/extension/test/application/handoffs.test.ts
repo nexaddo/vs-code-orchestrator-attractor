@@ -37,6 +37,37 @@ describe("parseHandoffResponse", () => {
       "Invalid JSON"
     );
   });
+
+  it("extracts first JSON object when response contains two objects", () => {
+    const rawText = 'First: {"a": 1} and second: {"b": 2}';
+    const result = parseHandoffResponse(rawText);
+    expect(result).toEqual({ a: 1 });
+  });
+
+  it("extracts JSON from a fenced code block", () => {
+    const rawText = 'Here is the result:\n```json\n{"foo": "bar"}\n```\nDone!';
+    const result = parseHandoffResponse(rawText);
+    expect(result).toEqual({ foo: "bar" });
+  });
+
+  it("extracts JSON from fenced code block without language tag", () => {
+    const rawText = 'Result:\n```\n{"key": "value"}\n```';
+    const result = parseHandoffResponse(rawText);
+    expect(result).toEqual({ key: "value" });
+  });
+
+  it("extracts JSON even when prose contains braces before it", () => {
+    const rawText =
+      'The function() { return; } produces output.\n{"actual": "json"}';
+    const result = parseHandoffResponse(rawText);
+    expect(result).toEqual({ actual: "json" });
+  });
+
+  it("extracts nested JSON object correctly", () => {
+    const rawText = 'Response: {"outer": {"inner": "value"}, "count": 1}';
+    const result = parseHandoffResponse(rawText);
+    expect(result).toEqual({ outer: { inner: "value" }, count: 1 });
+  });
 });
 
 describe("buildOrchestratorHandoff", () => {
