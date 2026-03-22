@@ -585,6 +585,47 @@ describe("handleWebviewMessage — bridge", () => {
       expect(msg.type).toBe("toast");
     });
 
+    it("plan.run posts error toast when startOrchestration rejects", async () => {
+      const services = makeServices({});
+      const { panel, posted } = makePanel();
+      const startOrchestration = vi
+        .fn()
+        .mockRejectedValue(new Error("Gateway unavailable"));
+      const orchestration: BridgeOrchestrationContext = {
+        modelGateway: {
+          send: vi.fn(),
+          stream: vi.fn()
+        } as unknown as ModelGateway,
+        startOrchestration,
+        cancelOrchestration: vi.fn()
+      };
+
+      await handleWebviewMessage(
+        {
+          version: 1,
+          requestId: "req-run-fail",
+          type: "plan.run",
+          payload: { planId: "p1" }
+        },
+        services,
+        panel,
+        orchestration
+      );
+
+      // Wait for the rejection handler to fire
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Should have info toast + error toast
+      const errorToast = posted.find(
+        (msg) =>
+          (msg as { payload?: { severity?: string } }).payload?.severity ===
+          "error"
+      );
+      expect(errorToast).toBeDefined();
+      const payload = (errorToast as { payload: { message: string } }).payload;
+      expect(payload.message).toContain("Gateway unavailable");
+    });
+
     it("run.cancel calls cancelOrchestration and posts toast", async () => {
       const services = makeServices({});
       const { panel, posted } = makePanel();

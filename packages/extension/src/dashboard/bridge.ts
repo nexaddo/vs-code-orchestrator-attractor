@@ -127,12 +127,25 @@ export async function handleWebviewMessage(
       const runId = message.payload.runId as string | undefined;
       if (orchestration) {
         const resolvedRunId = runId ?? `run-${Date.now()}`;
-        // Fire and forget — orchestration runs async
-        void orchestration.startOrchestration({
-          runId: resolvedRunId,
-          planId,
-          panel
-        });
+        // Fire and forget — orchestration runs async, but catch rejections
+        orchestration
+          .startOrchestration({
+            runId: resolvedRunId,
+            planId,
+            panel
+          })
+          .catch((err: unknown) => {
+            void panel.postMessage({
+              version: 1,
+              requestId: message.requestId,
+              type: "toast",
+              payload: {
+                message: `Orchestration failed: ${err instanceof Error ? err.message : String(err)}`,
+                severity: "error",
+                actions: []
+              }
+            });
+          });
       }
       await panel.postMessage({
         version: 1,
