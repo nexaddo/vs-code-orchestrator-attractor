@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <rect width="256" height="256" rx="32" fill="#1a1a2e" />
+  <defs>
+    <linearGradient id="g" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#00ffa3" />
+      <stop offset="50%" stop-color="#00d4ff" />
+      <stop offset="100%" stop-color="#00ffa3" />
+    </linearGradient>
+  </defs>
+  <!-- Lorenz attractor: two symmetric lobes with crossing center -->
+  <!-- Outer loop: wider, defines the butterfly silhouette -->
+  <path d="M 128 148
+           C 128 168, 160 192, 186 178
+           C 212 164, 220 130, 210 104
+           C 200 78, 178 62, 160 68
+           C 142 74, 132 94, 128 118
+           C 124 94, 114 74, 96 68
+           C 78 62, 56 78, 46 104
+           C 36 130, 44 164, 70 178
+           C 96 192, 128 168, 128 148 Z"
+        fill="none" stroke="url(#g)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Inner loop: tighter spiral inside each lobe -->
+  <path d="M 128 132
+           C 128 152, 150 170, 172 160
+           C 194 150, 200 126, 192 106
+           C 184 86, 164 80, 150 88
+           C 136 96, 130 112, 128 132"
+        fill="none" stroke="url(#g)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85" />
+  <path d="M 128 132
+           C 128 152, 106 170, 84 160
+           C 62 150, 56 126, 64 106
+           C 72 86, 92 80, 106 88
+           C 120 96, 126 112, 128 132"
+        fill="none" stroke="url(#g)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85" />
+</svg>

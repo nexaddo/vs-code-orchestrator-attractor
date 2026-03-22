@@ -30,7 +30,7 @@
         {
           "id": "attractor-explorer",
           "title": "Attractor",
-          "icon": "resources/attractor-icon.png"
+          "icon": "resources/attractor-sidebar.svg"
         }
       ]
     },
