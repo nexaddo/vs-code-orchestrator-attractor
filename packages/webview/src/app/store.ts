@@ -29,6 +29,8 @@ export interface AppState {
   toasts: ToastItem[];
   /** Latest graph update payload, if any. */
   graphUpdate: GraphUpdateItem | null;
+  /** Latest orchestration state, if any. */
+  orchestration: OrchestrationStateItem | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -53,6 +55,26 @@ export interface GraphUpdateItem {
     | "canceled";
 }
 
+export interface OrchestrationPhaseItem {
+  role: string;
+  status: string;
+  taskSummary?: string;
+  errorLabel?: string;
+}
+
+export interface OrchestrationStateItem {
+  runId: string;
+  milestoneIndex: number;
+  milestoneCount: number;
+  milestoneName: string;
+  phases: [
+    OrchestrationPhaseItem,
+    OrchestrationPhaseItem,
+    OrchestrationPhaseItem,
+    OrchestrationPhaseItem
+  ];
+}
+
 export type AppAction =
   | { type: "surface.update"; surface: SurfaceId; payload: unknown }
   | { type: "surface.navigate"; surface: SurfaceId }
@@ -64,7 +86,8 @@ export type AppAction =
       type: "graph.update";
       nodeId: string;
       status: GraphUpdateItem["status"];
-    };
+    }
+  | { type: "orchestration.update"; orchestration: OrchestrationStateItem };
 
 // ---------------------------------------------------------------------------
 // Reducer
@@ -125,6 +148,12 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           status: action.status
         }
       };
+
+    case "orchestration.update":
+      return {
+        ...state,
+        orchestration: action.orchestration
+      };
   }
 }
 
@@ -147,7 +176,8 @@ export function createInitialState(): AppState {
     error: null,
     loading: true,
     toasts: [],
-    graphUpdate: null
+    graphUpdate: null,
+    orchestration: null
   };
 }
 

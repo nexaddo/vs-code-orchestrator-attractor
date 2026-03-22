@@ -174,4 +174,58 @@ describe("dispatchInboundMessage", () => {
 
     expect(store.getState().payloads.overview).toEqual({});
   });
+
+  it("dispatches orchestration.state and returns true", () => {
+    const store = createStore();
+    const result = dispatchInboundMessage(store, {
+      type: "orchestration.state",
+      requestId: "r-orch-1",
+      payload: {
+        runId: "run-42",
+        milestoneIndex: 1,
+        milestoneCount: 3,
+        milestoneName: "Setup Phase",
+        phases: [
+          { role: "orchestrator", status: "done" },
+          { role: "planner", status: "running" },
+          { role: "implementer", status: "waiting" },
+          { role: "reviewer", status: "waiting" }
+        ]
+      }
+    });
+
+    expect(result).toBe(true);
+    expect(store.getState().orchestration).toEqual({
+      runId: "run-42",
+      milestoneIndex: 1,
+      milestoneCount: 3,
+      milestoneName: "Setup Phase",
+      phases: [
+        { role: "orchestrator", status: "done" },
+        { role: "planner", status: "running" },
+        { role: "implementer", status: "waiting" },
+        { role: "reviewer", status: "waiting" }
+      ]
+    });
+  });
+
+  it("dispatches orchestration.state with defaults for missing fields", () => {
+    const store = createStore();
+    const result = dispatchInboundMessage(store, {
+      type: "orchestration.state",
+      requestId: "r-orch-2",
+      payload: {}
+    });
+
+    expect(result).toBe(true);
+    const orchestration = store.getState().orchestration;
+    expect(orchestration).not.toBeNull();
+    expect(orchestration!.runId).toBe("");
+    expect(orchestration!.phases).toHaveLength(4);
+  });
+
+  it("orchestration state is null in initial store", () => {
+    const store = createStore();
+    expect(store.getState().orchestration).toBeNull();
+  });
 });
