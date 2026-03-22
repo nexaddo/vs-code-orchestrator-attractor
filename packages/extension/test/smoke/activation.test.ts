@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { type ModelGateway } from "../../src/application/ports";
 import {
   activateAttractor,
   ATTRACTOR_DASHBOARD_VIEW_TYPE,
@@ -454,6 +455,46 @@ describe("activateAttractor — chat participant registration", () => {
     });
 
     // Only the command disposable should be present, no chat participant
+    expect(context.subscriptions).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Model gateway injection tests (Slice 9)
+// ---------------------------------------------------------------------------
+
+describe("activateAttractor — model gateway injection", () => {
+  it("accepts a custom ModelGateway in dependencies", () => {
+    const context: ExtensionContextLike = {
+      subscriptions: []
+    };
+
+    const customGateway: ModelGateway = {
+      send: vi.fn().mockResolvedValue("response"),
+      stream: vi.fn().mockResolvedValue(undefined)
+    };
+
+    // Should not throw when custom gateway is provided
+    activateAttractor(context, makeMinimalCommandsApi(), {
+      createStorageServices: () => makeServicesWithMocks() as never,
+      storageRoot: "/tmp/storage",
+      modelGateway: customGateway
+    });
+
+    expect(context.subscriptions).toHaveLength(1);
+  });
+
+  it("defaults to NoOpModelGateway when none is provided", () => {
+    const context: ExtensionContextLike = {
+      subscriptions: []
+    };
+
+    // Should not throw without modelGateway
+    activateAttractor(context, makeMinimalCommandsApi(), {
+      createStorageServices: () => makeServicesWithMocks() as never,
+      storageRoot: "/tmp/storage"
+    });
+
     expect(context.subscriptions).toHaveLength(1);
   });
 });

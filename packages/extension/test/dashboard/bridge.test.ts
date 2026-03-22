@@ -7,9 +7,11 @@ import {
 } from "@attractor/shared";
 
 import { type StorageServices } from "../../src/storage/services";
+import { type ModelGateway } from "../../src/application/ports";
 import {
   handleWebviewMessage,
-  type WebviewPanelLike
+  type WebviewPanelLike,
+  type BridgeOrchestrationContext
 } from "../../src/dashboard/bridge";
 
 // ---------------------------------------------------------------------------
@@ -495,8 +497,8 @@ describe("handleWebviewMessage — bridge", () => {
     });
   });
 
-  describe("command routes — no-op (deferred to runtime)", () => {
-    it("plan.create does not post any response", async () => {
+  describe("command routes", () => {
+    it("plan.create posts an acknowledgment toast", async () => {
       const services = makeServices({});
       const { panel, posted } = makePanel();
 
@@ -511,10 +513,55 @@ describe("handleWebviewMessage — bridge", () => {
         panel
       );
 
-      expect(posted).toHaveLength(0);
+      expect(posted).toHaveLength(1);
+      const msg = posted[0] as {
+        type: string;
+        payload: { message: string; severity: string };
+      };
+      expect(msg.type).toBe("toast");
+      expect(msg.payload.severity).toBe("info");
+      expect(msg.payload.message).toContain("acknowledged");
     });
 
-    it("plan.run does not post any response", async () => {
+    it("plan.run posts a toast and calls startOrchestration when context is provided", async () => {
+      const services = makeServices({});
+      const { panel, posted } = makePanel();
+      const startOrchestration = vi.fn().mockResolvedValue(undefined);
+      const orchestration: BridgeOrchestrationContext = {
+        modelGateway: {
+          send: vi.fn(),
+          stream: vi.fn()
+        } as unknown as ModelGateway,
+        startOrchestration,
+        cancelOrchestration: vi.fn()
+      };
+
+      await handleWebviewMessage(
+        {
+          version: 1,
+          requestId: "req-run",
+          type: "plan.run",
+          payload: { planId: "p1" }
+        },
+        services,
+        panel,
+        orchestration
+      );
+
+      expect(posted).toHaveLength(1);
+      const msg = posted[0] as {
+        type: string;
+        payload: { message: string };
+      };
+      expect(msg.type).toBe("toast");
+      expect(msg.payload.message).toContain("p1");
+      // startOrchestration is fire-and-forget, but should have been called
+      expect(startOrchestration).toHaveBeenCalledWith(
+        expect.objectContaining({ planId: "p1" })
+      );
+    });
+
+    it("plan.run posts toast even without orchestration context", async () => {
       const services = makeServices({});
       const { panel, posted } = makePanel();
 
@@ -527,12 +574,53 @@ describe("handleWebviewMessage — bridge", () => {
         },
         services,
         panel
+        // No orchestration context
       );
 
-      expect(posted).toHaveLength(0);
+      expect(posted).toHaveLength(1);
+      const msg = posted[0] as {
+        type: string;
+        payload: { message: string };
+      };
+      expect(msg.type).toBe("toast");
     });
 
-    it("run.resume does not post any response", async () => {
+    it("run.cancel calls cancelOrchestration and posts toast", async () => {
+      const services = makeServices({});
+      const { panel, posted } = makePanel();
+      const cancelOrchestration = vi.fn();
+      const orchestration: BridgeOrchestrationContext = {
+        modelGateway: {
+          send: vi.fn(),
+          stream: vi.fn()
+        } as unknown as ModelGateway,
+        startOrchestration: vi.fn(),
+        cancelOrchestration
+      };
+
+      await handleWebviewMessage(
+        {
+          version: 1,
+          requestId: "req-cancel",
+          type: "run.cancel",
+          payload: { runId: "run-1" }
+        },
+        services,
+        panel,
+        orchestration
+      );
+
+      expect(cancelOrchestration).toHaveBeenCalledWith("run-1");
+      expect(posted).toHaveLength(1);
+      const msg = posted[0] as {
+        type: string;
+        payload: { message: string };
+      };
+      expect(msg.type).toBe("toast");
+      expect(msg.payload.message).toContain("run-1");
+    });
+
+    it("run.resume posts not-yet-supported toast", async () => {
       const services = makeServices({});
       const { panel, posted } = makePanel();
 
@@ -547,28 +635,17 @@ describe("handleWebviewMessage — bridge", () => {
         panel
       );
 
-      expect(posted).toHaveLength(0);
+      expect(posted).toHaveLength(1);
+      const msg = posted[0] as {
+        type: string;
+        payload: { severity: string; message: string };
+      };
+      expect(msg.type).toBe("toast");
+      expect(msg.payload.severity).toBe("warning");
+      expect(msg.payload.message).toContain("not yet supported");
     });
 
-    it("run.cancel does not post any response", async () => {
-      const services = makeServices({});
-      const { panel, posted } = makePanel();
-
-      await handleWebviewMessage(
-        {
-          version: 1,
-          requestId: "req-cancel",
-          type: "run.cancel",
-          payload: { runId: "run-1" }
-        },
-        services,
-        panel
-      );
-
-      expect(posted).toHaveLength(0);
-    });
-
-    it("run.retry does not post any response", async () => {
+    it("run.retry posts not-yet-supported toast", async () => {
       const services = makeServices({});
       const { panel, posted } = makePanel();
 
@@ -583,7 +660,14 @@ describe("handleWebviewMessage — bridge", () => {
         panel
       );
 
-      expect(posted).toHaveLength(0);
+      expect(posted).toHaveLength(1);
+      const msg = posted[0] as {
+        type: string;
+        payload: { severity: string; message: string };
+      };
+      expect(msg.type).toBe("toast");
+      expect(msg.payload.severity).toBe("warning");
+      expect(msg.payload.message).toContain("not yet supported");
     });
   });
 });

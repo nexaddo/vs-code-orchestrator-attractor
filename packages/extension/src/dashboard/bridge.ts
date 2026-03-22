@@ -1,6 +1,7 @@
 import { type WebviewInboundMessage } from "@attractor/shared";
 
 import { type StorageServices } from "../storage/services";
+import { type ModelGateway } from "../application/ports";
 import { projectOverview } from "./overview-projection";
 import { projectRepository } from "./repository-projection";
 import { projectPlan } from "./plan-projection";
@@ -16,6 +17,21 @@ export interface WebviewPanelLike {
 }
 
 /**
+ * Optional orchestration context for wiring command handlers to the runtime
+ * orchestration loop.
+ */
+export interface BridgeOrchestrationContext {
+  modelGateway: ModelGateway;
+  startOrchestration: (options: {
+    runId: string;
+    planId: string;
+    panel: WebviewPanelLike;
+    signal?: AbortSignal;
+  }) => Promise<void>;
+  cancelOrchestration: (runId: string) => void;
+}
+
+/**
  * Handles inbound messages from the webview and dispatches them to the
  * appropriate projectors.
  *
@@ -23,7 +39,7 @@ export interface WebviewPanelLike {
  * - Query routes (ready, repository.open, milestone.open, graph.focus) post
  *   a state or update message back to the webview.
  * - Command routes (plan.create, plan.run, run.resume, run.cancel, run.retry)
- *   do not post a response in v1 — these are deferred to M4+ runtime handling.
+ *   post toast acknowledgments and call orchestration handlers when context is provided.
  * - The outbound `requestId` echoes the one from the inbound message so the
  *   webview can correlate the response to its request.
  * - Bridge code MUST NOT duplicate logic — all projection lives in the
@@ -32,7 +48,8 @@ export interface WebviewPanelLike {
 export async function handleWebviewMessage(
   message: WebviewInboundMessage,
   services: StorageServices,
-  panel: WebviewPanelLike
+  panel: WebviewPanelLike,
+  orchestration?: BridgeOrchestrationContext
 ): Promise<void> {
   switch (message.type) {
     case "ready": {
@@ -90,13 +107,77 @@ export async function handleWebviewMessage(
       break;
     }
 
-    // Command messages — deferred to M4+ runtime. No-op: do not post a response.
-    case "plan.create":
-    case "plan.run":
-    case "run.resume":
-    case "run.cancel":
-    case "run.retry":
-      // These are command intents, not queries. Runtime handling is deferred.
+    // Command messages
+    case "plan.create": {
+      await panel.postMessage({
+        version: 1,
+        requestId: message.requestId,
+        type: "toast",
+        payload: {
+          message: "Plan creation acknowledged",
+          severity: "info",
+          actions: []
+        }
+      });
       break;
+    }
+
+    case "plan.run": {
+      const planId = message.payload.planId as string;
+      const runId = message.payload.runId as string | undefined;
+      if (orchestration) {
+        const resolvedRunId = runId ?? `run-${Date.now()}`;
+        // Fire and forget — orchestration runs async
+        void orchestration.startOrchestration({
+          runId: resolvedRunId,
+          planId,
+          panel
+        });
+      }
+      await panel.postMessage({
+        version: 1,
+        requestId: message.requestId,
+        type: "toast",
+        payload: {
+          message: `Orchestration started for plan ${planId}`,
+          severity: "info",
+          actions: []
+        }
+      });
+      break;
+    }
+
+    case "run.cancel": {
+      const cancelRunId = message.payload.runId as string;
+      if (orchestration) {
+        orchestration.cancelOrchestration(cancelRunId);
+      }
+      await panel.postMessage({
+        version: 1,
+        requestId: message.requestId,
+        type: "toast",
+        payload: {
+          message: `Cancellation requested for run ${cancelRunId}`,
+          severity: "info",
+          actions: []
+        }
+      });
+      break;
+    }
+
+    case "run.resume":
+    case "run.retry": {
+      await panel.postMessage({
+        version: 1,
+        requestId: message.requestId,
+        type: "toast",
+        payload: {
+          message: `${message.type} is not yet supported in v1`,
+          severity: "warning",
+          actions: []
+        }
+      });
+      break;
+    }
   }
 }
