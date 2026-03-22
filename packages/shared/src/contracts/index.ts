@@ -431,10 +431,10 @@ export const OrchestrationStatePayloadSchema = z.object({
   milestoneCount: z.number().int().min(1),
   milestoneName: z.string().min(1),
   phases: z.tuple([
-    AgentRolePhaseSchema,
-    AgentRolePhaseSchema,
-    AgentRolePhaseSchema,
-    AgentRolePhaseSchema
+    AgentRolePhaseSchema.extend({ role: z.literal("orchestrator") }),
+    AgentRolePhaseSchema.extend({ role: z.literal("planner") }),
+    AgentRolePhaseSchema.extend({ role: z.literal("implementer") }),
+    AgentRolePhaseSchema.extend({ role: z.literal("reviewer") })
   ])
 });
 
@@ -477,12 +477,16 @@ export const ImplementerHandoffSchema = z.object({
 
 export type ImplementerHandoff = z.infer<typeof ImplementerHandoffSchema>;
 
-export const ReviewerHandoffSchema = z.object({
-  version: z.literal(CONTRACT_VERSION),
-  milestoneId: z.string().min(1),
-  approved: z.boolean(),
-  comments: z.array(z.string()),
-  requiresChanges: z.boolean()
-});
+export const ReviewerHandoffSchema = z
+  .object({
+    version: z.literal(CONTRACT_VERSION),
+    milestoneId: z.string().min(1),
+    approved: z.boolean(),
+    comments: z.array(z.string()),
+    requiresChanges: z.boolean()
+  })
+  .refine((h) => !(h.approved === true && h.requiresChanges === true), {
+    message: "Reviewer cannot approve and require changes simultaneously"
+  });
 
 export type ReviewerHandoff = z.infer<typeof ReviewerHandoffSchema>;

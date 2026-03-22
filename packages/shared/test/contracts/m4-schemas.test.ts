@@ -194,6 +194,38 @@ describe("OrchestrationStatePayloadSchema", () => {
 
     expect(OrchestrationStatePayloadSchema.parse(roundTripped)).toEqual(parsed);
   });
+
+  it("rejects phases with wrong role order (planner in orchestrator slot)", () => {
+    const result = OrchestrationStatePayloadSchema.safeParse({
+      runId: "run_001",
+      milestoneIndex: 0,
+      milestoneCount: 1,
+      milestoneName: "Test",
+      phases: [
+        { role: "planner", status: "done" },
+        { role: "orchestrator", status: "running" },
+        { role: "implementer", status: "waiting" },
+        { role: "reviewer", status: "waiting" }
+      ]
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects phases with duplicate roles", () => {
+    const result = OrchestrationStatePayloadSchema.safeParse({
+      runId: "run_001",
+      milestoneIndex: 0,
+      milestoneCount: 1,
+      milestoneName: "Test",
+      phases: [
+        { role: "orchestrator", status: "done" },
+        { role: "orchestrator", status: "running" },
+        { role: "implementer", status: "waiting" },
+        { role: "reviewer", status: "waiting" }
+      ]
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 // ── OrchestratorHandoffSchema ─────────────────────────────────────────────────
@@ -437,5 +469,28 @@ describe("ReviewerHandoffSchema", () => {
     const roundTripped = JSON.parse(JSON.stringify(parsed)) as unknown;
 
     expect(ReviewerHandoffSchema.parse(roundTripped)).toEqual(parsed);
+  });
+
+  it("rejects approved: true with requiresChanges: true", () => {
+    const result = ReviewerHandoffSchema.safeParse({
+      version: 1,
+      milestoneId: "ms_001",
+      approved: true,
+      comments: [],
+      requiresChanges: true
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts approved: false with requiresChanges: true", () => {
+    const parsed = ReviewerHandoffSchema.parse({
+      version: 1,
+      milestoneId: "ms_001",
+      approved: false,
+      comments: ["Needs work"],
+      requiresChanges: true
+    });
+    expect(parsed.approved).toBe(false);
+    expect(parsed.requiresChanges).toBe(true);
   });
 });
