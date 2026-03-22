@@ -14,6 +14,12 @@ import { SurfaceFrame } from "./SurfaceFrame";
 import { SurfaceError, SurfaceLoading } from "./SurfaceState";
 import { OverviewSurface } from "../overview/OverviewSurface";
 import type { OverviewState } from "../overview/model";
+import { RunSurface } from "../run/RunSurface";
+import type { RunState } from "../run/model";
+import { PlanSurface } from "../plan/PlanSurface";
+import type { PlanState } from "../plan/model";
+import { RepositorySurface } from "../repository/RepositorySurface";
+import type { RepositoryState } from "../repository/model";
 
 // ---------------------------------------------------------------------------
 // Surface title map
@@ -38,16 +44,28 @@ function OverviewPlaceholder({ payload }: { payload: unknown }): JSX.Element {
   return <OverviewSurface state={payload as OverviewState} />;
 }
 
-function RepositoryPlaceholder(): JSX.Element {
-  return <SurfaceLoading rows={4} />;
+function RepositoryPlaceholder({ payload }: { payload: unknown }): JSX.Element {
+  if (payload === undefined || payload === null) {
+    return <SurfaceLoading rows={4} />;
+  }
+
+  return <RepositorySurface state={payload as RepositoryState} />;
 }
 
-function PlanPlaceholder(): JSX.Element {
-  return <SurfaceLoading rows={6} />;
+function PlanPlaceholder({ payload }: { payload: unknown }): JSX.Element {
+  if (payload === undefined || payload === null) {
+    return <SurfaceLoading rows={6} />;
+  }
+
+  return <PlanSurface state={payload as PlanState} />;
 }
 
-function RunPlaceholder(): JSX.Element {
-  return <SurfaceLoading rows={4} />;
+function RunPlaceholder({ payload }: { payload: unknown }): JSX.Element {
+  if (payload === undefined || payload === null) {
+    return <SurfaceLoading rows={4} />;
+  }
+
+  return <RunSurface state={payload as RunState} />;
 }
 
 // ---------------------------------------------------------------------------
@@ -116,11 +134,15 @@ export class App extends Component<AppProps, AppComponentState> {
           />
         );
       case "repository":
-        return <RepositoryPlaceholder />;
+        return (
+          <RepositoryPlaceholder
+            payload={this.state.appState.payloads.repository}
+          />
+        );
       case "plan":
-        return <PlanPlaceholder />;
+        return <PlanPlaceholder payload={this.state.appState.payloads.plan} />;
       case "run":
-        return <RunPlaceholder />;
+        return <RunPlaceholder payload={this.state.appState.payloads.run} />;
     }
   }
 }
