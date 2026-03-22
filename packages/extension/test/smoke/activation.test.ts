@@ -332,7 +332,7 @@ describe("activateAttractor — runtime webview wiring", () => {
     expect(posted).toHaveLength(0);
   });
 
-  it("does not post when no storage root is available (services are null)", async () => {
+  it("posts degraded overview.state when no storage root is available (services are null)", async () => {
     const context = makeMinimalContext();
     // No storageRoot and no storageUri → services stay null
     activateAttractor(context, makeMinimalCommandsApi(), {});
@@ -349,7 +349,136 @@ describe("activateAttractor — runtime webview wiring", () => {
       panel
     );
 
-    expect(posted).toHaveLength(0);
+    expect(posted).toHaveLength(1);
+    const msg = posted[0] as {
+      type: string;
+      requestId: string;
+      payload: { error: string };
+    };
+    expect(msg.type).toBe("overview.state");
+    expect(msg.requestId).toBe("no-storage");
+    expect(msg.payload.error).toContain("Storage unavailable");
+  });
+});
+
+describe("activateAttractor — startup error boundary", () => {
+  it("succeeds with null services when createStorageServices throws", () => {
+    const context = makeMinimalContext();
+    const log: string[] = [];
+
+    activateAttractor(context, makeMinimalCommandsApi(), {
+      storageRoot: "/tmp/storage",
+      createStorageServices: () => {
+        throw new Error("disk full");
+      },
+      outputChannel: {
+        appendLine: (v) => {
+          log.push(v);
+        }
+      }
+    });
+
+    expect(context.onWebviewMessage).toBeTypeOf("function");
+    expect(log.some((l) => l.includes("disk full"))).toBe(true);
+  });
+
+  it("logs storage root when resolved", () => {
+    const context = makeMinimalContext();
+    const log: string[] = [];
+
+    activateAttractor(context, makeMinimalCommandsApi(), {
+      storageRoot: "/tmp/storage",
+      createStorageServices: () => makeServicesWithMocks() as never,
+      outputChannel: {
+        appendLine: (v) => {
+          log.push(v);
+        }
+      }
+    });
+
+    expect(log.some((l) => l.includes("/tmp/storage"))).toBe(true);
+  });
+
+  it("continues activation when provider registration throws", () => {
+    const context: ExtensionContextLike = {
+      subscriptions: [],
+      extensionUri: { fsPath: "/repo-root" }
+    };
+    const log: string[] = [];
+
+    const windowApi: WindowApiLike = {
+      registerWebviewViewProvider() {
+        throw new Error("provider boom");
+      }
+    };
+
+    activateAttractor(context, makeMinimalCommandsApi(), {
+      createStorageServices: () => makeServicesWithMocks() as never,
+      storageRoot: "/tmp/storage",
+      windowApi,
+      outputChannel: {
+        appendLine: (v) => {
+          log.push(v);
+        }
+      }
+    });
+
+    expect(context.onWebviewMessage).toBeTypeOf("function");
+    expect(log.some((l) => l.includes("provider boom"))).toBe(true);
+  });
+
+  it("continues activation when chat registration throws", () => {
+    const context: ExtensionContextLike = {
+      subscriptions: []
+    };
+    const log: string[] = [];
+
+    const chatApi: ChatApiLike = {
+      createChatParticipant() {
+        throw new Error("chat boom");
+      }
+    };
+
+    activateAttractor(context, makeMinimalCommandsApi(), {
+      createStorageServices: () => makeServicesWithMocks() as never,
+      storageRoot: "/tmp/storage",
+      chatApi,
+      outputChannel: {
+        appendLine: (v) => {
+          log.push(v);
+        }
+      }
+    });
+
+    expect(context.onWebviewMessage).toBeTypeOf("function");
+    expect(log.some((l) => l.includes("chat boom"))).toBe(true);
+  });
+
+  it("ready message with null services posts degraded overview.state with error field", async () => {
+    const context = makeMinimalContext();
+    activateAttractor(context, makeMinimalCommandsApi(), {});
+
+    const posted: unknown[] = [];
+    const panel: WebviewPanelLike = {
+      postMessage: (m) => {
+        posted.push(m);
+      }
+    };
+
+    await context.onWebviewMessage!(
+      { version: 1, requestId: "degraded", type: "ready", payload: {} },
+      panel
+    );
+
+    expect(posted).toHaveLength(1);
+    const msg = posted[0] as Record<string, unknown>;
+    expect(msg.type).toBe("overview.state");
+    expect((msg.payload as { error: string }).error).toContain(
+      "Storage unavailable"
+    );
+    expect(
+      (msg.payload as { stats: { totalRepos: number } }).stats.totalRepos
+    ).toBe(0);
   });
 });
 

@@ -23,10 +23,9 @@ import {
 export const ATTRACTOR_HELLO_COMMAND = "attractor.hello";
 export const ATTRACTOR_DASHBOARD_VIEW_TYPE = "attractor.dashboard";
 export const ATTRACTOR_WEBVIEW_BUNDLE_PATH = [
-  "packages",
-  "webview",
   "dist",
-  "bundle"
+  "bundle",
+  "webview"
 ] as const;
 
 export interface DisposableLike {
@@ -77,6 +76,7 @@ export interface RuntimeDependencies {
   windowApi?: WindowApiLike;
   chatApi?: ChatApiLike;
   modelGateway?: ModelGateway;
+  outputChannel?: { appendLine(value: string): void };
 }
 
 export const registerAttractorCommands = (
@@ -94,25 +94,36 @@ export const activateAttractor = (
   commandsApi: CommandsApiLike,
   dependencies: RuntimeDependencies = {}
 ): void => {
-  const storageRoot = dependencies.storageRoot ?? getStorageRoot(context);
+  const log = dependencies.outputChannel ?? { appendLine: () => {} };
+  log.appendLine("Attractor: activating…");
 
+  // --- Storage init (error-bounded) ---
+  const storageRoot = dependencies.storageRoot ?? getStorageRoot(context);
   let services: StorageServices | null = null;
 
   if (storageRoot) {
-    const buildStorageServices =
-      dependencies.createStorageServices ??
-      ((rootDirectory: string): StorageServices =>
-        createStorageServices(rootDirectory));
-
-    services = buildStorageServices(storageRoot);
+    log.appendLine(`Attractor: storage root resolved → ${storageRoot}`);
+    try {
+      const buildStorageServices =
+        dependencies.createStorageServices ??
+        ((rootDirectory: string): StorageServices =>
+          createStorageServices(rootDirectory));
+      services = buildStorageServices(storageRoot);
+      log.appendLine("Attractor: storage services created");
+    } catch (err) {
+      log.appendLine(
+        `Attractor: storage services failed — ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  } else {
+    log.appendLine("Attractor: no storage root available");
   }
 
+  // --- Commands (always register) ---
   const disposables = registerAttractorCommands(commandsApi);
   context.subscriptions.push(...disposables);
 
   const modelGateway = dependencies.modelGateway ?? new NoOpModelGateway();
-
-  // Track active orchestration abort controllers by runId
   const activeRuns = new Map<string, AbortController>();
 
   const orchestrationContext: BridgeOrchestrationContext = {
@@ -147,14 +158,34 @@ export const activateAttractor = (
     }
   };
 
-  // Expose a message handler so a webview panel can be wired in after
-  // activation (e.g. when the user opens the dashboard panel).  The handler
-  // is a no-op when storage services are unavailable.
+  // --- Webview message handler (with degraded-state support) ---
   context.onWebviewMessage = async (
     raw: unknown,
     panel: WebviewPanelLike
   ): Promise<void> => {
     if (!services) {
+      // Degraded mode: respond to "ready" with empty overview + error
+      const parsed = WebviewInboundMessageSchema.safeParse(raw);
+      if (parsed.success && parsed.data.type === "ready") {
+        panel.postMessage({
+          version: 1,
+          requestId: parsed.data.requestId,
+          type: "overview.state",
+          payload: {
+            repositories: [],
+            activeRuns: [],
+            recentFailures: [],
+            stats: {
+              totalRepos: 0,
+              totalPlans: 0,
+              activeRuns: 0,
+              pausedRuns: 0,
+              failedRuns24h: 0
+            },
+            error: "Storage unavailable — check output channel for details"
+          }
+        });
+      }
       return;
     }
     const parsed = WebviewInboundMessageSchema.safeParse(raw);
@@ -173,33 +204,48 @@ export const activateAttractor = (
     }
   };
 
-  // Register the webview view provider when extensionUri and windowApi are
-  // available (i.e. running inside VS Code, not in tests without them).
+  // --- Provider registration (error-bounded) ---
   if (context.extensionUri && dependencies.windowApi) {
-    const onMessage = async (
-      raw: unknown,
-      postTarget: WebviewPostTarget
-    ): Promise<void> => {
-      await context.onWebviewMessage!(raw, postTarget);
-    };
+    try {
+      const onMessage = async (
+        raw: unknown,
+        postTarget: WebviewPostTarget
+      ): Promise<void> => {
+        await context.onWebviewMessage!(raw, postTarget);
+      };
 
-    const provider = new AttractorViewProvider({
-      extensionUri: context.extensionUri,
-      webviewBundlePath: [...ATTRACTOR_WEBVIEW_BUNDLE_PATH],
-      onMessage
-    });
+      const provider = new AttractorViewProvider({
+        extensionUri: context.extensionUri,
+        webviewBundlePath: [...ATTRACTOR_WEBVIEW_BUNDLE_PATH],
+        onMessage
+      });
 
-    const providerDisposable =
-      dependencies.windowApi.registerWebviewViewProvider(
-        AttractorViewProvider.viewType,
-        provider
+      const providerDisposable =
+        dependencies.windowApi.registerWebviewViewProvider(
+          AttractorViewProvider.viewType,
+          provider
+        );
+      context.subscriptions.push(providerDisposable);
+      log.appendLine("Attractor: webview provider registered");
+    } catch (err) {
+      log.appendLine(
+        `Attractor: provider registration failed — ${err instanceof Error ? err.message : String(err)}`
       );
-    context.subscriptions.push(providerDisposable);
+    }
   }
 
-  // Register the chat participant when chatApi is available.
+  // --- Chat participant registration (error-bounded) ---
   if (dependencies.chatApi) {
-    const participant = registerChatParticipant(dependencies.chatApi);
-    context.subscriptions.push(participant);
+    try {
+      const participant = registerChatParticipant(dependencies.chatApi);
+      context.subscriptions.push(participant);
+      log.appendLine("Attractor: chat participant registered");
+    } catch (err) {
+      log.appendLine(
+        `Attractor: chat registration failed — ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
   }
+
+  log.appendLine("Attractor: activation complete");
 };

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  OverviewStatePayloadSchema,
   WebviewInboundMessageSchema,
   WebviewOutboundMessageSchema
 } from "../../src/contracts";
@@ -54,5 +55,33 @@ describe("webview message contracts", () => {
     });
 
     expect(parsed.type).toBe("orchestration.state");
+  });
+
+  it("OverviewStatePayload accepts optional error field", () => {
+    const payload = {
+      repositories: [],
+      activeRuns: [],
+      recentFailures: [],
+      stats: {
+        totalRepos: 0,
+        totalPlans: 0,
+        activeRuns: 0,
+        pausedRuns: 0,
+        failedRuns24h: 0
+      },
+      error: "Storage unavailable"
+    };
+
+    expect(OverviewStatePayloadSchema.safeParse(payload).success).toBe(true);
+
+    const withoutError = {
+      repositories: payload.repositories,
+      activeRuns: payload.activeRuns,
+      recentFailures: payload.recentFailures,
+      stats: payload.stats
+    };
+    expect(OverviewStatePayloadSchema.safeParse(withoutError).success).toBe(
+      true
+    );
   });
 });
