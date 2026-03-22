@@ -129,9 +129,9 @@ export const activateAttractor = (
       }
 
       try {
-        // Placeholder: actual orchestration loop integration will use
-        // OrchestrationLoop + services to load milestones and run phases.
-        // For now, we just acknowledge the intent.
+        // Placeholder per M4 plan — actual OrchestrationLoop integration
+        // deferred to M4.5/M5. Will use OrchestrationLoop + services to
+        // load milestones, build MilestoneInput[], and run phases.
         void planId;
         void runPanel;
       } finally {

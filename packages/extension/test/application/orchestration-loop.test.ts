@@ -458,6 +458,271 @@ describe("OrchestrationLoop", () => {
     });
   });
 
+  describe("observer callback isolation", () => {
+    it("onStateChange throw does not prevent phase completion", async () => {
+      let callCount = 0;
+      const milestone: MilestoneInput = {
+        id: "m1",
+        name: "Test Milestone",
+        order: 0,
+        description: "Test",
+        acceptanceCriteria: []
+      };
+
+      const options: OrchestrationOptions = {
+        modelGateway: gateway,
+        milestones: [milestone],
+        runId: "run-1",
+        planTitle: "Test Plan",
+        planGoal: "Test goal",
+        onStateChange: () => {
+          callCount++;
+          throw new Error("Observer exploded");
+        },
+        onHandoff: (handoff, role) => {
+          handoffs.push({ handoff, role });
+        },
+        onError: (error, milestoneId, role) => {
+          errors.push({ error, milestoneId, role });
+        }
+      };
+
+      await loop.execute(options);
+
+      // onStateChange was called (even though it throws)
+      expect(callCount).toBeGreaterThan(0);
+      // Handoffs still emitted — phases completed despite observer failure
+      expect(handoffs.length).toBe(4);
+      expect(errors.length).toBe(0);
+    });
+
+    it("onHandoff throw does not prevent phase completion", async () => {
+      const milestone: MilestoneInput = {
+        id: "m1",
+        name: "Test Milestone",
+        order: 0,
+        description: "Test",
+        acceptanceCriteria: []
+      };
+
+      const options: OrchestrationOptions = {
+        modelGateway: gateway,
+        milestones: [milestone],
+        runId: "run-1",
+        planTitle: "Test Plan",
+        planGoal: "Test goal",
+        onStateChange: (state) => {
+          stateChanges.push(state);
+        },
+        onHandoff: () => {
+          throw new Error("Handoff observer exploded");
+        },
+        onError: (error, milestoneId, role) => {
+          errors.push({ error, milestoneId, role });
+        }
+      };
+
+      await loop.execute(options);
+
+      // All 4 phases should complete despite onHandoff throwing
+      expect(stateChanges.length).toBeGreaterThan(0);
+      expect(errors.length).toBe(0);
+
+      const finalState = stateChanges[stateChanges.length - 1];
+      expect(finalState?.phases[0]?.status).toBe("done");
+      expect(finalState?.phases[1]?.status).toBe("done");
+      expect(finalState?.phases[2]?.status).toBe("done");
+      expect(finalState?.phases[3]?.status).toBe("done");
+    });
+  });
+
+  describe("reviewer rejection", () => {
+    it("marks reviewer phase as failed when approved is false", async () => {
+      gateway.setResponse(
+        "reviewer",
+        JSON.stringify({
+          approved: false,
+          comments: ["Needs error handling"],
+          requiresChanges: true
+        })
+      );
+
+      const milestone: MilestoneInput = {
+        id: "m1",
+        name: "Test Milestone",
+        order: 0,
+        description: "Test",
+        acceptanceCriteria: []
+      };
+
+      const options: OrchestrationOptions = {
+        modelGateway: gateway,
+        milestones: [milestone],
+        runId: "run-1",
+        planTitle: "Test Plan",
+        planGoal: "Test goal",
+        onStateChange: (state) => {
+          stateChanges.push(state);
+        },
+        onHandoff: (handoff, role) => {
+          handoffs.push({ handoff, role });
+        },
+        onError: (error, milestoneId, role) => {
+          errors.push({ error, milestoneId, role });
+        }
+      };
+
+      await loop.execute(options);
+
+      // Reviewer should fail
+      expect(errors.length).toBe(1);
+      expect(errors[0]?.role).toBe("reviewer");
+      expect(errors[0]?.error.message).toContain("rejected");
+
+      // Final state: first 3 done, reviewer failed
+      const finalState = stateChanges[stateChanges.length - 1];
+      expect(finalState?.phases[0]?.status).toBe("done");
+      expect(finalState?.phases[1]?.status).toBe("done");
+      expect(finalState?.phases[2]?.status).toBe("done");
+      expect(finalState?.phases[3]?.status).toBe("failed");
+    });
+  });
+
+  describe("abort terminal states", () => {
+    it("marks phase as canceled when abort fires before phase starts", async () => {
+      const controller = new AbortController();
+      controller.abort(); // Pre-abort
+
+      const milestone: MilestoneInput = {
+        id: "m1",
+        name: "Test Milestone",
+        order: 0,
+        description: "Test",
+        acceptanceCriteria: []
+      };
+
+      const options: OrchestrationOptions = {
+        modelGateway: gateway,
+        milestones: [milestone],
+        runId: "run-1",
+        planTitle: "Test Plan",
+        planGoal: "Test goal",
+        onStateChange: (state) => {
+          stateChanges.push(state);
+        },
+        onHandoff: (handoff, role) => {
+          handoffs.push({ handoff, role });
+        },
+        onError: (error, milestoneId, role) => {
+          errors.push({ error, milestoneId, role });
+        },
+        signal: controller.signal
+      };
+
+      await loop.execute(options);
+
+      // Pre-aborted: execute() returns immediately, no milestones processed
+      expect(handoffs.length).toBe(0);
+    });
+
+    it("marks in-flight phase as canceled when abort fires mid-milestone", async () => {
+      const controller = new AbortController();
+
+      const milestone: MilestoneInput = {
+        id: "m1",
+        name: "Test Milestone",
+        order: 0,
+        description: "Test",
+        acceptanceCriteria: []
+      };
+
+      // Abort during orchestrator phase send
+      const originalSend = gateway.send.bind(gateway);
+      let callCount = 0;
+      gateway.send = vi.fn(
+        async (messages: ModelMessage[], opts?: ModelRequestOptions) => {
+          callCount++;
+          if (callCount === 1) {
+            // Abort AFTER orchestrator send returns
+            const result = await originalSend(messages, opts);
+            controller.abort();
+            return result;
+          }
+          return originalSend(messages, opts);
+        }
+      );
+
+      const options: OrchestrationOptions = {
+        modelGateway: gateway,
+        milestones: [milestone],
+        runId: "run-1",
+        planTitle: "Test Plan",
+        planGoal: "Test goal",
+        onStateChange: (state) => {
+          stateChanges.push(state);
+        },
+        onHandoff: (handoff, role) => {
+          handoffs.push({ handoff, role });
+        },
+        onError: (error, milestoneId, role) => {
+          errors.push({ error, milestoneId, role });
+        },
+        signal: controller.signal
+      };
+
+      await loop.execute(options);
+
+      // Orchestrator is canceled after send returns and abort fires
+      expect(handoffs.length).toBe(0);
+
+      const canceledStates = stateChanges.filter(
+        (s) => String(s.phases[0]?.status) === "canceled"
+      );
+      expect(canceledStates.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("empty model response", () => {
+    it("marks phase as failed when gateway returns empty string", async () => {
+      // Override orchestrator to return empty
+      gateway.setResponse("orchestrator", "");
+
+      const milestone: MilestoneInput = {
+        id: "m1",
+        name: "Test Milestone",
+        order: 0,
+        description: "Test",
+        acceptanceCriteria: []
+      };
+
+      const options: OrchestrationOptions = {
+        modelGateway: gateway,
+        milestones: [milestone],
+        runId: "run-1",
+        planTitle: "Test Plan",
+        planGoal: "Test goal",
+        onStateChange: (state) => {
+          stateChanges.push(state);
+        },
+        onHandoff: (handoff, role) => {
+          handoffs.push({ handoff, role });
+        },
+        onError: (error, milestoneId, role) => {
+          errors.push({ error, milestoneId, role });
+        }
+      };
+
+      await loop.execute(options);
+
+      // Orchestrator should fail with parse error
+      expect(errors.length).toBe(1);
+      expect(errors[0]?.role).toBe("orchestrator");
+
+      const finalState = stateChanges[stateChanges.length - 1];
+      expect(finalState?.phases[0]?.status).toBe("failed");
+    });
+  });
+
   describe("state transition ordering for single milestone", () => {
     it("should emit correct status progression for each role", async () => {
       const milestone: MilestoneInput = {

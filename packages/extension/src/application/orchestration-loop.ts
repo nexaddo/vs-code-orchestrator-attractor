@@ -169,7 +169,7 @@ function buildMessagesForRole(
 export class OrchestrationLoop {
   /**
    * Execute the full orchestration loop across all milestones.
-   * Milestones are processed in topological order (by `order` field).
+   * Milestones are processed in order-field ascending sort.
    * Each milestone goes through 4 phases: orchestrator → planner → implementer → reviewer.
    */
   async execute(options: OrchestrationOptions): Promise<void> {
@@ -185,6 +185,7 @@ export class OrchestrationLoop {
 
       // Check abort signal before starting milestone
       if (options.signal?.aborted) {
+        // Remaining milestones are skipped; exit cleanly
         return;
       }
 
@@ -229,7 +230,11 @@ export class OrchestrationLoop {
           { role: "reviewer", status: roleStatuses.reviewer }
         ]
       };
-      options.onStateChange(state);
+      try {
+        options.onStateChange(state);
+      } catch {
+        // Observer failure must not affect orchestration flow
+      }
     };
 
     // Initial state: all waiting
@@ -293,6 +298,8 @@ export class OrchestrationLoop {
   ): Promise<boolean> {
     // Check abort before starting phase
     if (options.signal?.aborted) {
+      roleStatuses[role] = "canceled" as AgentRoleStatus;
+      emitState();
       return false;
     }
 
@@ -314,6 +321,13 @@ export class OrchestrationLoop {
         messages,
         options.signal ? { signal: options.signal } : undefined
       );
+
+      // Check abort after send (signal may have fired during await)
+      if (options.signal?.aborted && role !== "reviewer") {
+        roleStatuses[role] = "canceled" as AgentRoleStatus;
+        emitState();
+        return false;
+      }
 
       // Parse handoff based on role
       let handoff:
@@ -357,12 +371,20 @@ export class OrchestrationLoop {
         case "reviewer": {
           handoff = buildReviewerHandoff(rawResponse, milestone.id);
           phaseResults.reviewerHandoff = handoff;
+          // Gate on reviewer approval
+          if (!phaseResults.reviewerHandoff.approved) {
+            throw new Error("Review rejected: changes required");
+          }
           break;
         }
       }
 
-      // Emit handoff
-      options.onHandoff(handoff, role);
+      // Emit handoff (observer failure must not affect orchestration flow)
+      try {
+        options.onHandoff(handoff, role);
+      } catch {
+        // Observer failure must not affect orchestration flow
+      }
 
       // Mark phase as done
       roleStatuses[role] = "done";
