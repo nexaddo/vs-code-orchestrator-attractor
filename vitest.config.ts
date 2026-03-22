@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     projects: [
       "test/meta/vitest.config.ts",
+      "test/smoke/vitest.config.ts",
       "packages/shared/vitest.config.ts",
       "packages/webview/vitest.config.ts",
       "packages/extension/vitest.config.ts"
