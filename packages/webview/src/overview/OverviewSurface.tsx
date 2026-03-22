@@ -1,0 +1,262 @@
+import type { JSX } from "preact";
+
+import {
+  Badge,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  EmptyState,
+  StatusBadge,
+  type Status
+} from "../components";
+import { cn } from "../lib/utils";
+import type { OverviewState } from "./model";
+
+export interface OverviewSurfaceProps {
+  state: OverviewState;
+}
+
+export interface OverviewMetricViewModel {
+  key: "repositories" | "plans" | "active-runs" | "paused" | "failed-24h";
+  label: string;
+  value: number;
+  isFailure?: boolean;
+}
+
+export interface OverviewRepositoryViewModel {
+  id: string;
+  name: string;
+  defaultBranch: string;
+}
+
+export interface OverviewRunViewModel {
+  id: string;
+  planId: string;
+  status: Status;
+}
+
+export interface OverviewViewModel {
+  metrics: OverviewMetricViewModel[];
+  repositories: OverviewRepositoryViewModel[];
+  activeRuns: OverviewRunViewModel[];
+  recentFailures: OverviewRunViewModel[];
+}
+
+function toStatusBadgeStatus(status: string): Status {
+  switch (status) {
+    case "queued":
+    case "running":
+    case "failed":
+    case "canceled":
+      return status;
+    case "completed":
+      return "succeeded";
+    case "paused":
+      return "blocked";
+    default:
+      return "queued";
+  }
+}
+
+export function buildOverviewViewModel(
+  state: OverviewState
+): OverviewViewModel {
+  return {
+    metrics: [
+      {
+        key: "repositories",
+        label: "Repositories",
+        value: state.stats.totalRepos
+      },
+      {
+        key: "plans",
+        label: "Plans",
+        value: state.stats.totalPlans
+      },
+      {
+        key: "active-runs",
+        label: "Active Runs",
+        value: state.stats.activeRuns
+      },
+      {
+        key: "paused",
+        label: "Paused",
+        value: state.stats.pausedRuns
+      },
+      {
+        key: "failed-24h",
+        label: "Failed 24h",
+        value: state.stats.failedRuns24h,
+        isFailure: true
+      }
+    ],
+    repositories: state.repositories.map((repo) => ({
+      id: repo.id,
+      name: repo.name,
+      defaultBranch: repo.defaultBranch
+    })),
+    activeRuns: state.activeRuns.map((run) => ({
+      id: run.id,
+      planId: run.planId,
+      status: toStatusBadgeStatus(run.status)
+    })),
+    recentFailures: state.recentFailures.map((run) => ({
+      id: run.id,
+      planId: run.planId,
+      status: "failed"
+    }))
+  };
+}
+
+export function OverviewSurface({ state }: OverviewSurfaceProps): JSX.Element {
+  const viewModel = buildOverviewViewModel(state);
+
+  return (
+    <div class="flex flex-col gap-3">
+      <Card>
+        <CardHeader>
+          <CardTitle>Workspace Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="flex flex-wrap items-stretch gap-3">
+            {viewModel.metrics.map((metric) => (
+              <div
+                key={metric.key}
+                class={cn(
+                  "min-w-[8.5rem] flex-1 rounded-[--radius-sm] border",
+                  "border-[color:var(--color-vscode-panel-border,var(--color-border))]",
+                  "px-2 py-1.5"
+                )}
+              >
+                <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
+                  {metric.label}
+                </div>
+                <div class="mt-1 flex items-center">
+                  <Badge
+                    variant="count"
+                    class={cn(
+                      metric.isFailure &&
+                        "bg-[color:var(--color-status-failed-bg)] text-[color:var(--color-status-failed)]"
+                    )}
+                    ariaLabel={`${metric.label}: ${metric.value}`}
+                  >
+                    {metric.value}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <div class="grid grid-cols-1 gap-3 xl:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle>Repositories</CardTitle>
+          </CardHeader>
+          <CardContent class="space-y-2">
+            {viewModel.repositories.length === 0 ? (
+              <EmptyState
+                variant="inline"
+                icon="codicon codicon-repo"
+                heading="No repositories"
+                subtext="Connect a repository to begin planning runs."
+              />
+            ) : (
+              viewModel.repositories.map((repo) => (
+                <div
+                  key={repo.id}
+                  class={cn(
+                    "cursor-pointer rounded-[--radius-sm] border px-2 py-1.5",
+                    "border-[color:var(--color-vscode-panel-border,var(--color-border))]",
+                    "hover:bg-[color:var(--color-vscode-list-hover-bg,var(--color-muted))]"
+                  )}
+                >
+                  <div class="truncate text-[length:var(--text-sm)] font-medium">
+                    {repo.name}
+                  </div>
+                  <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
+                    {repo.defaultBranch}
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Active Runs</CardTitle>
+          </CardHeader>
+          <CardContent class="space-y-2">
+            {viewModel.activeRuns.length === 0 ? (
+              <EmptyState
+                variant="inline"
+                icon="codicon codicon-play-circle"
+                heading="No active runs"
+                subtext="Start a plan run to see execution progress here."
+              />
+            ) : (
+              viewModel.activeRuns.map((run) => (
+                <div
+                  key={run.id}
+                  class={cn(
+                    "rounded-[--radius-sm] border px-2 py-1.5",
+                    "border-[color:var(--color-vscode-panel-border,var(--color-border))]"
+                  )}
+                >
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                      <div class="truncate text-[length:var(--text-sm)] font-medium">
+                        {run.id}
+                      </div>
+                      <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
+                        Plan: {run.planId}
+                      </div>
+                    </div>
+                    <StatusBadge status={run.status} variant="text" />
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Failures</CardTitle>
+          </CardHeader>
+          <CardContent class="space-y-2">
+            {viewModel.recentFailures.length === 0 ? (
+              <EmptyState
+                variant="inline"
+                icon="codicon codicon-error"
+                heading="No recent failures"
+                subtext="Runs that fail in the last 24 hours appear here."
+              />
+            ) : (
+              viewModel.recentFailures.map((run) => (
+                <Card key={run.id} intent="failure">
+                  <CardContent class="px-2 py-1.5">
+                    <div class="flex items-start justify-between gap-2">
+                      <div class="min-w-0">
+                        <div class="truncate text-[length:var(--text-sm)] font-medium">
+                          {run.id}
+                        </div>
+                        <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
+                          Plan: {run.planId}
+                        </div>
+                      </div>
+                      <StatusBadge status="failed" variant="text" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

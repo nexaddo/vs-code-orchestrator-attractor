@@ -13,3 +13,7 @@ coverage/
 # Copilot Orchestrator temporary files
 .orchestrator/
 .worktrees/
+
+# Agent session local state
+.sisyphus/
+nul

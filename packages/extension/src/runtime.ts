@@ -9,8 +9,19 @@ import {
   handleWebviewMessage,
   type WebviewPanelLike
 } from "./dashboard/bridge";
+import {
+  AttractorViewProvider,
+  type WebviewPostTarget
+} from "./dashboard/webview-provider";
 
 export const ATTRACTOR_HELLO_COMMAND = "attractor.hello";
+export const ATTRACTOR_DASHBOARD_VIEW_TYPE = "attractor.dashboard";
+export const ATTRACTOR_WEBVIEW_BUNDLE_PATH = [
+  "packages",
+  "webview",
+  "dist",
+  "bundle"
+] as const;
 
 export interface DisposableLike {
   dispose(): void;
@@ -20,8 +31,22 @@ export interface CommandsApiLike {
   registerCommand(commandId: string, callback: () => void): DisposableLike;
 }
 
+/**
+ * Seam for vscode.window.registerWebviewViewProvider so runtime.ts stays
+ * testable without launching an extension host.
+ */
+export interface WindowApiLike {
+  registerWebviewViewProvider(
+    viewType: string,
+    provider: { resolveWebviewView(view: unknown): void }
+  ): DisposableLike;
+}
+
 export interface ExtensionContextLike {
   subscriptions: DisposableLike[];
+  extensionUri?: {
+    fsPath: string;
+  };
   storageUri?: {
     fsPath: string;
   };
@@ -38,6 +63,7 @@ export type { WebviewPanelLike };
 export interface RuntimeDependencies {
   createStorageServices?: (rootDirectory: string) => StorageServices;
   storageRoot?: string;
+  windowApi?: WindowApiLike;
 }
 
 export const registerAttractorCommands = (
@@ -91,4 +117,28 @@ export const activateAttractor = (
       console.error("Failed to handle webview message:", error);
     }
   };
+
+  // Register the webview view provider when extensionUri and windowApi are
+  // available (i.e. running inside VS Code, not in tests without them).
+  if (context.extensionUri && dependencies.windowApi) {
+    const onMessage = async (
+      raw: unknown,
+      postTarget: WebviewPostTarget
+    ): Promise<void> => {
+      await context.onWebviewMessage!(raw, postTarget);
+    };
+
+    const provider = new AttractorViewProvider({
+      extensionUri: context.extensionUri,
+      webviewBundlePath: [...ATTRACTOR_WEBVIEW_BUNDLE_PATH],
+      onMessage
+    });
+
+    const providerDisposable =
+      dependencies.windowApi.registerWebviewViewProvider(
+        AttractorViewProvider.viewType,
+        provider
+      );
+    context.subscriptions.push(providerDisposable);
+  }
 };

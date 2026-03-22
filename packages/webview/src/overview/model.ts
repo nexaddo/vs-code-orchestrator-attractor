@@ -1,12 +1,16 @@
-import { RepositoryRecord } from "@attractor/shared";
+import type { RepositoryRecord, RunRecord } from "@attractor/shared";
 
-export interface WorkspaceSummary {
-  totalRepositories: number;
+export interface WorkspaceSummaryStats {
+  totalRepos: number;
   totalPlans: number;
   activeRuns: number;
+  pausedRuns: number;
+  failedRuns24h: number;
 }
 
 export interface OverviewState {
-  summary: WorkspaceSummary;
   repositories: RepositoryRecord[];
+  activeRuns: RunRecord[];
+  recentFailures: RunRecord[];
+  stats: WorkspaceSummaryStats;
 }
