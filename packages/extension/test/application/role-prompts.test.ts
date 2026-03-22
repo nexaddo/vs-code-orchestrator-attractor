@@ -18,6 +18,8 @@ describe("Orchestrator role prompts", () => {
   const context: OrchestratorPromptContext = {
     planTitle: "Add User Auth",
     planGoal: "Implement JWT-based authentication",
+    currentMilestoneId: "m1",
+    currentMilestoneName: "Setup auth module",
     milestones: [
       {
         id: "m1",

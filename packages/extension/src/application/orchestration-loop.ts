@@ -89,6 +89,8 @@ function buildMessagesForRole(
       const context: OrchestratorPromptContext = {
         planTitle: options.planTitle,
         planGoal: options.planGoal,
+        currentMilestoneId: milestone.id,
+        currentMilestoneName: milestone.name,
         milestones: options.milestones.map((m) => ({
           id: m.id,
           title: m.name,
@@ -346,9 +348,27 @@ export class OrchestrationLoop {
             acceptanceCriteria?: string[];
           };
 
+          if (
+            parsedObj.milestoneId !== undefined &&
+            parsedObj.milestoneId !== milestone.id
+          ) {
+            throw new Error(
+              `Orchestrator milestoneId mismatch: expected "${milestone.id}", got "${parsedObj.milestoneId}"`
+            );
+          }
+
+          if (
+            parsedObj.milestoneName !== undefined &&
+            parsedObj.milestoneName !== milestone.name
+          ) {
+            throw new Error(
+              `Orchestrator milestoneName mismatch: expected "${milestone.name}", got "${parsedObj.milestoneName}"`
+            );
+          }
+
           handoff = buildOrchestratorHandoff(
-            parsedObj.milestoneId ?? milestone.id,
-            parsedObj.milestoneName ?? milestone.name,
+            milestone.id,
+            milestone.name,
             parsedObj.description ?? milestone.description,
             parsedObj.acceptanceCriteria ?? milestone.acceptanceCriteria
           );

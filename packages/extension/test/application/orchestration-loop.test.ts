@@ -80,8 +80,6 @@ describe("OrchestrationLoop", () => {
     gateway.setResponse(
       "orchestrator",
       JSON.stringify({
-        milestoneId: "m1",
-        milestoneName: "Test Milestone",
         description: "Test milestone description",
         acceptanceCriteria: ["criterion 1"]
       })
@@ -281,6 +279,102 @@ describe("OrchestrationLoop", () => {
       // Verify only orchestrator handoff was emitted
       expect(handoffs.length).toBe(1);
       expect(handoffs[0]?.role).toBe("orchestrator");
+    });
+  });
+
+  describe("orchestrator milestone identity validation", () => {
+    it("should fail orchestrator phase when model milestoneId mismatches current milestone", async () => {
+      gateway.setResponse(
+        "orchestrator",
+        JSON.stringify({
+          milestoneId: "wrong-id",
+          milestoneName: "Test Milestone",
+          description: "Test milestone description",
+          acceptanceCriteria: ["criterion 1"]
+        })
+      );
+
+      const milestone: MilestoneInput = {
+        id: "m1",
+        name: "Test Milestone",
+        order: 0,
+        description: "Test milestone description",
+        acceptanceCriteria: ["criterion 1"]
+      };
+
+      const options: OrchestrationOptions = {
+        modelGateway: gateway,
+        milestones: [milestone],
+        runId: "run-1",
+        planTitle: "Test Plan",
+        planGoal: "Test goal",
+        onStateChange: (state) => {
+          stateChanges.push(state);
+        },
+        onHandoff: (handoff, role) => {
+          handoffs.push({ handoff, role });
+        },
+        onError: (error, milestoneId, role) => {
+          errors.push({ error, milestoneId, role });
+        }
+      };
+
+      await loop.execute(options);
+
+      expect(errors.length).toBe(1);
+      expect(errors[0]?.role).toBe("orchestrator");
+      expect(errors[0]?.error.message).toContain("milestoneId mismatch");
+      expect(handoffs.length).toBe(0);
+
+      const finalState = stateChanges[stateChanges.length - 1];
+      expect(finalState?.phases[0]?.status).toBe("failed");
+    });
+
+    it("should fail orchestrator phase when model milestoneName mismatches current milestone", async () => {
+      gateway.setResponse(
+        "orchestrator",
+        JSON.stringify({
+          milestoneId: "m1",
+          milestoneName: "Wrong Milestone Name",
+          description: "Test milestone description",
+          acceptanceCriteria: ["criterion 1"]
+        })
+      );
+
+      const milestone: MilestoneInput = {
+        id: "m1",
+        name: "Test Milestone",
+        order: 0,
+        description: "Test milestone description",
+        acceptanceCriteria: ["criterion 1"]
+      };
+
+      const options: OrchestrationOptions = {
+        modelGateway: gateway,
+        milestones: [milestone],
+        runId: "run-1",
+        planTitle: "Test Plan",
+        planGoal: "Test goal",
+        onStateChange: (state) => {
+          stateChanges.push(state);
+        },
+        onHandoff: (handoff, role) => {
+          handoffs.push({ handoff, role });
+        },
+        onError: (error, milestoneId, role) => {
+          errors.push({ error, milestoneId, role });
+        }
+      };
+
+      await loop.execute(options);
+
+      expect(errors.length).toBe(1);
+      expect(errors[0]?.role).toBe("orchestrator");
+      expect(errors[0]?.error.message).toContain("milestoneName mismatch");
+      expect(handoffs.length).toBe(0);
+
+      const finalState = stateChanges[stateChanges.length - 1];
+      expect(finalState?.phases[0]?.status).toBe("failed");
     });
   });
 

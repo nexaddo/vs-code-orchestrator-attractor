@@ -6,6 +6,8 @@ import type { ModelMessage } from "./ports";
 export interface OrchestratorPromptContext {
   planTitle: string;
   planGoal: string;
+  currentMilestoneId: string;
+  currentMilestoneName: string;
   milestones: {
     id: string;
     title: string;
@@ -105,6 +107,8 @@ export function buildOrchestratorUserMessage(
       content: `Plan: ${context.planTitle}
 
 Goal: ${context.planGoal}
+
+Current Milestone To Plan: ${context.currentMilestoneName} (ID: ${context.currentMilestoneId})
 
 Milestones:
 ${milestoneList}
