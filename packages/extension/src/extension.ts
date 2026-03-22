@@ -55,9 +55,13 @@ const createChatApi = (): ChatApiLike => {
 };
 
 export const activate = (context: ExtensionContext): void => {
+  const outputChannel = window.createOutputChannel("Attractor");
+  context.subscriptions.push(outputChannel);
+
   activateAttractor(context, commands, {
     windowApi: createWindowApi(),
-    chatApi: createChatApi()
+    chatApi: createChatApi(),
+    outputChannel
   });
 };
 

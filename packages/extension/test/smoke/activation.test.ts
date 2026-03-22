@@ -480,6 +480,60 @@ describe("activateAttractor — startup error boundary", () => {
       (msg.payload as { stats: { totalRepos: number } }).stats.totalRepos
     ).toBe(0);
   });
+
+  it("logs activation lifecycle messages to the outputChannel seam", () => {
+    const context = makeMinimalContext();
+    const log: string[] = [];
+
+    activateAttractor(context, makeMinimalCommandsApi(), {
+      storageRoot: "/tmp/storage",
+      createStorageServices: () => makeServicesWithMocks() as never,
+      outputChannel: {
+        appendLine: (v) => {
+          log.push(v);
+        }
+      }
+    });
+
+    expect(log.some((l) => l.includes("activating"))).toBe(true);
+    expect(log.some((l) => l.includes("activation complete"))).toBe(true);
+  });
+
+  it("logs webview message handler errors to the outputChannel instead of console.error", async () => {
+    const context = makeMinimalContext();
+    const log: string[] = [];
+
+    const throwingServices = makeServicesWithMocks();
+    (
+      throwingServices.runRegistry.list as ReturnType<typeof vi.fn>
+    ).mockRejectedValue(new Error("registry exploded"));
+
+    activateAttractor(context, makeMinimalCommandsApi(), {
+      storageRoot: "/tmp/storage",
+      createStorageServices: () => throwingServices as never,
+      outputChannel: {
+        appendLine: (v) => {
+          log.push(v);
+        }
+      }
+    });
+
+    const panel: WebviewPanelLike = {
+      postMessage: vi.fn()
+    };
+
+    // Send a valid "ready" message — handleWebviewMessage will call projectOverview
+    // which calls runRegistry.list(), which rejects
+    await context.onWebviewMessage!(
+      { version: 1, requestId: "err-test", type: "ready", payload: {} },
+      panel
+    );
+
+    expect(log.some((l) => l.includes("registry exploded"))).toBe(true);
+    expect(
+      log.some((l) => l.includes("failed to handle webview message"))
+    ).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------
