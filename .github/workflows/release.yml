@@ -1,0 +1,69 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Package and publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Gate: all checks must pass before packaging
+      - name: Run CI checks
+        run: pnpm ci:fast-checks
+
+      # Build TypeScript across all packages
+      - name: Build
+        run: pnpm build
+
+      # Bundle and package the VSIX
+      - name: Package VSIX
+        working-directory: packages/extension
+        run: pnpm run package
+
+      # Upload VSIX as a build artifact
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: attractor-vsix
+          path: packages/extension/*.vsix
+          if-no-files-found: error
+
+      # Create GitHub Release with VSIX attached
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: packages/extension/*.vsix
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+
+      # Publish to VS Code Marketplace (requires VSCE_PAT secret)
+      # Set VSCE_PAT in repo → Settings → Secrets and variables → Actions
+      - name: Publish to VS Code Marketplace
+        if: ${{ !contains(github.ref, '-pre') }}
+        working-directory: packages/extension
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: pnpm run publish:marketplace

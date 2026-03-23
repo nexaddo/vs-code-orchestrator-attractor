@@ -1,0 +1,27 @@
+# Source files (compiled to dist/)
+src/
+test/
+
+# Build artifacts we don't need in VSIX
+dist/src/
+dist/test/
+dist/**/*.d.ts
+dist/**/*.d.ts.map
+dist/**/*.js.map
+!dist/bundle.js
+!dist/bundle.js.map
+
+# Development tooling
+.vscode/**
+esbuild.config.mjs
+tsconfig.json
+vitest.config.ts
+*.tsbuildinfo
+
+# Dependencies (bundled by esbuild)
+node_modules/
+
+# Test fixtures
+fixtures/
+**/*.test.js
+**/*.spec.js

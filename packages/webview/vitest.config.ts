@@ -10,6 +10,23 @@ export default defineConfig({
   },
   test: {
     name: "webview",
-    include: ["test/**/*.test.ts"]
+    include: ["test/**/*.test.ts"],
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.ts"],
+      exclude: [
+        // Barrel re-exports — no logic
+        "src/index.ts",
+        "src/**/index.ts",
+        // Pure TypeScript interface declarations — no runtime code
+        "src/**/model.ts"
+      ],
+      thresholds: {
+        statements: 80,
+        branches: 80,
+        functions: 80,
+        lines: 80
+      }
+    }
   }
 });
