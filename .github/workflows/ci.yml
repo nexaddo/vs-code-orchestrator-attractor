@@ -85,10 +85,11 @@ jobs:
           fi
           size=$(wc -c < "$vsix_file" | tr -d ' ')
           size_kb=$((size / 1024))
-          echo "VSIX size: ${size_kb}KB ($size bytes)"
           max_kb=200
-          if [ "$size_kb" -gt "$max_kb" ]; then
-            echo "FAIL: VSIX exceeds ${max_kb}KB threshold (${size_kb}KB)"
+          max_bytes=$((max_kb * 1024))
+          echo "VSIX size: ${size_kb}KB ($size bytes)"
+          if [ "$size" -gt "$max_bytes" ]; then
+            echo "FAIL: VSIX exceeds ${max_kb}KB threshold (${size_kb}KB, $size bytes)"
             exit 1
           fi
-          echo "VSIX size check passed (${size_kb}KB <= ${max_kb}KB)"
+          echo "VSIX size check passed (${size_kb}KB ($size bytes) <= ${max_kb}KB)"
