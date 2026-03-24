@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+  <!--
+    Lorenz butterfly for activity bar — geometric with depth breaks.
+    Two elliptical lobes with a gap at center crossing to suggest 3D flow.
+    Center at (12,11.5). Tail starts below gap at (12,12.5).
+  -->
+  <!-- Left lobe: sweeps left-up, arcs around, returns toward center (stops short) -->
+  <path d="M11.5,12 C9.5,8 4,3 3,7 C2,11 5.5,15 9,16 C10.8,16.5 11.3,13.5 11.5,12"/>
+  <!-- Right lobe: sweeps right-up, arcs around, returns toward center (stops short) -->
+  <path d="M12.5,12 C14.5,8 20,3 21,7 C22,11 18.5,15 15,16 C13.2,16.5 12.7,13.5 12.5,12"/>
+  <!-- Tail: starts below crossing gap, descends -->
+  <path d="M12,13 L12,21"/>
+</svg>

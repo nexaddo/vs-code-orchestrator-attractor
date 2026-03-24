@@ -53,15 +53,15 @@ pnpm vsce:package
 
 ## Milestone Status
 
-| Milestone                    | Status      | Notes                                                                 |
-| ---------------------------- | ----------- | --------------------------------------------------------------------- |
-| M0 — Scaffold                | Merged      | Monorepo tooling, CI, workspace structure                             |
-| M1 — First Slices            | Merged      | Zod contracts, webview shell, runtime spine (PRs #1–5)                |
-| M2 — Backend Spine           | Merged      | DOT validator, event log, registries, snapshot projector (PRs #6–10)  |
-| M3 — First Dashboard Slice   | Merged      | Storage read surface, overview projection, bridge wiring (PRs #11–14) |
-| M3.5–M3.9 — Dashboard Polish | Merged      | Design system, Tailwind v4, webview hosting (PRs #19–27)              |
-| M4 — Copilot Orchestration   | Merged      | CopilotModelGateway, chat participant, orchestration loop (PR #28)    |
-| M5 — Release Readiness       | In Progress | VSIX packaging, error boundary, CI validation, docs                   |
+| Milestone                    | Status | Notes                                                                 |
+| ---------------------------- | ------ | --------------------------------------------------------------------- |
+| M0 — Scaffold                | Merged | Monorepo tooling, CI, workspace structure                             |
+| M1 — First Slices            | Merged | Zod contracts, webview shell, runtime spine (PRs #1–5)                |
+| M2 — Backend Spine           | Merged | DOT validator, event log, registries, snapshot projector (PRs #6–10)  |
+| M3 — First Dashboard Slice   | Merged | Storage read surface, overview projection, bridge wiring (PRs #11–14) |
+| M3.5–M3.9 — Dashboard Polish | Merged | Design system, Tailwind v4, webview hosting (PRs #19–27)              |
+| M4 — Copilot Orchestration   | Merged | CopilotModelGateway, chat participant, orchestration loop (PR #28)    |
+| M5 — Release Readiness       | Merged | VSIX packaging, error boundary, CI validation, docs (PR #29)          |
 
 ## Architecture
 

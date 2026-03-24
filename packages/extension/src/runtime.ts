@@ -204,7 +204,9 @@ export const activateAttractor = (
         orchestrationContext
       );
     } catch (error) {
-      console.error("Failed to handle webview message:", error);
+      log.appendLine(
+        `Attractor: failed to handle webview message — ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`
+      );
     }
   };
 
