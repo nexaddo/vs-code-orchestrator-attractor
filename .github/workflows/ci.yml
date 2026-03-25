@@ -61,3 +61,35 @@ jobs:
           name: coverage-report
           path: "**/coverage/"
           retention-days: 14
+
+  evals:
+    runs-on: ubuntu-latest
+    needs: fast-checks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run orchestration evals
+        run: pnpm test:evals
+
+      - name: Upload eval metrics
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-metrics
+          path: test-results/eval-metrics.json
+          retention-days: 30
