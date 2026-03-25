@@ -21,7 +21,8 @@ export function decodeOverviewState(
         repositories: parsed.payload.repositories,
         activeRuns: parsed.payload.activeRuns,
         recentFailures: parsed.payload.recentFailures,
-        stats: parsed.payload.stats
+        stats: parsed.payload.stats,
+        ...(parsed.payload.error && { error: parsed.payload.error })
       }
     };
   } catch (error) {

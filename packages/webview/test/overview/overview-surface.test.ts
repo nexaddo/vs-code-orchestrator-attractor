@@ -112,4 +112,45 @@ describe("OverviewSurface", () => {
     expect(vm.recentFailures).toEqual([]);
     expect(vm.metrics.map((m) => m.value)).toEqual([0, 0, 0, 0, 0]);
   });
+
+  it("accepts optional error field in OverviewState", () => {
+    const stateWithError: OverviewState = {
+      repositories: [],
+      activeRuns: [],
+      recentFailures: [],
+      stats: {
+        totalRepos: 0,
+        totalPlans: 0,
+        activeRuns: 0,
+        pausedRuns: 0,
+        failedRuns24h: 0
+      },
+      error: "Extension activation failed: No workspace open"
+    };
+
+    expect(stateWithError.error).toBe(
+      "Extension activation failed: No workspace open"
+    );
+  });
+
+  it("builds view model when state has error field", () => {
+    const state: OverviewState = {
+      repositories: [],
+      activeRuns: [],
+      recentFailures: [],
+      stats: {
+        totalRepos: 0,
+        totalPlans: 0,
+        activeRuns: 0,
+        pausedRuns: 0,
+        failedRuns24h: 0
+      },
+      error: "Extension activation failed: No workspace open"
+    };
+
+    const vm = buildOverviewViewModel(state);
+
+    expect(vm.metrics).toHaveLength(5);
+    expect(vm.repositories).toEqual([]);
+  });
 });
