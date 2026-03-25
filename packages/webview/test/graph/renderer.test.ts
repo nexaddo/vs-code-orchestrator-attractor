@@ -92,7 +92,9 @@ describe("renderGraph", () => {
       runId: "run_001",
       graph: {
         ...baseGraph,
-        nodes: [{ id: "A", label: "<script>alert('xss')</script>", dependsOn: [] }]
+        nodes: [
+          { id: "A", label: "<script>alert('xss')</script>", dependsOn: [] }
+        ]
       },
       nodeStatuses: []
     };

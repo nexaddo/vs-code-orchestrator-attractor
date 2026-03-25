@@ -22,7 +22,9 @@ describe("decodeRepositoryState", () => {
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.state.repository.remoteUrl).toBe("https://github.com/org/repo-alpha");
+      expect(result.state.repository.remoteUrl).toBe(
+        "https://github.com/org/repo-alpha"
+      );
       expect(result.state.repository.labels).toContain("workspace");
       expect(result.state.plans).toHaveLength(1);
       expect(result.state.plans[0]?.title).toBe("Implement Feature X");

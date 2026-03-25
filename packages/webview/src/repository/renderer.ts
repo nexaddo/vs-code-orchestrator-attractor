@@ -13,8 +13,8 @@ export function renderRepository(state: RepositoryState): string {
   const plansHtml =
     plans.length > 0
       ? plans
-          .map(
-            (plan) => `
+          .map((plan) =>
+            `
 <div class="plan-item">
   <span class="plan-title">${escapeHtml(plan.title)}</span>
   <span class="plan-status plan-status--${escapeHtml(plan.status)}">${escapeHtml(plan.status)}</span>

@@ -12,7 +12,9 @@ const RepositoryMessageSchema = WebviewOutboundMessageSchema.extend({
 
 export function decodeRepositoryState(
   data: unknown
-): { success: true; state: RepositoryState } | { success: false; error: string } {
+):
+  | { success: true; state: RepositoryState }
+  | { success: false; error: string } {
   try {
     const parsed = RepositoryMessageSchema.parse(data);
     return {

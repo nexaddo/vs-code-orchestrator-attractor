@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { renderPlan } from "../../src/plan/renderer";
-import type { PlanState } from "../../src/plan/model";
+import {
+  renderPlan,
+  renderPlanRepositoryPicker
+} from "../../src/plan/renderer";
+import type {
+  PlanRepositoryPickerState,
+  PlanState
+} from "../../src/plan/model";
 
 const basePlan = {
   version: 1 as const,
@@ -105,7 +111,7 @@ describe("renderPlan", () => {
 
   it("should render Start New Run button", () => {
     const html = renderPlan(baseState);
-    expect(html).toContain("data-action=\"plan.run\"");
+    expect(html).toContain('data-action="plan.run"');
     expect(html).toContain("Start New Run");
   });
 
@@ -117,5 +123,120 @@ describe("renderPlan", () => {
     const html = renderPlan(state);
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");
+  });
+
+  it("should render RepoBadgeRow when repositories are provided", () => {
+    const state: PlanState = {
+      ...baseState,
+      repositories: [
+        {
+          version: 1,
+          id: "repo_alpha",
+          name: "repo-beta",
+          rootUri: "/repos/repo-beta",
+          defaultBranch: "main",
+          labels: []
+        }
+      ]
+    };
+    const html = renderPlan(state);
+    expect(html).toContain("repo-badge-row");
+    expect(html).toContain("[WRITABLE]");
+    expect(html).toContain("repo-beta");
+    expect(html).toContain("main");
+  });
+
+  it("should not render RepoBadgeRow when repositories are absent", () => {
+    const html = renderPlan(baseState);
+    expect(html).not.toContain("repo-badge-row");
+  });
+});
+
+describe("renderPlanRepositoryPicker", () => {
+  const baseRepos = [
+    {
+      version: 1 as const,
+      id: "repo_beta",
+      name: "repo-beta",
+      rootUri: "/repos/repo-beta",
+      defaultBranch: "main",
+      labels: []
+    },
+    {
+      version: 1 as const,
+      id: "repo_docs",
+      name: "repo-docs",
+      rootUri: "/repos/repo-docs",
+      defaultBranch: "docs/v2",
+      labels: []
+    }
+  ];
+
+  const basePickerState: PlanRepositoryPickerState = {
+    availableRepositories: baseRepos,
+    selectedExecutableId: "repo_beta",
+    selectedContextIds: [],
+    contextAliases: {}
+  };
+
+  it("should render executable and context sections", () => {
+    const html = renderPlanRepositoryPicker(basePickerState);
+    expect(html).toContain("plan-repository-picker");
+    expect(html).toContain("Executable Repository");
+    expect(html).toContain("Context Repositories");
+  });
+
+  it("should render radio inputs for executable repos", () => {
+    const html = renderPlanRepositoryPicker(basePickerState);
+    expect(html).toContain('type="radio"');
+    expect(html).toContain('data-action="plan.picker.executable"');
+  });
+
+  it("should mark selected executable repo as checked", () => {
+    const html = renderPlanRepositoryPicker(basePickerState);
+    expect(html).toContain('value="repo_beta" checked');
+  });
+
+  it("should exclude executable repo from context section", () => {
+    const html = renderPlanRepositoryPicker(basePickerState);
+    const contextSection = html.split("Context Repositories")[1] ?? "";
+    expect(contextSection).not.toContain("repo_beta");
+    expect(contextSection).toContain("repo_docs");
+  });
+
+  it("should render checkbox inputs for context repos", () => {
+    const html = renderPlanRepositoryPicker(basePickerState);
+    expect(html).toContain('type="checkbox"');
+    expect(html).toContain('data-action="plan.picker.context"');
+  });
+
+  it("should mark checked context repos", () => {
+    const state: PlanRepositoryPickerState = {
+      ...basePickerState,
+      selectedContextIds: ["repo_docs"]
+    };
+    const html = renderPlanRepositoryPicker(state);
+    expect(html).toContain('value="repo_docs" checked');
+  });
+
+  it("should render v1 one-writable-repo note", () => {
+    const html = renderPlanRepositoryPicker(basePickerState);
+    expect(html).toContain("v1 allows exactly one writable repository");
+  });
+
+  it("should render register repository button", () => {
+    const html = renderPlanRepositoryPicker(basePickerState);
+    expect(html).toContain('data-action="repository.add"');
+    expect(html).toContain("Register Another Repository");
+  });
+
+  it("should render empty state when no repositories available", () => {
+    const state: PlanRepositoryPickerState = {
+      ...basePickerState,
+      availableRepositories: [],
+      selectedExecutableId: null
+    };
+    const html = renderPlanRepositoryPicker(state);
+    expect(html).toContain("No repositories registered");
   });
 });

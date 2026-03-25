@@ -132,3 +132,152 @@ Low-fidelity textual wireframes for the first version of the UI.
 | [Retry Failed Step]                         |
 +---------------------------------------------+
 ```
+
+---
+
+## 6. Run Detail — Orchestration Phase Strip (Happy Path)
+
+The `OrchestrationPhaseBar` appears directly below the run header, above the graph/timeline split.
+Shows the active milestone's role execution state.
+
+```text
++--------------------------------------------------------------------------------------------------+
+| Attractor / repo-beta / Run #143                                        [Refresh] [Open Worktree]|
++--------------------------------------------------------------------------------------------------+
+| Run #143   Status: Running   Plan: Release Prep   Started: 11:01   Duration: 6m                 |
+| [Cancel Run]                                                                                     |
++--------------------------------------------------------------------------------------------------+
+| Orchestration — Milestone 2/5: "Generate changelog"                                             |
+| +---------------+   +--------------+   +----------------+   +-------------+                    |
+| | Orchestrator  |   |   Planner    |   |  Implementer   |   |   Reviewer  |                    |
+| |   DONE  ✓     |-->|   DONE  ✓   |-->|  RUNNING  ...  |-->|   waiting   |                    |
+| +---------------+   +--------------+   +----------------+   +-------------+                    |
+| Currently: Implementer — "Generating CHANGELOG.md from commit log (step 2 of 3)"               |
++--------------------------------------------------------------------------------------------------+
+| Main Left (Execution Graph)                        | Main Right (Timeline)                      |
+|----------------------------------------------------|-------------------------------------------|
+| start ✓ -> verify ✓ -> [changelog ...] -> ...      | 11:01 run started                          |
+|                                                    | 11:02 orchestrator → planner               |
+|                                                    | 11:03 planner → implementer                |
+|                                                    | 11:07 (streaming...)                       |
++----------------------------------------------------+-------------------------------------------+
+| Logs / Events                                                                                    |
+| 11:03:44 handoff.created  planner → implementer  "task pack: 3 steps"                           |
+| 11:04:01 run.node.started  changelog                                                             |
++--------------------------------------------------------------------------------------------------+
+```
+
+## 7. Run Detail — Orchestration Phase Strip (Implementer Failed)
+
+```text
++--------------------------------------------------------------------------------------------------+
+| Run #143   Status: Failed   Plan: Release Prep   Started: 11:01   Duration: 9m                  |
+| [Retry Implementer] [Retry From Planner] [Retry Milestone] [Cancel Run]                         |
++--------------------------------------------------------------------------------------------------+
+| Orchestration — Milestone 2/5: "Generate changelog"                                             |
+| +---------------+   +--------------+   +----------------+   +-------------+                    |
+| | Orchestrator  |   |   Planner    |   |  Implementer   |   |   Reviewer  |                    |
+| |   DONE  ✓     |-->|   DONE  ✓   |-->|  FAILED  ✗     |-->|  skipped    |                    |
+| +---------------+   +--------------+   +----------------+   +-------------+                    |
+| Error: "git log command failed — repository has no commits"                                      |
+| [Retry Implementer] [Retry From Planner] [View Artifacts]                                       |
++--------------------------------------------------------------------------------------------------+
+```
+
+## 8. Handoff Events in Timeline Panel
+
+Handoff rows are visually distinct from node/run events (indented, role-colored prefix).
+
+```text
++----------------------------------------------+
+| Timeline — Run #143                          |
+|----------------------------------------------|
+| 11:01  run.started                           |
+|   →    ORCH → PLAN  "Starting changelog"     |
+|   →    PLAN → IMPL  "Task pack: 3 steps"     |
+| 11:07  IMPL → ✗     "git log failed"         |
+|----------------------------------------------|
+| [Filter: All ▼]  [Full Run / This Milestone] |
++----------------------------------------------+
+```
+
+## 9. Plan Inspector — Repository Badge Row
+
+Repo badges appear on every Plan and Run header surface.
+
+```text
++--------------------------------------------------------------------------------------------------+
+| Release Prep (v3)   Status: Ready   Last Run: Failed                                            |
+| Repos: [WRITABLE repo-beta / main]  [READ-ONLY repo-docs / docs/v2]                             |
+| [Run Plan] [Validate] [Edit Metadata] [Duplicate]                                               |
++--------------------------------------------------------------------------------------------------+
+```
+
+## 10. Plan Repository Picker (Plan Creation)
+
+```text
++--------------------------------------------------------------------------------------------------+
+| New Plan — Step 2 of 3: Repository Setup                             [Back] [Next: Graph]        |
++--------------------------------------------------------------------------------------------------+
+| Executable Repository (writable — one per plan in v1)                                           |
+| +------------------------------------------------------------------------+                      |
+| | ● repo-beta     main     /.attractor/worktrees/repo-beta              |                      |
+| | ○ repo-gamma    main     /.attractor/worktrees/repo-gamma             |                      |
+| +------------------------------------------------------------------------+                      |
+|                                                                                                  |
+| Context Repositories (read-only — optional)                                                      |
+| +------------------------------------------------------------------------+                      |
+| | [x] repo-docs    docs/v2   mount as: docs         [Edit alias]        |                      |
+| | [ ] repo-specs   main      mount as: specs         [Add]              |                      |
+| +------------------------------------------------------------------------+                      |
+| [+ Register Another Repository]                                                                  |
+|                                                                                                  |
+| ⓘ  v1 allows exactly one writable repository per plan.                                          |
++--------------------------------------------------------------------------------------------------+
+```
+
+## 11. Workspace Overview Panel (v1.1)
+
+A new top-level panel tab for managing named virtual workspaces.
+
+```text
++--------------------------------------------------------------------------------------------------+
+| Attractor                                                                 [Refresh] [Settings]   |
++--------------------------------------------------------------------------------------------------+
+| [Overview]  [Repositories]  [Workspace ▼]                                                        |
++--------------------------------------------------------------------------------------------------+
+| Active Workspace: "My Project"  [Edit Name] [New Workspace]                                     |
+| 3 repos  ·  1 writable  ·  2 read-only  ·  4 active plans                                       |
++--------------------------------------------------------------------------------------------------+
+| +------------------+  +------------------+  +------------------+  +------------------+          |
+| | repo-beta        |  | repo-docs        |  | repo-specs       |  | [+ Add Repo]     |          |
+| | WRITABLE         |  | READ-ONLY        |  | READ-ONLY        |  |                  |          |
+| | Branch: main     |  | Branch: docs/v2  |  | Branch: main     |  |                  |          |
+| | 12 runs          |  | Last used: 2h    |  | Last used: 1d    |  |                  |          |
+| | [Open] [Plans]   |  | [Open] [Remove]  |  | [Open] [Remove]  |  |                  |          |
+| +------------------+  +------------------+  +------------------+  +------------------+          |
++--------------------------------------------------------------------------------------------------+
+| Other Workspaces                                                                                 |
+| "Docs Site"    repo-docs · repo-specs                                 [Switch] [Open]            |
+| "Archive"      repo-gamma                                             [Switch] [Open]            |
++--------------------------------------------------------------------------------------------------+
+```
+
+## 12. Left Rail — Workspace-Grouped Repository List (v1.1 prep)
+
+```text
++----------------------+
+| My Project    [▼]    |  ← workspace switcher dropdown
+|----------------------|
+| > repo-beta  WRITE   |
+| > repo-docs  READ    |
+| > repo-specs READ    |
+|----------------------|
+| Other Repos          |
+| > repo-gamma         |
+|                      |
+| Quick Filters        |
+| [All] [Active]       |
+| [Paused] [Failed]    |
++----------------------+
+```

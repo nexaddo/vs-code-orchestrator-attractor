@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "requestId": "req-orch-001",
+  "type": "orchestration.state",
+  "payload": {
+    "runId": "run_001",
+    "milestoneIndex": 2,
+    "milestoneCount": 5,
+    "milestoneName": "Generate changelog",
+    "phases": [
+      { "role": "orchestrator", "status": "done" },
+      { "role": "planner", "status": "done" },
+      {
+        "role": "implementer",
+        "status": "running",
+        "taskSummary": "Generating CHANGELOG.md from commit log (step 2 of 3)"
+      },
+      { "role": "reviewer", "status": "waiting" }
+    ]
+  }
+}

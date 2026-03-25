@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "requestId": "req-orch-bad-002",
+  "type": "orchestration.state",
+  "payload": {
+    "runId": "run_001",
+    "milestoneIndex": 1,
+    "milestoneCount": 3,
+    "milestoneName": "Setup",
+    "phases": [
+      { "role": "orchestrator", "status": "running" },
+      { "role": "planner", "status": "waiting" }
+    ]
+  }
+}

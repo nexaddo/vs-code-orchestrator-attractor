@@ -75,4 +75,97 @@ describe("renderTimeline", () => {
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");
   });
+
+  it("should render AgentActionFeed section", () => {
+    const state: TimelineState = { runId: "run_001", events: [] };
+    const html = renderTimeline(state);
+    expect(html).toContain("agent-action-feed");
+    expect(html).toContain("Agent Action Feed");
+    expect(html).toContain("No agent actions yet");
+  });
+});
+
+describe("renderTimeline — HandoffEventRow", () => {
+  const handoffEvent = {
+    version: 1 as const,
+    id: "evt_handoff_001",
+    name: "handoff.created",
+    aggregateType: "Run",
+    aggregateId: "run_001",
+    correlationId: "corr_001",
+    timestamp: "2026-01-01T00:01:00.000Z",
+    payload: {
+      fromRole: "planner",
+      toRole: "implementer",
+      reason: "Task pack ready: 3 steps"
+    }
+  };
+
+  it("should render handoff events with distinct CSS class", () => {
+    const state: TimelineState = { runId: "run_001", events: [handoffEvent] };
+    const html = renderTimeline(state);
+    expect(html).toContain("timeline-event--handoff");
+  });
+
+  it("should render handoff role transition", () => {
+    const state: TimelineState = { runId: "run_001", events: [handoffEvent] };
+    const html = renderTimeline(state);
+    expect(html).toContain("PLANNER");
+    expect(html).toContain("IMPLEMENTER");
+    expect(html).toContain("handoff-roles");
+  });
+
+  it("should render handoff reason", () => {
+    const state: TimelineState = { runId: "run_001", events: [handoffEvent] };
+    const html = renderTimeline(state);
+    expect(html).toContain("Task pack ready: 3 steps");
+    expect(html).toContain("handoff-reason");
+  });
+
+  it("should render handoff arrow indicator", () => {
+    const state: TimelineState = { runId: "run_001", events: [handoffEvent] };
+    const html = renderTimeline(state);
+    expect(html).toContain("handoff-arrow");
+  });
+
+  it("should render handoff events in AgentActionFeed tab", () => {
+    const regularEvent = {
+      version: 1 as const,
+      id: "evt_001",
+      name: "run.started",
+      aggregateType: "Run",
+      aggregateId: "run_001",
+      correlationId: "corr_001",
+      timestamp: "2026-01-01T00:00:00.000Z",
+      payload: {}
+    };
+    const state: TimelineState = {
+      runId: "run_001",
+      events: [regularEvent, handoffEvent]
+    };
+    const html = renderTimeline(state);
+    const feedSection = html.split("Agent Action Feed")[1] ?? "";
+    expect(feedSection).toContain("PLANNER");
+    expect(feedSection).toContain("IMPLEMENTER");
+  });
+
+  it("should render regular events normally when mixed with handoff events", () => {
+    const regularEvent = {
+      version: 1 as const,
+      id: "evt_001",
+      name: "run.started",
+      aggregateType: "Run",
+      aggregateId: "run_001",
+      correlationId: "corr_001",
+      timestamp: "2026-01-01T00:00:00.000Z",
+      payload: {}
+    };
+    const state: TimelineState = {
+      runId: "run_001",
+      events: [regularEvent, handoffEvent]
+    };
+    const html = renderTimeline(state);
+    expect(html).toContain("run.started");
+    expect(html).toContain("timeline-event--handoff");
+  });
 });

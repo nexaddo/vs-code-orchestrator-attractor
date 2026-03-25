@@ -11,7 +11,9 @@ const STATUS_LABELS: Record<NodeStatusValue, string> = {
 export function renderGraph(state: GraphState): string {
   const { runId, graph, nodeStatuses } = state;
 
-  const statusByNodeId = new Map(nodeStatuses.map((ns) => [ns.nodeId, ns.status]));
+  const statusByNodeId = new Map(
+    nodeStatuses.map((ns) => [ns.nodeId, ns.status])
+  );
 
   const nodesHtml = graph.nodes
     .map((node) => {

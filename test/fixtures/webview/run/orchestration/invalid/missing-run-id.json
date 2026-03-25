@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "requestId": "req-orch-bad-001",
+  "type": "orchestration.state",
+  "payload": {
+    "milestoneIndex": 1,
+    "milestoneCount": 3,
+    "milestoneName": "Setup",
+    "phases": [
+      { "role": "orchestrator", "status": "running" },
+      { "role": "planner", "status": "waiting" },
+      { "role": "implementer", "status": "waiting" },
+      { "role": "reviewer", "status": "waiting" }
+    ]
+  }
+}
