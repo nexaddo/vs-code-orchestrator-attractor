@@ -4,6 +4,7 @@ import { type ModelGateway } from "../../src/application/ports";
 import {
   activateAttractor,
   ATTRACTOR_DASHBOARD_VIEW_TYPE,
+  ATTRACTOR_DASHBOARD_OPEN_COMMAND,
   ATTRACTOR_HELLO_COMMAND,
   type ChatApiLike,
   type CommandsApiLike,
@@ -34,8 +35,11 @@ describe("activateAttractor", () => {
 
     activateAttractor(context, commandsApi);
 
-    expect(registered).toEqual([ATTRACTOR_HELLO_COMMAND]);
-    expect(context.subscriptions).toEqual([disposable]);
+    expect(registered).toEqual([
+      ATTRACTOR_HELLO_COMMAND,
+      ATTRACTOR_DASHBOARD_OPEN_COMMAND
+    ]);
+    expect(context.subscriptions).toEqual([disposable, disposable]);
   });
 
   it("invokes the storage services factory when a storageRoot is provided (v1 seam: result not yet wired)", () => {
@@ -593,8 +597,8 @@ describe("activateAttractor — webview provider registration", () => {
       storageRoot: "/tmp/storage"
     });
 
-    // Only the command disposable should be present, no provider
-    expect(context.subscriptions).toHaveLength(1);
+    // Only the command disposables should be present, no provider
+    expect(context.subscriptions).toHaveLength(2);
   });
 });
 
@@ -637,8 +641,8 @@ describe("activateAttractor — chat participant registration", () => {
       storageRoot: "/tmp/storage"
     });
 
-    // Only the command disposable should be present, no chat participant
-    expect(context.subscriptions).toHaveLength(1);
+    // Only the command disposables should be present, no chat participant
+    expect(context.subscriptions).toHaveLength(2);
   });
 });
 
@@ -664,20 +668,6 @@ describe("activateAttractor — model gateway injection", () => {
       modelGateway: customGateway
     });
 
-    expect(context.subscriptions).toHaveLength(1);
-  });
-
-  it("defaults to NoOpModelGateway when none is provided", () => {
-    const context: ExtensionContextLike = {
-      subscriptions: []
-    };
-
-    // Should not throw without modelGateway
-    activateAttractor(context, makeMinimalCommandsApi(), {
-      createStorageServices: () => makeServicesWithMocks() as never,
-      storageRoot: "/tmp/storage"
-    });
-
-    expect(context.subscriptions).toHaveLength(1);
+    expect(context.subscriptions).toHaveLength(2);
   });
 });

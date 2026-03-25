@@ -24,6 +24,7 @@ import {
 } from "./chat/attractor-chat-participant";
 
 export const ATTRACTOR_HELLO_COMMAND = "attractor.hello";
+export const ATTRACTOR_DASHBOARD_OPEN_COMMAND = "attractor.openDashboard";
 export const ATTRACTOR_DASHBOARD_VIEW_TYPE = "attractor.dashboard";
 export const ATTRACTOR_WEBVIEW_BUNDLE_PATH = [
   "dist",
@@ -83,11 +84,15 @@ export interface RuntimeDependencies {
 }
 
 export const registerAttractorCommands = (
-  commandsApi: CommandsApiLike
+  commandsApi: CommandsApiLike,
+  viewProvider?: AttractorViewProvider
 ): DisposableLike[] => {
   return [
     commandsApi.registerCommand(ATTRACTOR_HELLO_COMMAND, () => {
       return;
+    }),
+    commandsApi.registerCommand(ATTRACTOR_DASHBOARD_OPEN_COMMAND, () => {
+      viewProvider?.revealView();
     })
   ];
 };
@@ -122,8 +127,10 @@ export const activateAttractor = (
     log.appendLine("Attractor: no storage root available");
   }
 
+  let viewProvider: AttractorViewProvider | undefined;
+
   // --- Commands (always register) ---
-  const disposables = registerAttractorCommands(commandsApi);
+  const disposables = registerAttractorCommands(commandsApi, viewProvider);
   context.subscriptions.push(...disposables);
 
   const modelGateway = dependencies.modelGateway ?? new NoOpModelGateway();
@@ -225,6 +232,8 @@ export const activateAttractor = (
         webviewBundlePath: [...ATTRACTOR_WEBVIEW_BUNDLE_PATH],
         onMessage
       });
+
+      viewProvider = provider;
 
       const providerDisposable =
         dependencies.windowApi.registerWebviewViewProvider(
