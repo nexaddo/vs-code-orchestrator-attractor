@@ -222,8 +222,8 @@ export function PlanSurface({ state }: PlanSurfaceProps): JSX.Element {
   const viewModel = buildPlanViewModel(state);
 
   return (
-    <div class="flex flex-col gap-3">
-      <Card>
+    <div class="flex flex-col gap-3" data-testid="plan-content">
+      <Card data-testid="plan-header">
         <CardHeader>
           <div class="min-w-0">
             <CardTitle class="truncate text-[length:var(--text-base)]">
@@ -283,7 +283,7 @@ export function PlanSurface({ state }: PlanSurfaceProps): JSX.Element {
               total={viewModel.milestoneProgress.total}
             />
           </CardHeader>
-          <CardContent class="space-y-2">
+          <CardContent class="space-y-2" data-testid="plan-milestones">
             {viewModel.milestones.length === 0 ? (
               <EmptyState
                 variant="inline"
@@ -322,7 +322,7 @@ export function PlanSurface({ state }: PlanSurfaceProps): JSX.Element {
             <CardHeader>
               <CardTitle>Run History</CardTitle>
             </CardHeader>
-            <CardContent class="space-y-2">
+            <CardContent class="space-y-2" data-testid="plan-history">
               {viewModel.history.length === 0 ? (
                 <EmptyState
                   variant="inline"
@@ -360,7 +360,7 @@ export function PlanSurface({ state }: PlanSurfaceProps): JSX.Element {
               <CardHeader>
                 <CardTitle>Validation Events</CardTitle>
               </CardHeader>
-              <CardContent class="px-0 py-1">
+              <CardContent class="px-0 py-1" data-testid="plan-validation">
                 {viewModel.validationEvents.map((event) => (
                   <LogLine
                     key={event.id}

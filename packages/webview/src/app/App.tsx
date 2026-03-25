@@ -166,7 +166,10 @@ export class App extends Component<AppProps, AppComponentState> {
     }
 
     return (
-      <div className="pointer-events-none fixed bottom-3 left-3 right-3 z-50 flex flex-col gap-2">
+      <div
+        className="pointer-events-none fixed bottom-3 left-3 right-3 z-50 flex flex-col gap-2"
+        data-testid="toast-bar"
+      >
         {toasts.map((toast) => this.renderToast(toast))}
       </div>
     );
@@ -190,6 +193,7 @@ export class App extends Component<AppProps, AppComponentState> {
     return (
       <div
         key={toast.id}
+        data-testid={`toast-${toast.id}`}
         className="pointer-events-auto flex items-start gap-2 rounded-[--radius-sm] border border-[color:var(--color-vscode-panel-border,var(--color-border))] bg-[color:var(--color-vscode-editor-background,var(--color-background))] px-3 py-2 text-[length:var(--text-sm)] shadow-sm"
       >
         <span
@@ -214,6 +218,7 @@ export class App extends Component<AppProps, AppComponentState> {
         </div>
         <button
           type="button"
+          data-testid={`toast-dismiss-${toast.id}`}
           className="codicon codicon-close mt-0.5 text-[color:var(--color-vscode-description)]"
           aria-label="Dismiss notification"
           onClick={() => {

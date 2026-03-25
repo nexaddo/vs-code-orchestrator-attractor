@@ -141,9 +141,12 @@ export function RunSurface({ state }: RunSurfaceProps): JSX.Element {
   const viewModel = buildRunViewModel(state);
 
   return (
-    <div class="flex flex-col gap-3">
+    <div class="flex flex-col gap-3" data-testid="run-content">
       <Card>
-        <CardContent class="flex flex-wrap items-start justify-between gap-2">
+        <CardContent
+          class="flex flex-wrap items-start justify-between gap-2"
+          data-testid="run-header"
+        >
           <div class="min-w-0">
             <h2 class="truncate text-[length:var(--text-base)] font-semibold">
               {viewModel.header.runId}
@@ -164,7 +167,7 @@ export function RunSurface({ state }: RunSurfaceProps): JSX.Element {
           <CardTitle>Progress</CardTitle>
           <Badge variant="count">{viewModel.progress.label}</Badge>
         </CardHeader>
-        <CardContent>
+        <CardContent data-testid="run-progress">
           <ProgressBar
             value={viewModel.progress.percent}
             status={viewModel.header.status}
@@ -179,7 +182,7 @@ export function RunSurface({ state }: RunSurfaceProps): JSX.Element {
           <CardHeader>
             <CardTitle>Timeline</CardTitle>
           </CardHeader>
-          <CardContent class="space-y-2">
+          <CardContent class="space-y-2" data-testid="run-timeline">
             {viewModel.timeline.length === 0 ? (
               <EmptyState
                 variant="inline"
@@ -226,7 +229,7 @@ export function RunSurface({ state }: RunSurfaceProps): JSX.Element {
           <CardHeader>
             <CardTitle>Artifacts</CardTitle>
           </CardHeader>
-          <CardContent class="space-y-2">
+          <CardContent class="space-y-2" data-testid="run-artifacts">
             {viewModel.artifacts.length === 0 ? (
               <EmptyState
                 variant="inline"
@@ -258,7 +261,7 @@ export function RunSurface({ state }: RunSurfaceProps): JSX.Element {
         </Card>
 
         {viewModel.currentHandoff && (
-          <Card>
+          <Card data-testid="run-handoff">
             <CardHeader>
               <CardTitle>Current Handoff</CardTitle>
             </CardHeader>

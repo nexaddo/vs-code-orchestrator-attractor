@@ -139,9 +139,12 @@ export function RepositorySurface({
   const viewModel = buildRepositoryViewModel(state);
 
   return (
-    <div class="flex flex-col gap-3">
+    <div class="flex flex-col gap-3" data-testid="repository-content">
       <Card>
-        <CardContent class="flex flex-wrap items-center gap-2">
+        <CardContent
+          class="flex flex-wrap items-center gap-2"
+          data-testid="repository-header"
+        >
           <h2 class="truncate text-[length:var(--text-base)] font-semibold text-[color:var(--color-vscode-settings-header)]">
             {viewModel.name}
           </h2>
@@ -159,7 +162,7 @@ export function RepositorySurface({
           <CardHeader>
             <CardTitle>Plans</CardTitle>
           </CardHeader>
-          <CardContent class="space-y-2">
+          <CardContent class="space-y-2" data-testid="repository-plans">
             {viewModel.plans.length === 0 ? (
               <EmptyState
                 variant="inline"
@@ -197,7 +200,7 @@ export function RepositorySurface({
             <CardHeader>
               <CardTitle>Runs</CardTitle>
             </CardHeader>
-            <CardContent class="space-y-2">
+            <CardContent class="space-y-2" data-testid="repository-runs">
               {viewModel.runs.length === 0 ? (
                 <EmptyState
                   variant="inline"
@@ -234,7 +237,7 @@ export function RepositorySurface({
             <CardHeader>
               <CardTitle>Activity</CardTitle>
             </CardHeader>
-            <CardContent class="space-y-1">
+            <CardContent class="space-y-1" data-testid="repository-activity">
               {viewModel.activity.length === 0 ? (
                 <EmptyState
                   variant="inline"
