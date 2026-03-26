@@ -8,6 +8,7 @@ import {
   GitWorktreeManager,
   NdjsonEventLog,
   NoOpEventPublisher,
+  OrphanWorktreeRecovery,
   registerChatParticipant,
   WebviewBridge,
   type ChatApiLike
@@ -49,6 +50,7 @@ export interface AttractorContainer {
   leaseStore: FileWorktreeLeaseStore;
   orchestrationLoop: OrchestrationLoop;
   webviewBridge: WebviewBridge;
+  orphanRecovery: OrphanWorktreeRecovery;
 }
 
 export function createContainer(
@@ -64,6 +66,7 @@ export function createContainer(
   const repositoryRegistry = new FileRepositoryRegistry(workspaceRoot);
   const orchestrationLoop = new OrchestrationLoop(modelGateway);
   const webviewBridge = new WebviewBridge();
+  const orphanRecovery = new OrphanWorktreeRecovery(workspaceRoot, leaseStore);
 
   return {
     runCommandHandler: new RunCommandHandler(
@@ -77,7 +80,8 @@ export function createContainer(
     graphRepo,
     leaseStore,
     orchestrationLoop,
-    webviewBridge
+    webviewBridge,
+    orphanRecovery
   };
 }
 
@@ -143,4 +147,6 @@ export const activateAttractor = (
   if (chatApi !== undefined) {
     registerChatParticipant(chatApi, context);
   }
+  // Silently sweep orphaned worktree leases on every activation
+  void container.orphanRecovery.run();
 };

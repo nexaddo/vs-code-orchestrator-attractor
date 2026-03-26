@@ -5,7 +5,11 @@ export {
   type ChatApiLike
 } from "./chat";
 export { DotParseError, parseDot, type ParsedGraph } from "./dot";
-export { GitWorktreeManager } from "./git";
+export {
+  GitWorktreeManager,
+  OrphanWorktreeRecovery,
+  type OrphanRecoveryResult
+} from "./git";
 export { NoOpEventPublisher } from "./no-op-event-publisher";
 export { FileRepositoryRegistry } from "./registry";
 export {
