@@ -17,6 +17,7 @@ export interface WebviewLike {
 
 export interface WebviewViewLike {
   webview: WebviewLike;
+  show?(preserveFocus?: boolean): void;
 }
 
 /**
@@ -50,9 +51,20 @@ export const generateNonce = (): string => randomUUID().replace(/-/g, "");
 export class AttractorViewProvider {
   static readonly viewType = "attractor.dashboard";
 
+  private webviewView: WebviewViewLike | null = null;
+
   constructor(private readonly deps: AttractorViewProviderDeps) {}
 
+  /**
+   * Reveal/focus the webview view if it exists.
+   * Called by the attractor.openDashboard command for E2E automation.
+   */
+  revealView(): void {
+    this.webviewView?.show?.();
+  }
+
   resolveWebviewView(webviewView: WebviewViewLike): void {
+    this.webviewView = webviewView;
     const { webview } = webviewView;
     const bundleRoot = joinPathLike(
       this.deps.extensionUri,

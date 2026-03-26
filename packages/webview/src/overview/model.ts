@@ -13,4 +13,5 @@ export interface OverviewState {
   activeRuns: RunRecord[];
   recentFailures: RunRecord[];
   stats: WorkspaceSummaryStats;
+  error?: string;
 }

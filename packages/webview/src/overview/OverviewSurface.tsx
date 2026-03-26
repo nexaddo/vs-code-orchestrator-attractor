@@ -114,15 +114,29 @@ export function OverviewSurface({ state }: OverviewSurfaceProps): JSX.Element {
 
   return (
     <div class="flex flex-col gap-3">
+      {state.error && (
+        <div
+          data-testid="overview-error-banner"
+          class="rounded-[--radius-sm] border border-[color:var(--color-status-failed-border,var(--color-destructive))] bg-[color:var(--color-status-failed-bg,var(--color-destructive/10))] px-3 py-2"
+        >
+          <div class="text-[length:var(--text-sm)] text-[color:var(--color-status-failed,var(--color-destructive))]">
+            {state.error}
+          </div>
+        </div>
+      )}
       <Card>
         <CardHeader>
           <CardTitle>Workspace Summary</CardTitle>
         </CardHeader>
         <CardContent>
-          <div class="flex flex-wrap items-stretch gap-3">
+          <div
+            class="flex flex-wrap items-stretch gap-3"
+            data-testid="overview-metrics"
+          >
             {viewModel.metrics.map((metric) => (
               <div
                 key={metric.key}
+                data-testid={`overview-metric-${metric.key}`}
                 class={cn(
                   "min-w-[8.5rem] flex-1 rounded-[--radius-sm] border",
                   "border-[color:var(--color-vscode-panel-border,var(--color-border))]",
@@ -150,12 +164,15 @@ export function OverviewSurface({ state }: OverviewSurfaceProps): JSX.Element {
         </CardContent>
       </Card>
 
-      <div class="grid grid-cols-1 gap-3 xl:grid-cols-3">
+      <div
+        class="grid grid-cols-1 gap-3 xl:grid-cols-3"
+        data-testid="overview-grid"
+      >
         <Card>
           <CardHeader>
             <CardTitle>Repositories</CardTitle>
           </CardHeader>
-          <CardContent class="space-y-2">
+          <CardContent class="space-y-2" data-testid="overview-repos">
             {viewModel.repositories.length === 0 ? (
               <EmptyState
                 variant="inline"
@@ -189,7 +206,7 @@ export function OverviewSurface({ state }: OverviewSurfaceProps): JSX.Element {
           <CardHeader>
             <CardTitle>Active Runs</CardTitle>
           </CardHeader>
-          <CardContent class="space-y-2">
+          <CardContent class="space-y-2" data-testid="overview-active-runs">
             {viewModel.activeRuns.length === 0 ? (
               <EmptyState
                 variant="inline"
@@ -227,7 +244,7 @@ export function OverviewSurface({ state }: OverviewSurfaceProps): JSX.Element {
           <CardHeader>
             <CardTitle>Recent Failures</CardTitle>
           </CardHeader>
-          <CardContent class="space-y-2">
+          <CardContent class="space-y-2" data-testid="overview-failures">
             {viewModel.recentFailures.length === 0 ? (
               <EmptyState
                 variant="inline"
