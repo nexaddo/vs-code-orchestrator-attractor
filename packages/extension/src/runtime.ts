@@ -1,9 +1,10 @@
-import { OrchestrationLoop, RunCommandHandler } from "./application";
+import { OrchestrationLoop, RunCommandHandler, RunRecoveryService } from "./application";
 import type { ModelGateway } from "./application";
 import {
   FileGraphRepository,
   FileRepositoryRegistry,
   FileRunRepository,
+  FileRunSnapshotStore,
   FileWorktreeLeaseStore,
   GitWorktreeManager,
   NdjsonEventLog,
@@ -51,6 +52,7 @@ export interface AttractorContainer {
   orchestrationLoop: OrchestrationLoop;
   webviewBridge: WebviewBridge;
   orphanRecovery: OrphanWorktreeRecovery;
+  runRecovery: RunRecoveryService;
 }
 
 export function createContainer(
@@ -62,11 +64,23 @@ export function createContainer(
   const graphRepo = new FileGraphRepository(workspaceRoot);
   const leaseStore = new FileWorktreeLeaseStore(workspaceRoot);
   const eventLog = new NdjsonEventLog(workspaceRoot);
+  const snapshotStore = new FileRunSnapshotStore(workspaceRoot);
   const worktreeManager = new GitWorktreeManager(workspaceRoot);
   const repositoryRegistry = new FileRepositoryRegistry(workspaceRoot);
   const orchestrationLoop = new OrchestrationLoop(modelGateway);
   const webviewBridge = new WebviewBridge();
-  const orphanRecovery = new OrphanWorktreeRecovery(workspaceRoot, leaseStore);
+  const orphanRecovery = new OrphanWorktreeRecovery(
+    workspaceRoot,
+    leaseStore,
+    eventLog,
+    publisher
+  );
+  const runRecovery = new RunRecoveryService(
+    runRepo,
+    eventLog,
+    snapshotStore,
+    publisher
+  );
 
   return {
     runCommandHandler: new RunCommandHandler(
@@ -74,14 +88,16 @@ export function createContainer(
       runRepo,
       eventLog,
       leaseStore,
-      worktreeManager
+      worktreeManager,
+      snapshotStore
     ),
     repositoryRegistry,
     graphRepo,
     leaseStore,
     orchestrationLoop,
     webviewBridge,
-    orphanRecovery
+    orphanRecovery,
+    runRecovery
   };
 }
 
@@ -149,4 +165,6 @@ export const activateAttractor = (
   }
   // Silently sweep orphaned worktree leases on every activation
   void container.orphanRecovery.run();
+  // Resume any runs that were in-flight when the extension was last shut down
+  void container.runRecovery.recover();
 };

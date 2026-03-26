@@ -1,10 +1,11 @@
 import type { RunRecord } from "@attractor/shared";
 
-import { makeRunId, makeWorktreeId } from "../domain";
+import { RunAggregate, makeRunId, makeWorktreeId } from "../domain";
 import type {
   EventLog,
   EventPublisher,
   RunRepository,
+  RunSnapshotStore,
   WorktreeLeaseStore,
   WorktreeManager
 } from "./ports";
@@ -21,7 +22,8 @@ export class RunCommandHandler {
     private readonly runRepo: RunRepository,
     private readonly eventLog: EventLog,
     private readonly leaseStore: WorktreeLeaseStore,
-    private readonly worktreeManager: WorktreeManager
+    private readonly worktreeManager: WorktreeManager,
+    private readonly snapshotStore?: RunSnapshotStore
   ) {}
 
   async startRun(command: StartRunCommand): Promise<RunRecord> {
@@ -73,6 +75,12 @@ export class RunCommandHandler {
 
     // Mark lease as busy
     await this.leaseStore.updateStatus(runId, "busy");
+
+    // Persist initial snapshot (index 0 = the RunCreated event we just appended)
+    if (this.snapshotStore !== undefined) {
+      const aggregate = RunAggregate.create(run);
+      await this.snapshotStore.save(aggregate.takeSnapshot(0));
+    }
 
     return run;
   }

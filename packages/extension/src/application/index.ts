@@ -11,6 +11,7 @@ export type {
   ModelRequestOptions,
   RepositoryRegistry,
   RunRepository,
+  RunSnapshotStore,
   WorktreeLeaseStore,
   WorktreeManager
 } from "./ports";
@@ -25,3 +26,4 @@ export {
   buildReviewerUserMessage
 } from "./role-prompts";
 export { RunCommandHandler, type StartRunCommand } from "./run-command-handler";
+export { RunRecoveryService } from "./run-recovery-service";

@@ -4,8 +4,12 @@ import * as path from "path";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { EventPublisher } from "../../../src/application/ports";
 import { OrphanWorktreeRecovery } from "../../../src/infrastructure/git/orphan-recovery";
-import { FileWorktreeLeaseStore } from "../../../src/infrastructure/storage";
+import {
+  FileWorktreeLeaseStore,
+  NdjsonEventLog
+} from "../../../src/infrastructure/storage";
 
 // Stub execSync so tests don't require a real git repo
 vi.mock("child_process", () => ({
@@ -108,5 +112,90 @@ describe("OrphanWorktreeRecovery", () => {
     expect(await leaseStore.findByRunId("run-alive")).toBeDefined();
     expect(await leaseStore.findByRunId("run-dead-1")).toBeUndefined();
     expect(await leaseStore.findByRunId("run-dead-2")).toBeUndefined();
+  });
+});
+
+describe("OrphanWorktreeRecovery — domain event emission", () => {
+  let tmpDir: string;
+  let leaseStore: FileWorktreeLeaseStore;
+  let eventLog: NdjsonEventLog;
+  let publisher: EventPublisher;
+  let publishedNames: string[];
+
+  beforeEach(async () => {
+    tmpDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "attractor-orphan-events-")
+    );
+    leaseStore = new FileWorktreeLeaseStore(tmpDir);
+    eventLog = new NdjsonEventLog(tmpDir);
+    publishedNames = [];
+    publisher = {
+      publish: vi.fn(async (ev) => {
+        publishedNames.push(ev.name);
+      })
+    };
+    vi.resetAllMocks();
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it("emits worktree.orphaned event when an orphan is removed", async () => {
+    await leaseStore.allocate("run-orphan", "/wt/run-orphan");
+    mockExecSync.mockReturnValue(
+      Buffer.from("worktree /repo\nHEAD abc\nbranch refs/heads/main\n")
+    );
+
+    const recovery = new OrphanWorktreeRecovery(
+      tmpDir,
+      leaseStore,
+      eventLog,
+      publisher
+    );
+    await recovery.run();
+
+    expect(publishedNames).toContain("worktree.orphaned");
+    // Event should be appended to the event log
+    const events = await eventLog.readAll("run-orphan");
+    expect(events.some((e) => e.name === "worktree.orphaned")).toBe(true);
+  });
+
+  it("does not emit events when no orphans are found", async () => {
+    await leaseStore.allocate("run-alive", "/wt/run-alive");
+    mockExecSync.mockReturnValue(
+      Buffer.from(
+        "worktree /repo\nHEAD abc\nbranch refs/heads/main\n\n" +
+          "worktree /wt/run-alive\nHEAD def\ndetached\n"
+      )
+    );
+
+    const recovery = new OrphanWorktreeRecovery(
+      tmpDir,
+      leaseStore,
+      eventLog,
+      publisher
+    );
+    await recovery.run();
+
+    expect(publishedNames).toEqual([]);
+  });
+
+  it("emits one event per orphan", async () => {
+    await leaseStore.allocate("run-dead-a", "/wt/dead-a");
+    await leaseStore.allocate("run-dead-b", "/wt/dead-b");
+    mockExecSync.mockReturnValue(
+      Buffer.from("worktree /repo\nHEAD abc\nbranch refs/heads/main\n")
+    );
+
+    const recovery = new OrphanWorktreeRecovery(
+      tmpDir,
+      leaseStore,
+      eventLog,
+      publisher
+    );
+    await recovery.run();
+
+    expect(publishedNames.filter((n) => n === "worktree.orphaned")).toHaveLength(2);
   });
 });

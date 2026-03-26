@@ -15,6 +15,7 @@ export { FileRepositoryRegistry } from "./registry";
 export {
   FileGraphRepository,
   FileRunRepository,
+  FileRunSnapshotStore,
   FileWorktreeLeaseStore,
   NdjsonEventLog
 } from "./storage";

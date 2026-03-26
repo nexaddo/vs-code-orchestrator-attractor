@@ -3,6 +3,7 @@ import type {
   GraphRecord,
   RepositoryRecord,
   RunRecord,
+  RunSnapshot,
   WorktreeLease,
   WorktreeLeaseStatus
 } from "@attractor/shared";
@@ -37,6 +38,11 @@ export interface WorktreeLeaseStore {
 export interface EventLog {
   append(runId: string, envelope: EventEnvelope): Promise<void>;
   readAll(runId: string): Promise<EventEnvelope[]>;
+}
+
+export interface RunSnapshotStore {
+  save(snapshot: RunSnapshot): Promise<void>;
+  find(runId: string): Promise<RunSnapshot | undefined>;
 }
 
 // ── Worktree manager port ────────────────────────────────────────────────────

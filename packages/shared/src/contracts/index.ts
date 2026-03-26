@@ -209,6 +209,41 @@ export const EventEnvelopeSchema = z.object({
 
 export type EventEnvelope = z.infer<typeof EventEnvelopeSchema>;
 
+// ── Typed event payload schemas ─────────────────────────────────────────────
+
+/** Emitted when a run is resumed from a persisted snapshot after extension restart. */
+export const RunResumedPayloadSchema = z.object({
+  resumedFromEventIndex: z.number().int().min(0)
+});
+
+export type RunResumedPayload = z.infer<typeof RunResumedPayloadSchema>;
+
+/** Emitted when an orphaned worktree lease is detected during startup cleanup. */
+export const OrphanedWorktreeDetectedPayloadSchema = z.object({
+  worktreeId: z.string().min(1),
+  reason: z.string().min(1)
+});
+
+export type OrphanedWorktreeDetectedPayload = z.infer<
+  typeof OrphanedWorktreeDetectedPayloadSchema
+>;
+
+// ── RunSnapshot ─────────────────────────────────────────────────────────────
+
+/**
+ * A point-in-time snapshot of a run's derived state, paired with the index of
+ * the last event that was applied. Used by RunAggregate.fromSnapshot() to
+ * reconstruct in-flight runs without replaying the full event log.
+ */
+export const RunSnapshotSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  runId: z.string().min(1),
+  lastEventIndex: z.number().int().min(0),
+  runRecord: RunRecordSchema
+});
+
+export type RunSnapshot = z.infer<typeof RunSnapshotSchema>;
+
 // ── WorktreeLease ───────────────────────────────────────────────────────────
 
 export const WorktreeLeaseStatusSchema = z.enum([

@@ -1,4 +1,5 @@
 export type { DomainEvent } from "./events";
+export { RunAggregate } from "./run-aggregate";
 export {
   makeRunId,
   makeGraphId,
