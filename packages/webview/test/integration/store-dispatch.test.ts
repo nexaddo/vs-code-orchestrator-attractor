@@ -12,7 +12,7 @@
 import { describe, expect, it } from "vitest";
 
 import { dispatchInboundMessage } from "../../src/app/message-dispatch";
-import { createStore, createInitialState } from "../../src/app/store";
+import { createStore } from "../../src/app/store";
 
 describe("store-dispatch integration", () => {
   it("graph.update: dispatches graphUpdate to store", () => {

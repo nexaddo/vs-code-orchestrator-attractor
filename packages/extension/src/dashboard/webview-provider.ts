@@ -17,7 +17,7 @@ export interface WebviewLike {
 
 export interface WebviewViewLike {
   webview: WebviewLike;
-  reveal?(): void;
+  show?(preserveFocus?: boolean): void;
 }
 
 /**
@@ -60,7 +60,7 @@ export class AttractorViewProvider {
    * Called by the attractor.openDashboard command for E2E automation.
    */
   revealView(): void {
-    this.webviewView?.reveal?.();
+    this.webviewView?.show?.();
   }
 
   resolveWebviewView(webviewView: WebviewViewLike): void {

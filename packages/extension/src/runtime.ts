@@ -85,14 +85,14 @@ export interface RuntimeDependencies {
 
 export const registerAttractorCommands = (
   commandsApi: CommandsApiLike,
-  viewProvider?: AttractorViewProvider
+  getViewProvider?: () => AttractorViewProvider | undefined
 ): DisposableLike[] => {
   return [
     commandsApi.registerCommand(ATTRACTOR_HELLO_COMMAND, () => {
       return;
     }),
     commandsApi.registerCommand(ATTRACTOR_DASHBOARD_OPEN_COMMAND, () => {
-      viewProvider?.revealView();
+      getViewProvider?.()?.revealView();
     })
   ];
 };
@@ -130,7 +130,10 @@ export const activateAttractor = (
   let viewProvider: AttractorViewProvider | undefined;
 
   // --- Commands (always register) ---
-  const disposables = registerAttractorCommands(commandsApi, viewProvider);
+  const disposables = registerAttractorCommands(
+    commandsApi,
+    () => viewProvider
+  );
   context.subscriptions.push(...disposables);
 
   const modelGateway = dependencies.modelGateway ?? new NoOpModelGateway();
