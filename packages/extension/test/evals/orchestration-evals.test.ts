@@ -19,10 +19,7 @@ import type {
   MilestoneInput,
   OrchestrationOptions
 } from "../../src/application/orchestration-loop";
-import type {
-  ModelGateway,
-  ModelMessage
-} from "../../src/application/ports";
+import type { ModelGateway, ModelMessage } from "../../src/application/ports";
 import type { GraphRecord, OrchestrationStatePayload } from "@attractor/shared";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

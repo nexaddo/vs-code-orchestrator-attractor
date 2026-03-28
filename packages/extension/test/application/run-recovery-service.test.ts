@@ -59,7 +59,12 @@ describe("RunRecoveryService", () => {
         publishedEvents.push(ev as EventEnvelope);
       })
     };
-    service = new RunRecoveryService(runRepo, eventLog, snapshotStore, publisher);
+    service = new RunRecoveryService(
+      runRepo,
+      eventLog,
+      snapshotStore,
+      publisher
+    );
   });
 
   afterEach(async () => {
@@ -136,7 +141,9 @@ describe("RunRecoveryService", () => {
     const resumed = await service.recover();
 
     expect(resumed.sort()).toEqual(["run-a", "run-b"]);
-    expect(publishedEvents.filter((e) => e.name === "run.resumed")).toHaveLength(2);
+    expect(
+      publishedEvents.filter((e) => e.name === "run.resumed")
+    ).toHaveLength(2);
   });
 
   it("appends run.resumed event to the event log", async () => {

@@ -66,12 +66,18 @@ export class FileWorktreeLeaseStore implements WorktreeLeaseStore {
   private async writeStore(store: StoredLeaseFile): Promise<void> {
     const dir = path.dirname(this.leasesPath());
     await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(this.leasesPath(), JSON.stringify(store, null, 2), "utf8");
+    await fs.writeFile(
+      this.leasesPath(),
+      JSON.stringify(store, null, 2),
+      "utf8"
+    );
   }
 
   async findByRunId(runId: string): Promise<WorktreeLease | undefined> {
     const store = await this.readStore();
-    const s = store.leases.find((l) => l.runId === runId && l.state === "active");
+    const s = store.leases.find(
+      (l) => l.runId === runId && l.state === "active"
+    );
     return s !== undefined ? toWorktreedLease(s) : undefined;
   }
 

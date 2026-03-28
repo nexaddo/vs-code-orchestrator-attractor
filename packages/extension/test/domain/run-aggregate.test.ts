@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import type { EventEnvelope, RunRecord, RunRecoverySnapshot } from "@attractor/shared";
+import type {
+  EventEnvelope,
+  RunRecord,
+  RunRecoverySnapshot
+} from "@attractor/shared";
 
 import { RunAggregate } from "../../src/domain/run-aggregate";
 

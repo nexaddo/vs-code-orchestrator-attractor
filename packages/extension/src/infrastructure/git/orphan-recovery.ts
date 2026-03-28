@@ -2,7 +2,11 @@ import { execSync } from "child_process";
 
 import { CONTRACT_VERSION } from "@attractor/shared";
 
-import type { EventLog, EventPublisher, WorktreeLeaseStore } from "../../application/ports";
+import type {
+  EventLog,
+  EventPublisher,
+  WorktreeLeaseStore
+} from "../../application/ports";
 
 export interface OrphanRecoveryResult {
   readonly detected: string[];

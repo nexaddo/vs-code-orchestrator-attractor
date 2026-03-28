@@ -44,7 +44,11 @@ describe("RunRecoverySnapshotSchema", () => {
   });
 
   it("rejects missing runId", () => {
-    const snapshot = { version: 1, lastEventIndex: 0, runRecord: validRunRecord };
+    const snapshot = {
+      version: 1,
+      lastEventIndex: 0,
+      runRecord: validRunRecord
+    };
     expect(RunRecoverySnapshotSchema.safeParse(snapshot).success).toBe(false);
   });
 
@@ -71,7 +75,9 @@ describe("RunRecoverySnapshotSchema", () => {
 
 describe("RunResumedPayloadSchema", () => {
   it("parses a valid payload", () => {
-    const result = RunResumedPayloadSchema.safeParse({ resumedFromEventIndex: 5 });
+    const result = RunResumedPayloadSchema.safeParse({
+      resumedFromEventIndex: 5
+    });
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.resumedFromEventIndex).toBe(5);
@@ -125,7 +131,8 @@ describe("OrphanedWorktreeDetectedPayloadSchema", () => {
 
   it("rejects missing reason", () => {
     expect(
-      OrphanedWorktreeDetectedPayloadSchema.safeParse({ worktreeId: "wt-1" }).success
+      OrphanedWorktreeDetectedPayloadSchema.safeParse({ worktreeId: "wt-1" })
+        .success
     ).toBe(false);
   });
 });

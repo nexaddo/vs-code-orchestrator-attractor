@@ -196,6 +196,8 @@ describe("OrphanWorktreeRecovery — domain event emission", () => {
     );
     await recovery.run();
 
-    expect(publishedNames.filter((n) => n === "worktree.orphaned")).toHaveLength(2);
+    expect(
+      publishedNames.filter((n) => n === "worktree.orphaned")
+    ).toHaveLength(2);
   });
 });
