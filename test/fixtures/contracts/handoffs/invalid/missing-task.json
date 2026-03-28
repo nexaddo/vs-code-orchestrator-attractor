@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "id": "hoff_bad",
+  "runId": "run_001",
+  "nodeId": "codergen_1",
+  "fromRole": "planner",
+  "toRole": "implementer",
+  "reason": "Planning phase complete.",
+  "createdAt": "2026-03-16T01:00:30Z"
+}

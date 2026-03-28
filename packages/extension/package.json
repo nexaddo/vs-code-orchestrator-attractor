@@ -1,38 +1,48 @@
 {
-  "name": "@attractor/extension",
-  "version": "0.0.0",
+  "name": "attractor",
+  "version": "0.1.0",
+  "publisher": "attractor",
   "private": true,
   "displayName": "Attractor",
-  "description": "Graph-driven multi-step coding workflows orchestrated via the Copilot SDK",
-  "publisher": "attractor",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/YOUR_ORG/vs-code-orchestrator-attractor"
-  },
-  "categories": [
-    "AI",
-    "Other"
-  ],
-  "keywords": [
-    "copilot",
-    "orchestration",
-    "graph",
-    "workflow",
-    "ai"
-  ],
+  "icon": "resources/attractor-icon.png",
   "engines": {
     "vscode": "^1.103.0"
   },
-  "main": "dist/bundle.js",
+  "categories": [
+    "AI",
+    "Machine Learning"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nexaddo/vs-code-orchestrator-attractor"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/nexaddo/vs-code-orchestrator-attractor#readme",
+  "main": "dist/bundle/extension.js",
   "activationEvents": [
     "onCommand:attractor.hello",
-    "onCommand:attractor.run.start",
-    "onCommand:attractor.run.cancel",
-    "onCommand:attractor.plan.create",
+    "onView:attractor.dashboard",
     "onChatParticipant:attractor.attractor"
   ],
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "attractor-explorer",
+          "title": "Attractor",
+          "icon": "resources/attractor-sidebar.svg"
+        }
+      ]
+    },
+    "views": {
+      "attractor-explorer": [
+        {
+          "type": "webview",
+          "id": "attractor.dashboard",
+          "name": "Dashboard"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "attractor.hello",
@@ -54,22 +64,21 @@
     "chatParticipants": [
       {
         "id": "attractor.attractor",
-        "fullName": "Attractor",
         "name": "attractor",
-        "description": "Graph-driven multi-step coding workflow orchestrator",
+        "description": "AI orchestration assistant for Attractor plans",
         "isSticky": true,
         "commands": [
           {
             "name": "plan",
-            "description": "Create a new plan from a natural-language goal"
+            "description": "Create an orchestration plan"
           },
           {
             "name": "run",
-            "description": "Start an orchestration run on the active plan"
+            "description": "Start an orchestration run"
           },
           {
             "name": "status",
-            "description": "Check current Attractor status"
+            "description": "Show current orchestration status"
           }
         ]
       }
@@ -77,18 +86,15 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "bundle": "node esbuild.config.mjs",
-    "bundle:watch": "node esbuild.config.mjs --watch",
-    "package": "pnpm run build && pnpm run bundle && vsce package --no-dependencies",
-    "publish:marketplace": "pnpm run package && vsce publish --no-dependencies"
+    "build:bundle": "node esbuild.config.mjs"
   },
   "dependencies": {
-    "@attractor/shared": "workspace:*"
+    "@attractor/shared": "workspace:*",
+    "@ts-graphviz/parser": "^0.6.1"
   },
   "devDependencies": {
+    "esbuild": "^0.25.0",
     "@types/vscode": "^1.103.0",
-    "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^3.6.0",
-    "esbuild": "^0.25.5"
+    "@vscode/test-electron": "^2.5.2"
   }
 }

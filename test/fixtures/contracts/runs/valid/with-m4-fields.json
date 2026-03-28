@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "id": "run_auth_feature_attempt_1",
+  "planId": "plan_auth_feature",
+  "status": "running",
+  "attempt": 1,
+  "createdAt": "2026-03-20T00:00:00Z",
+  "updatedAt": "2026-03-20T01:00:00Z",
+  "graphId": "graph_auth_001",
+  "worktreeId": "wt_auth_001",
+  "startedAt": "2026-03-20T00:01:00Z",
+  "completedAt": "2026-03-20T01:00:00Z"
+}

@@ -15,9 +15,14 @@ export function renderGraph(state: GraphState): string {
     nodeStatuses.map((ns) => [ns.nodeId, ns.status])
   );
 
+  // Derive per-node status (nodes absent from nodeStatuses default to "pending")
+  const derivedStatuses = graph.nodes.map(
+    (node) => statusByNodeId.get(node.id) ?? "pending"
+  );
+
   const nodesHtml = graph.nodes
-    .map((node) => {
-      const status = statusByNodeId.get(node.id) ?? "pending";
+    .map((node, i) => {
+      const status = derivedStatuses[i] ?? "pending";
       const statusLabel = STATUS_LABELS[status];
       const depsHtml =
         node.dependsOn.length > 0
@@ -32,11 +37,12 @@ export function renderGraph(state: GraphState): string {
     })
     .join("");
 
+  // Count from derived statuses to match what the UI renders (including implicit pending)
   const summary = {
-    pending: nodeStatuses.filter((ns) => ns.status === "pending").length,
-    running: nodeStatuses.filter((ns) => ns.status === "running").length,
-    done: nodeStatuses.filter((ns) => ns.status === "done").length,
-    failed: nodeStatuses.filter((ns) => ns.status === "failed").length
+    pending: derivedStatuses.filter((s) => s === "pending").length,
+    running: derivedStatuses.filter((s) => s === "running").length,
+    done: derivedStatuses.filter((s) => s === "done").length,
+    failed: derivedStatuses.filter((s) => s === "failed").length
   };
 
   return `

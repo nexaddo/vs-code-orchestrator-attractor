@@ -1,21 +1,68 @@
-import { chat, commands, type ExtensionContext, workspace } from "vscode";
+import { chat, commands, window, type ExtensionContext } from "vscode";
 
-import { activateAttractor } from "./runtime";
-import { CopilotModelGateway } from "./infrastructure/copilot";
+import {
+  activateAttractor,
+  type ChatApiLike,
+  type WindowApiLike
+} from "./runtime";
+
+/**
+ * Build a WindowApiLike adapter from the VS Code window namespace.
+ */
+const createWindowApi = (): WindowApiLike => {
+  return {
+    registerWebviewViewProvider(viewType, provider) {
+      return window.registerWebviewViewProvider(viewType, {
+        resolveWebviewView(webviewView: unknown) {
+          provider.resolveWebviewView(webviewView);
+        }
+      });
+    }
+  };
+};
+
+/**
+ * Build a ChatApiLike adapter from the VS Code chat namespace.
+ */
+const createChatApi = (): ChatApiLike => {
+  return {
+    createChatParticipant(participantId, handler) {
+      const participant = chat.createChatParticipant(
+        participantId,
+        async (request, context, stream, token) => {
+          // Adapt VS Code types to ChatApiLike seam types
+          const adaptedRequest: {
+            command?: string;
+            prompt: string;
+          } = {
+            prompt: request.prompt
+          };
+          if (request.command !== undefined) {
+            adaptedRequest.command = request.command;
+          }
+          const adaptedContext = {
+            history: [...context.history]
+          };
+          const adaptedStream = {
+            markdown: (value: string) => stream.markdown(value)
+          };
+          return handler(adaptedRequest, adaptedContext, adaptedStream, token);
+        }
+      );
+      return { dispose: () => participant.dispose() };
+    }
+  };
+};
 
 export const activate = (context: ExtensionContext): void => {
-  const folders = workspace.workspaceFolders;
-  const workspaceRoot =
-    folders !== undefined && folders.length > 0 && folders[0] !== undefined
-      ? folders[0].uri.fsPath
-      : context.extensionPath;
-  activateAttractor(
-    context,
-    commands,
-    workspaceRoot,
-    chat,
-    new CopilotModelGateway()
-  );
+  const outputChannel = window.createOutputChannel("Attractor");
+  context.subscriptions.push(outputChannel);
+
+  activateAttractor(context, commands, {
+    windowApi: createWindowApi(),
+    chatApi: createChatApi(),
+    outputChannel
+  });
 };
 
 export const deactivate = (): void => {

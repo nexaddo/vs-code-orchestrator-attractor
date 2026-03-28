@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "id": "mr_002",
+  "runId": "run_001",
+  "milestoneId": "ms_002",
+  "nodeId": "conditional_1",
+  "status": "failed",
+  "startedAt": "2026-03-16T01:10:00Z",
+  "endedAt": "2026-03-16T01:10:30Z",
+  "errorMessage": "Condition branch 'approve' not satisfied"
+}

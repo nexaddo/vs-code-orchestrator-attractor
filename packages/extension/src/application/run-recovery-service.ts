@@ -12,7 +12,7 @@ import type {
 /**
  * On extension restart, scans for runs left in `running` status and replays
  * their event log (from last snapshot if available) to restore in-flight state.
- * Emits a `run.resumed` domain event for each recovered run.
+ * Only emits `run.resumed` for runs whose replayed status is still `running`.
  */
 export class RunRecoveryService {
   constructor(
@@ -35,17 +35,26 @@ export class RunRecoveryService {
       const events = await this.eventLog.readAll(run.id);
       const snapshot = await this.snapshotStore.find(run.id);
 
+      // Replay events to derive current state
+      let aggregate: RunAggregate;
       if (snapshot !== undefined) {
         // Partial replay: only apply events that arrived after the snapshot
         const tailEvents = events.slice(snapshot.lastEventIndex + 1);
-        RunAggregate.fromSnapshot(snapshot, tailEvents);
+        aggregate = RunAggregate.fromSnapshot(snapshot, tailEvents);
       } else {
         // Snapshot-missing fallback: replay every event from the initial record
-        RunAggregate.fromFullReplay(run, events);
+        aggregate = RunAggregate.fromFullReplay(run, events);
       }
 
-      // Determine the last event index (before the resume event we're about to append)
-      const lastEventIndex = events.length > 0 ? events.length - 1 : 0;
+      // Only emit run.resumed when the derived status confirms the run is still resumable.
+      // If replay indicates the run completed/failed/canceled before the crash, skip it.
+      if (aggregate.record.status !== "running") {
+        continue;
+      }
+
+      // -1 signals "no prior events" so downstream consumers can distinguish
+      // an empty log from a log where index 0 was the last applied event.
+      const lastEventIndex = events.length > 0 ? events.length - 1 : -1;
 
       // Emit run.resumed event
       const now = new Date().toISOString();

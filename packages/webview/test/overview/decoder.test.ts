@@ -11,9 +11,10 @@ describe("decodeOverviewState", () => {
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.state.summary.totalRepositories).toBe(2);
-      expect(result.state.summary.totalPlans).toBe(1);
-      expect(result.state.summary.activeRuns).toBe(0);
+      expect(result.state.stats.totalRepos).toBe(2);
+      expect(result.state.stats.totalPlans).toBe(1);
+      expect(result.state.activeRuns).toHaveLength(1);
+      expect(result.state.recentFailures).toHaveLength(0);
       expect(result.state.repositories).toHaveLength(2);
       expect(result.state.repositories[0].name).toBe("repo-alpha");
       expect(result.state.repositories[1].name).toBe("repo-docs");

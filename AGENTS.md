@@ -20,12 +20,12 @@
 ## Preferred Models
 
 - Orchestration and planning: GPT-5.4 via GitHub Copilot
-- Focused implementation loops: Claude Haiku 4.5 via Anthropic
+- Focused implementation loops: Claude Haiku 4.5 via GitHub Copilot
 - Code review loops: Gemini 2.5 Pro via GitHub Copilot (primary), GPT-5.4 fallback
 - Default portable project setup in this repo:
   - `@ttd-orchestrator` -> GPT-5.4 via GitHub Copilot
   - `@ttd-planner` -> GPT-5.4 via GitHub Copilot
-  - `@ttd-implementer` -> Claude Haiku 4.5 via Anthropic
+  - `@ttd-implementer` -> Claude Haiku 4.5 via GitHub Copilot
   - `@code-reviewer` -> Gemini 2.5 Pro via GitHub Copilot
   - `@code-reviewer-secondary` -> GPT-5.4 via GitHub Copilot
   - `@plan-drift-reviewer` -> Claude Sonnet 4.6 via Anthropic
@@ -41,3 +41,16 @@
 - Run a drift check before declaring a loop complete or branching to the next lane.
 - Update `docs/architecture/model-routing.md` and `opencode.json` when model routing changes materially.
 - If `@code-reviewer` returns empty or no substantive feedback, immediately rerun review with `@code-reviewer-secondary` and `@ttd-planner` as fallback reviewers.
+
+## PR Review Protocol (MANDATORY — never skip)
+
+Before merging any PR, the Queen MUST:
+
+1. **Fetch ALL review comments** using `gh api repos/<owner>/<repo>/pulls/<number>/comments` and `gh api repos/<owner>/<repo>/pulls/<number>/reviews`. Retrieve every inline comment and review-level body.
+2. **Triage every comment** — classify each as: (a) valid defect, (b) valid improvement, (c) debatable/low-priority, or (d) not applicable. No comment may be silently ignored.
+3. **Respond to every comment** — post a reply on GitHub for each comment explaining: what was fixed (with commit SHA), why it was not fixed (with explicit rationale), or why it is deferred (with issue/tracker reference).
+4. **Fix all High and Medium severity issues** before merging. Low severity may be deferred only with a documented reason in the reply.
+5. **Verify fixes** — after implementing changes, re-run `pnpm typecheck && pnpm lint && pnpm test` to confirm all quality gates pass.
+6. **Never auto-merge** a PR that has unread or unanswered Copilot review comments.
+
+If a PR was already merged without completing these steps, create a follow-up cleanup issue or PR to address any unresolved High/Medium issues from the original review.

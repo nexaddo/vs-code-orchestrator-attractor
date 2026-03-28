@@ -1,12 +1,16 @@
 {
   "version": 1,
-  "requestId": "req_001",
+  "requestId": "req-004",
   "type": "overview.state",
   "payload": {
-    "summary": {
-      "totalRepositories": 0,
+    "activeRuns": [],
+    "recentFailures": [],
+    "stats": {
+      "totalRepos": 0,
       "totalPlans": 0,
-      "activeRuns": 0
+      "activeRuns": 0,
+      "pausedRuns": 0,
+      "failedRuns24h": 0
     }
   }
 }

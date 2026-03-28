@@ -1,64 +1,86 @@
-# Attractor
+# Attractor — AI Orchestration for VS Code
 
-**Attractor** is a VS Code extension that implements graph-driven multi-step coding workflows orchestrated via the Copilot SDK. Tasks run in isolated git worktrees with persistent state, event sourcing, and LLM-guided execution.
-
-## Status
-
-| Milestone | Status         | Description                                                               |
-| --------- | -------------- | ------------------------------------------------------------------------- |
-| M0        | ✅ Done        | Tooling, docs, CI skeleton                                                |
-| M1        | ✅ Done        | Shared contracts, event model, runtime spine, webview shell               |
-| M2        | ✅ Done        | Storage, worktree manager, DOT parser, repository registry                |
-| M3        | ✅ Done        | Dashboard UI — repository, plan, run, timeline, graph inspectors          |
-| M4        | ✅ Done        | Copilot orchestration — chat participant, role prompts, handoff artifacts |
-| M5        | 🔄 In Progress | Release — packaging, evals, recovery, docs                                |
+A VS Code extension that orchestrates multi-step AI coding workflows against Git repositories. Define plans as DOT graphs, execute them through the Copilot LM API, and track progress in a dashboard.
 
 ## Features
 
-- **Graph-driven orchestration** — define workflows as DOT graphs; Attractor executes each node via the Copilot SDK
-- **Worktree isolation** — each run gets a dedicated `git worktree`, preventing cross-run contamination
-- **Event sourcing** — all state changes are appended to an NDJSON event log for full auditability and replay
-- **Dashboard** — VS Code webview showing repository registry, plan inspector, run timeline, and graph viewer
-- **Copilot integration** — built-in chat participant (`@attractor`) for natural-language orchestration control
+- **Plan-as-graph**: Define orchestration plans as DOT digraphs with typed nodes (`start`, `exit`, `codergen`, `conditional`, `wait.human`)
+- **Copilot LM integration**: Execute plan nodes via the VS Code Copilot language model API
+- **Dashboard**: Preact-based webview showing workspace overview, repository detail, and plan detail
+- **Chat participant**: `@attractor` chat participant with `/plan`, `/run`, and `/status` commands
+- **Milestone decomposition**: Break plans into milestones with artifact tracking
+- **Event sourcing**: Append-only event log with snapshot projection for run state
 
-## Requirements
+## Getting Started
 
-- VS Code `≥ 1.103.0` with GitHub Copilot extension enabled
-- Node.js `≥ 22`
-- Git (in PATH)
+### Install from VSIX
 
-## Installation
+1. Build the VSIX:
+   ```bash
+   pnpm install
+   pnpm vsce:package
+   ```
+2. Install in VS Code:
+   ```
+   code --install-extension attractor.vsix
+   ```
+3. Open the Attractor panel from the activity bar
 
-> Pre-release: VSIX not yet published to the Marketplace. Build from source:
+### Development
 
 ```bash
-git clone https://github.com/YOUR_ORG/vs-code-orchestrator-attractor
-cd vs-code-orchestrator-attractor
+# Install dependencies
 pnpm install
-pnpm pack          # produces packages/extension/attractor-*.vsix
+
+# Type-check all packages
+pnpm typecheck
+
+# Run all tests
+pnpm test
+
+# Lint
+pnpm lint
+
+# Format
+pnpm format
+
+# Build (TypeScript + webview bundle + extension bundle)
+pnpm build
+
+# Package VSIX
+pnpm vsce:package
 ```
 
-Install the generated `.vsix` in VS Code: **Extensions → ··· → Install from VSIX…**
+## Milestone Status
 
-## Commands
-
-| Command                        | Description                                       |
-| ------------------------------ | ------------------------------------------------- |
-| `Attractor: Start Run`         | Begin a new orchestration run for the active plan |
-| `Attractor: Cancel Run`        | Cancel the currently active run                   |
-| `Attractor: Create Plan`       | Create a new plan from a DOT graph file           |
-| `Attractor: Add Repository`    | Register a repository with the current workspace  |
-| `Attractor: Remove Repository` | Deregister a repository                           |
-| `Attractor: List Repositories` | Show all registered repositories                  |
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, branching strategy, and the release process.
+| Milestone                    | Status | Notes                                                                 |
+| ---------------------------- | ------ | --------------------------------------------------------------------- |
+| M0 — Scaffold                | Merged | Monorepo tooling, CI, workspace structure                             |
+| M1 — First Slices            | Merged | Zod contracts, webview shell, runtime spine (PRs #1–5)                |
+| M2 — Backend Spine           | Merged | DOT validator, event log, registries, snapshot projector (PRs #6–10)  |
+| M3 — First Dashboard Slice   | Merged | Storage read surface, overview projection, bridge wiring (PRs #11–14) |
+| M3.5–M3.9 — Dashboard Polish | Merged | Design system, Tailwind v4, webview hosting (PRs #19–27)              |
+| M4 — Copilot Orchestration   | Merged | CopilotModelGateway, chat participant, orchestration loop (PR #28)    |
+| M5 — Release Readiness       | Merged | VSIX packaging, error boundary, CI validation, docs (PR #29)          |
 
 ## Architecture
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the layered backend design, event sourcing model, and worktree lifecycle.
+The project is a pnpm monorepo with three packages:
+
+- **`packages/shared`** — Zod schemas and type contracts shared between extension and webview
+- **`packages/extension`** — VS Code extension host (storage, orchestration, bridge, chat)
+- **`packages/webview`** — Preact + Tailwind dashboard UI
+
+See `docs/architecture/` for detailed architecture documentation.
+
+## Planning Docs
+
+- `docs/plans/roadmap.md`
+- `docs/architecture/backend-architecture.md`
+- `docs/architecture/contracts.md`
+- `docs/testing-strategy.md`
+- `docs/adrs/ADR-0001-thin-vertical-slice.md`
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT

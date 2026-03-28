@@ -41,88 +41,67 @@ This file tracks completed phases, current work, and the next intended handoff s
 - Committed the scaffold baseline to `main`
 - Pushed `main` to `origin/main`
 
-## In Progress
+### M1 - First Parallel Lanes (all merged)
 
-### M1 Prep - First Parallel Lanes
+- **PR #1** (`feat/m1-shared-contracts-core`): Lane 1 — Shared Contracts Core merged
+- **PR #2** (`chore/m0-test-ci-hardening`): Lane 2 — CI Hardening merged
+- **PR #3** (webview shell): Lane 3 — Webview Shell merged
+- **PR #5** (extension runtime spine): Lane 4 — Extension Runtime Spine merged at `b28634d`
 
-Current focus:
+### M2 — Backend Spine (all 5 lanes merged, 2026-03-17)
 
-- capture the first parallel lane plan in repo docs
-- add a dedicated drift-review agent spec for end-of-loop checks
-- prepare worktree/branch boundaries for the first concurrent slices
+- **PR #6** (`m2/00-shared-contracts`): Lane 00 — Shared Contracts Foundation merged at `7ffdbe3`
+  - Added `ExtensionEventSchema`, `WorktreeLeaseSchema`, `MilestoneRecordSchema`, `RunSnapshotSchema`
+  - 85/85 tests; typecheck and lint clean
+- **PR #7** (`m2/10-dot-validator`): Lane 10 — DOT Validation Pipeline merged at `039e962`
+  - Implemented `validateDot()` with `@ts-graphviz/parser`
+  - Diagnostics: missing-start, missing-exit, unsupported-node-type, unreachable-node, parse-error
+  - 87/87 tests; typecheck and lint clean
+- **PR #8** (`m2/20-event-log`): Lane 20 — FileEventLog merged at `ec7af5c`
+  - Append-only JSONL event log; `append()`, `listByRun()` with schema validation
+  - 108/108 tests; typecheck and lint clean
+- **PR #9** (`m2/30-worktree-manager`): Lane 30 — GitWorktreeManager merged at `0a8c0b8`
+  - In-memory worktree lease manager with acquire/release/reconcile
+  - 107/107 tests; typecheck and lint clean
+- **PR #10** (`m2/40-snapshot-projector`): Lane 40 — SnapshotProjector + services wiring merged at `0149062`
+  - Event-sourced `EventLogSnapshotProjector`; `eventLog` + `snapshotProjector` wired into `StorageServices`
+  - 125/125 tests; typecheck and lint clean
+- `main` is now at `0149062`
 
-Known issues to address next:
+### M3 — First Dashboard Slice ✅ COMPLETE (all 4 lanes merged, 2026-03-17)
 
-- split work into safe parallel lanes without widening the v1 scope
-- keep docs and implemented contracts synchronized as lanes start
-- add the first drift review artifact after lane kickoff
+Plan: `docs/plans/m3-lanes.md` — 4 lanes, 2 parallelism waves.
 
-### M1.1 - Parallel Lane Kickoff
+| Lane                            | Branch                        | Status                        |
+| ------------------------------- | ----------------------------- | ----------------------------- |
+| L1 — Storage read surface       | `m3/storage-read-surface`     | ✅ MERGED (PR #11, `0ec7756`) |
+| L2 — Overview projection        | `m3/overview-projection`      | ✅ MERGED (PR #13, `e38e276`) |
+| L3 — Webview overview shell     | `m3/webview-overview-shell`   | ✅ MERGED (PR #12, `9f2ed2b`) |
+| L4 — Dashboard bridge + runtime | `m3/dashboard-bridge-runtime` | ✅ MERGED (PR #14, `9301d9a`) |
 
-Active worktrees:
+**Wave 1 (parallel):** L1 + L3 — **complete**
+**Wave 2:** L2 — **complete**
+**Wave 3:** L4 — **complete**
 
-- `C:\_git\wt-m0-test-ci` -> `chore/m0-test-ci-hardening`
-- `C:\_git\wt-m1-shared-contracts` -> `feat/m1-shared-contracts-core`
+`main` is now at `9301d9a`.
 
-First commit-sized slices:
-
-- lane 2: add a `ci:fast-checks` source-of-truth script plus a workflow drift meta test
-- lane 1: add `PlanRepositoryRef` and `PlanRecord` shared contract schemas plus fixtures/tests
+- **PR #14** (`m3/dashboard-bridge-runtime`): L4 — Dashboard Bridge + Runtime merged at `9301d9a`
+  - New `bridge.ts`: `handleWebviewMessage` + `WebviewPanelLike` seam
+  - `runtime.ts` wired: stores services, exposes `onWebviewMessage` handler with `safeParse` validation
+  - `webview/src/index.ts`: `sendReadyMessage()` + `bootWebview()` boot helpers; DOM lib added to webview tsconfig
+  - Schema fix: `"ready"` added to `WebviewInboundMessageTypeSchema`
+  - 144 tests, 20 files — all passing; typecheck + lint + format:check clean
 
 ## Next Up
 
-### Lane 1 - Shared Contracts Core
+M3.5 — review cleanup and hardening
 
-- tighten `PlanRecord`, `PlanRepositoryRef`, and `RunRecord`
-- add valid and invalid fixtures
-- keep the one-writable-repo rule enforced in schemas
-
-### Lane 2 - Test And CI Hardening
-
-- keep root tooling stable under parallel development
-- make sure branch work stays green on lint/typecheck/test
-
-### Lane 3 - Webview Shell
-
-- add a read-only overview shell
-- consume typed outbound state messages only
-
-### M1.2 - Observability Webview Shell
-
-Current focus:
-
-- keep Lane 3 scoped to a read-only overview surface
-- consume only `overview.state`
-- stabilize the first renderer/decoder slice before adding additional panels
-
-Implemented in the active Lane 3 worktree:
-
-- overview decoder
-- overview renderer
-- overview model types
-- overview fixtures and tests
-- webview Vitest project wiring
-
-Next intended follow-up inside Lane 3:
-
-- review/fix the first overview slice
-- commit and open the first webview shell PR
-- then add the next overview panel slice without introducing runtime bridge logic yet
-
-### Lane 4 - Extension Runtime Spine
-
-- add storage layout and repository registry seams
-- keep runtime pure and testable
-
-## Planned After M0
-
-### Post-Lane Merge Order
-
-- lane 2: test and CI hardening
-- lane 1: shared contracts
-- lane 4: extension runtime spine
-- lane 3: webview shell
+- land the merged-PR cleanup fixes for unresolved High and Medium review feedback
+- then advance into M3.6 shared UI contract floor
+- M4 Copilot orchestration remains gated on the pre-UI contract, storage, projector, and webview-hosting layers
 
 ## Session Resume Note
 
-If a future session resumes here, start from `M1 Prep - First Parallel Lanes` unless this file says otherwise.
+If a future session resumes here, **M3 is complete**. All 4 lanes merged.
+`main` is at `9301d9a`.
+Next execution lane is **M3.5 → M3.9**, then **M4**.

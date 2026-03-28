@@ -1,0 +1,416 @@
+<mxfile version="21.2.8" type="device">
+  <diagram id="run-inspector-v2" name="Run Inspector v2">
+    <mxGraphModel dx="1440" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="0" arrows="0" fold="0" page="1" pageScale="1" pageWidth="1440" pageHeight="900">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Background -->
+        <mxCell id="bg" value="" style="rounded=0;fillColor=#1e1e1e;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry width="1440" height="900" as="geometry" />
+        </mxCell>
+
+        <!-- Activity Bar -->
+        <mxCell id="actbar" value="" style="rounded=0;fillColor=#333333;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry width="48" height="900" as="geometry" />
+        </mxCell>
+        <mxCell id="actbar-i1" value="⊞" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#cccccc;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="8" y="60" width="32" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="actbar-i2" value="◎" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#007acc;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="8" y="104" width="32" height="32" as="geometry" />
+        </mxCell>
+
+        <!-- ── RunHeader (full width strip, y=0..90) ── -->
+        <mxCell id="run-hdr" value="" style="rounded=0;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="48" y="0" width="1392" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Breadcrumb -->
+        <mxCell id="breadcrumb" value="Overview  /  repo-alpha  /  Release Prep  /  Run #3" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="68" y="8" width="600" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Run ID + Plan title -->
+        <mxCell id="run-hdr-id" value="run-001" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontSize=24;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="68" y="30" width="260" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="run-hdr-attempt" value="Attempt #3" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="320" y="30" width="120" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="run-hdr-plan" value="Release Prep  ·  repo-alpha" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#4fc1ff;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="68" y="62" width="400" height="22" as="geometry" />
+        </mxCell>
+
+        <!-- Large status badge -->
+        <mxCell id="run-hdr-status-bg" value="" style="rounded=1;fillColor=#1c4a6e;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="540" y="28" width="120" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="run-hdr-status-icon" value="↻" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#4fc1ff;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="552" y="28" width="26" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="run-hdr-status-lbl" value="running" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#4fc1ff;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="578" y="28" width="76" height="36" as="geometry" />
+        </mxCell>
+
+        <!-- Elapsed time -->
+        <mxCell id="run-hdr-elapsed" value="12m 34s" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="680" y="36" width="100" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="run-hdr-elapsed-lbl" value="elapsed" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#555555;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="680" y="58" width="100" height="18" as="geometry" />
+        </mxCell>
+
+        <!-- Action buttons -->
+        <mxCell id="run-btn-cancel" value="Cancel" style="rounded=1;fillColor=#4a1a1a;strokeColor=#f44747;fontColor=#f44747;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1270" y="28" width="80" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="run-btn-resume" value="Resume" style="rounded=1;fillColor=#3a3d41;strokeColor=#5a5d60;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="28" width="90" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="run-btn-retry" value="Retry Failed" style="rounded=1;fillColor=#3a3d41;strokeColor=#5a5d60;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="28" width="100" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="run-hdr-note" value="Resume and Retry are enabled only on paused/failed runs" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#555555;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="860" y="62" width="560" height="18" as="geometry" />
+        </mxCell>
+
+        <!-- ── Center: RunGraphPanel + TimelinePanel (x=48, y=90, h=430) ── -->
+        <!-- RunGraphPanel (left 60%) -->
+        <mxCell id="rgp" value="" style="rounded=0;fillColor=#1a1a2e;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="48" y="90" width="700" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="rgp-label" value="Live Graph  (real-time updates)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontColor=#888888;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="96" width="300" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Animated node shapes -->
+        <mxCell id="rgn-planner" value="planner" style="rounded=1;fillColor=#1a3a1a;strokeColor=#4ec9b0;fontColor=#4ec9b0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="280" y="140" width="90" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="rgn-pl-check" value="✓" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#4ec9b0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="370" y="140" width="20" height="34" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rgn-codergen" value="codergen" style="rounded=1;fillColor=#1a3a1a;strokeColor=#4ec9b0;fontColor=#4ec9b0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="160" y="220" width="100" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="rgn-cg-check" value="✓" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#4ec9b0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="260" y="220" width="20" height="34" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rgn-reviewer" value="reviewer" style="rounded=1;fillColor=#1a3a1a;strokeColor=#4ec9b0;fontColor=#4ec9b0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="390" y="220" width="90" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="rgn-rv-check" value="✓" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#4ec9b0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="480" y="220" width="20" height="34" as="geometry" />
+        </mxCell>
+
+        <!-- Running node (glowing border) -->
+        <mxCell id="rgn-webview" value="webview-shell" style="rounded=1;fillColor=#1c4a6e;strokeColor=#007acc;strokeWidth=2;fontColor=#4fc1ff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="160" y="310" width="120" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="rgn-wv-spin" value="↻" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#4fc1ff;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="280" y="310" width="20" height="34" as="geometry" />
+        </mxCell>
+
+        <!-- Queued nodes -->
+        <mxCell id="rgn-bridge" value="bridge-wiring" style="rounded=1;fillColor=#2a2d2e;strokeColor=#5a5d60;fontColor=#888888;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="390" y="310" width="120" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="rgn-final" value="final-qa" style="rounded=1;fillColor=#2a2d2e;strokeColor=#5a5d60;fontColor=#888888;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="280" y="400" width="90" height="34" as="geometry" />
+        </mxCell>
+
+        <!-- Edges -->
+        <mxCell id="rge-1" value="" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#4ec9b0;strokeWidth=1;" edge="1" source="rgn-planner" target="rgn-codergen" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rge-2" value="" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#4ec9b0;strokeWidth=1;" edge="1" source="rgn-planner" target="rgn-reviewer" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rge-3" value="" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#4fc1ff;strokeWidth=1;" edge="1" source="rgn-codergen" target="rgn-webview" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rge-4" value="" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#4ec9b0;strokeWidth=1;dashed=1;" edge="1" source="rgn-reviewer" target="rgn-bridge" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rge-5" value="" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#5a5d60;strokeWidth=1;dashed=1;" edge="1" source="rgn-webview" target="rgn-final" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rge-6" value="" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#5a5d60;strokeWidth=1;dashed=1;" edge="1" source="rgn-bridge" target="rgn-final" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- TimelinePanel (right 40%, y=90) -->
+        <mxCell id="timeline" value="" style="rounded=0;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="748" y="90" width="390" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-title" value="Timeline" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="768" y="98" width="200" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-div" value="" style="line;strokeWidth=1;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="768" y="122" width="352" height="6" as="geometry" />
+        </mxCell>
+
+        <!-- Timeline events -->
+        <mxCell id="tl-e1-dot" value="" style="ellipse;fillColor=#4ec9b0;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="770" y="136" width="10" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e1-msg" value="Milestone 1 Started" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="786" y="130" width="240" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e1-ts" value="09:12:01" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#888888;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="130" width="60" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e1-guide" value="" style="line;strokeWidth=1;strokeColor=#3c3c3c;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="775" y="152" width="1" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tl-e2-dot" value="" style="ellipse;fillColor=#4ec9b0;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="770" y="174" width="10" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e2-msg" value="Node 'planner' Completed" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="786" y="168" width="240" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e2-ts" value="09:13:45" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#888888;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="168" width="60" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e2-guide" value="" style="line;strokeWidth=1;strokeColor=#3c3c3c;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="775" y="190" width="1" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tl-e3-dot" value="" style="ellipse;fillColor=#4ec9b0;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="770" y="212" width="10" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e3-msg" value="Node 'codergen' Completed" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="786" y="206" width="240" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e3-ts" value="09:15:20" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#888888;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="206" width="60" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e3-guide" value="" style="line;strokeWidth=1;strokeColor=#3c3c3c;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="775" y="228" width="1" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tl-e4-dot" value="" style="ellipse;fillColor=#4ec9b0;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="770" y="250" width="10" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e4-msg" value="Node 'reviewer' Completed" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="786" y="244" width="240" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e4-ts" value="09:17:00" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#888888;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="244" width="60" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e4-guide" value="" style="line;strokeWidth=1;strokeColor=#3c3c3c;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="775" y="266" width="1" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tl-e5-dot" value="" style="ellipse;fillColor=#4fc1ff;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="770" y="288" width="10" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e5-msg" value="Node 'webview-shell' Started  ↻" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#4fc1ff;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="786" y="282" width="240" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e5-ts" value="09:18:35" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#888888;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="282" width="60" height="22" as="geometry" />
+        </mxCell>
+
+        <!-- Pending events (dimmed outline) -->
+        <mxCell id="tl-e6-dot" value="" style="ellipse;fillColor=none;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="770" y="326" width="10" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e6-msg" value="Node 'bridge-wiring'  ○ pending" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#555555;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="786" y="320" width="240" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e7-dot" value="" style="ellipse;fillColor=none;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="770" y="360" width="10" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="tl-e7-msg" value="Node 'final-qa'  ○ pending" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#555555;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="786" y="354" width="240" height="22" as="geometry" />
+        </mxCell>
+
+        <!-- ── Right: NodeInspector (x=1138, w=302) ── -->
+        <mxCell id="ni-panel" value="" style="rounded=0;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="90" width="302" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="ni-title" value="Node Inspector" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="98" width="200" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="ni-div" value="" style="line;strokeWidth=1;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="122" width="268" height="6" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ni-node-name" value="webview-shell" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#4fc1ff;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="132" width="200" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="ni-node-status" value="↻ running" style="rounded=1;fillColor=#1c4a6e;strokeColor=none;fontColor=#4fc1ff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="162" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="ni-elapsed-lbl" value="Running for" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#888888;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="162" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="ni-elapsed-val" value="7m 11s" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#cccccc;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="180" width="260" height="18" as="geometry" />
+        </mxCell>
+
+        <!-- HandoffEnvelope section -->
+        <mxCell id="ni-hoff-div" value="" style="line;strokeWidth=1;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="190" width="268" height="6" as="geometry" />
+        </mxCell>
+        <mxCell id="ni-hoff-hdr" value="Handoff" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="200" width="150" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="ni-hoff-from" value="From: planner  →  To: implementer" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="220" width="268" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="ni-hoff-reason-lbl" value="Why" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="242" width="60" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="ni-hoff-reason" value="Plan validated; proceeding to implementation phase for webview scaffold" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontColor=#cccccc;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="262" width="268" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Artifacts -->
+        <mxCell id="ni-art-div" value="" style="line;strokeWidth=1;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="320" width="268" height="6" as="geometry" />
+        </mxCell>
+        <mxCell id="ni-art-hdr" value="Artifacts" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="330" width="150" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="ni-art1-icon" value="📦" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="352" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="ni-art1-name" value="task-pack-0042.json" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#4fc1ff;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="352" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="ni-art2-icon" value="📄" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="376" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="ni-art2-name" value="handoff-0042.md" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#4fc1ff;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="376" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="ni-btn-open" value="Open Artifact" style="rounded=1;fillColor=#3a3d41;strokeColor=#5a5d60;fontColor=#cccccc;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1156" y="402" width="100" height="24" as="geometry" />
+        </mxCell>
+
+        <!-- ── Bottom: LogsPanel (left) + ArtifactsPanel (right) ── -->
+        <!-- LogsPanel (x=48, y=520, w=860, h=356) -->
+        <mxCell id="logs-panel" value="" style="rounded=0;fillColor=#1a1a1a;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="48" y="520" width="860" height="356" as="geometry" />
+        </mxCell>
+        <mxCell id="logs-header" value="" style="rounded=0;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="48" y="520" width="860" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="logs-title" value="Logs" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="68" y="520" width="100" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="logs-search" value="" style="rounded=1;fillColor=#3a3d41;strokeColor=#5a5d60;" vertex="1" parent="1">
+          <mxGeometry x="420" y="527" width="300" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="logs-search-ph" value="Filter logs..." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#555555;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="428" y="527" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="logs-copy-btn" value="Copy All" style="rounded=1;fillColor=#3a3d41;strokeColor=#5a5d60;fontColor=#cccccc;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="740" y="527" width="70" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Log lines (terminal style) -->
+        <mxCell id="log-l1" value="[09:12:01] INFO  run-001 started, plan=plan-0042 attempt=3" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=11;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="60" y="558" width="820" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="log-l2" value="[09:12:02] INFO  worktree acquired at /tmp/attractor-wt-run-001" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=11;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="60" y="578" width="820" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="log-l3" value="[09:12:05] INFO  milestone M1 started: Scaffold (3 nodes)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=11;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="60" y="598" width="820" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="log-l4" value="[09:13:45] INFO  node planner: SUCCEEDED (1m 40s)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#4ec9b0;fontSize=11;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="60" y="618" width="820" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="log-l5" value="[09:15:20] INFO  node codergen: SUCCEEDED (1m 35s)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#4ec9b0;fontSize=11;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="60" y="638" width="820" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="log-l6" value="[09:17:00] INFO  node reviewer: SUCCEEDED (1m 40s)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#4ec9b0;fontSize=11;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="60" y="658" width="820" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="log-l7" value="[09:18:35] INFO  milestone M3 started: Dashboard (3 nodes)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=11;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="60" y="678" width="820" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="log-l8" value="[09:18:36] INFO  node webview-shell: started  ↻ streaming output..." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#4fc1ff;fontSize=11;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="60" y="698" width="820" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="log-l9" value="[09:24:13]       Model: claude-sonnet-4  tokens: 12847 in / 3204 out..." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#888888;fontSize=11;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="60" y="718" width="820" height="18" as="geometry" />
+        </mxCell>
+        <!-- Cursor blink indicator -->
+        <mxCell id="log-cursor" value="▌" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#4fc1ff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="738" width="20" height="18" as="geometry" />
+        </mxCell>
+
+        <!-- ArtifactsPanel (x=908, y=520, w=532) -->
+        <mxCell id="art-panel" value="" style="rounded=0;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="908" y="520" width="532" height="356" as="geometry" />
+        </mxCell>
+        <mxCell id="art-header" value="" style="rounded=0;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="908" y="520" width="532" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="art-title" value="Artifacts" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#cccccc;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="926" y="520" width="120" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="art-count" value="3 files" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#888888;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1340" y="520" width="80" height="34" as="geometry" />
+        </mxCell>
+
+        <!-- Artifact grid -->
+        <!-- Row 1 -->
+        <mxCell id="art-item1" value="" style="rounded=1;fillColor=#1e1e2e;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="926" y="562" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="art-item1-icon" value="📦" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#cccccc;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="926" y="570" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="art-item1-name" value="task-pack-0042.json" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#cccccc;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="926" y="612" width="150" height="36" as="geometry" />
+        </mxCell>
+
+        <mxCell id="art-item2" value="" style="rounded=1;fillColor=#1e1e2e;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="1086" y="562" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="art-item2-icon" value="📄" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#cccccc;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="1086" y="570" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="art-item2-name" value="handoff-0042.md" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#cccccc;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1086" y="612" width="150" height="36" as="geometry" />
+        </mxCell>
+
+        <mxCell id="art-item3" value="" style="rounded=1;fillColor=#1e1e2e;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="1246" y="562" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="art-item3-icon" value="🗂" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#cccccc;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="1246" y="570" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="art-item3-name" value="snapshot-0042.json" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#cccccc;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1246" y="612" width="150" height="36" as="geometry" />
+        </mxCell>
+
+        <!-- Empty state note -->
+        <mxCell id="art-empty" value="No files generated yet for running nodes" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#555555;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="926" y="820" width="500" height="24" as="geometry" />
+        </mxCell>
+
+        <!-- Status Bar -->
+        <mxCell id="statusbar" value="" style="rounded=0;fillColor=#007acc;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry y="878" width="1440" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="statusbar-left" value="$(sync~spin) 3 runs  |  run-001 running" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="10" y="878" width="260" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="statusbar-right" value="Attractor v2.0.0  |  repo-alpha / Release Prep / run-001" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="950" y="878" width="480" height="22" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

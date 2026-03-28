@@ -1,241 +1,429 @@
-import type {
-  AgentRolePhase,
-  GraphNode,
-  GraphRecord,
-  ImplementerHandoff,
-  OrchestratorHandoff,
-  OrchestrationStatePayload,
-  PlannerHandoff,
-  ReviewerHandoff
-} from "@attractor/shared";
 import {
-  ImplementerHandoffSchema,
-  OrchestratorHandoffSchema,
-  PlannerHandoffSchema,
-  ReviewerHandoffSchema
+  type OrchestrationStatePayload,
+  type AgentRoleStatus,
+  type OrchestratorHandoff,
+  type PlannerHandoff,
+  type ImplementerHandoff,
+  type ReviewerHandoff
 } from "@attractor/shared";
-import type { ModelGateway } from "./ports";
+
+type Role = "orchestrator" | "planner" | "implementer" | "reviewer";
+
+import type { ModelGateway, ModelMessage } from "./ports";
 import {
-  buildImplementerSystemPrompt,
-  buildImplementerUserMessage,
   buildOrchestratorSystemPrompt,
   buildOrchestratorUserMessage,
   buildPlannerSystemPrompt,
   buildPlannerUserMessage,
+  buildImplementerSystemPrompt,
+  buildImplementerUserMessage,
   buildReviewerSystemPrompt,
-  buildReviewerUserMessage
+  buildReviewerUserMessage,
+  type OrchestratorPromptContext,
+  type PlannerPromptContext,
+  type ImplementerPromptContext,
+  type ReviewerPromptContext
 } from "./role-prompts";
+import {
+  buildOrchestratorHandoff,
+  buildPlannerHandoff,
+  buildImplementerHandoff,
+  buildReviewerHandoff,
+  parseHandoffResponse
+} from "./handoffs";
 
+/**
+ * Milestone input for the orchestration loop.
+ */
+export interface MilestoneInput {
+  id: string;
+  name: string;
+  order: number;
+  description: string;
+  acceptanceCriteria: string[];
+}
+
+/**
+ * Options for running the orchestration loop.
+ */
 export interface OrchestrationOptions {
+  modelGateway: ModelGateway;
+  milestones: MilestoneInput[];
   runId: string;
-  graph: GraphRecord;
-  worktreePath: string;
-  onStateUpdate: (state: OrchestrationStatePayload) => void;
+  planTitle: string;
+  planGoal: string;
+  onStateChange: (state: OrchestrationStatePayload) => void;
+  onHandoff: (
+    handoff:
+      | OrchestratorHandoff
+      | PlannerHandoff
+      | ImplementerHandoff
+      | ReviewerHandoff,
+    role: Role
+  ) => void;
+  onError: (error: Error, milestoneId: string, role: Role) => void;
+  signal?: AbortSignal;
 }
 
-type FourPhases = [
-  AgentRolePhase,
-  AgentRolePhase,
-  AgentRolePhase,
-  AgentRolePhase
-];
-
-function makeInitialPhases(): FourPhases {
-  return [
-    { role: "orchestrator", status: "waiting" },
-    { role: "planner", status: "waiting" },
-    { role: "implementer", status: "waiting" },
-    { role: "reviewer", status: "waiting" }
-  ];
+/**
+ * Internal state for tracking handoffs between phases.
+ */
+interface PhaseResults {
+  orchestratorHandoff?: OrchestratorHandoff;
+  plannerHandoff?: PlannerHandoff;
+  implementerHandoff?: ImplementerHandoff;
+  reviewerHandoff?: ReviewerHandoff;
 }
 
-function parseHandoff<T>(raw: string, schema: { parse(input: unknown): T }): T {
-  const jsonMatch = /\{[\s\S]*\}/.exec(raw);
-  const jsonStr = jsonMatch !== null ? jsonMatch[0] : raw;
-  const parsed: unknown = JSON.parse(jsonStr);
-  return schema.parse(parsed);
-}
+/**
+ * Build messages for a specific role based on context and prior handoffs.
+ */
+function buildMessagesForRole(
+  role: Role,
+  milestone: MilestoneInput,
+  options: OrchestrationOptions,
+  phaseResults: PhaseResults
+): ModelMessage[] {
+  switch (role) {
+    case "orchestrator": {
+      const context: OrchestratorPromptContext = {
+        planTitle: options.planTitle,
+        planGoal: options.planGoal,
+        currentMilestoneId: milestone.id,
+        currentMilestoneName: milestone.name,
+        milestones: options.milestones.map((m) => ({
+          id: m.id,
+          title: m.name,
+          order: m.order,
+          acceptanceCriteria: m.acceptanceCriteria
+        }))
+      };
+      return [
+        ...buildOrchestratorSystemPrompt(context),
+        ...buildOrchestratorUserMessage(context)
+      ];
+    }
 
-export class OrchestrationLoop {
-  constructor(private readonly modelGateway: ModelGateway) {}
-
-  async execute(options: OrchestrationOptions): Promise<void> {
-    const { runId, graph, worktreePath, onStateUpdate } = options;
-    const nodes = this.topologicalSort(graph.nodes);
-    const milestoneCount = nodes.length;
-
-    for (let i = 0; i < nodes.length; i++) {
-      const node = nodes[i];
-      if (node === undefined) continue;
-
-      const milestoneIndex = i + 1;
-      const phases = makeInitialPhases();
-
-      const emitState = (updatedPhases: FourPhases): void => {
-        onStateUpdate({
-          runId,
-          milestoneIndex,
-          milestoneCount,
-          milestoneName: node.label,
-          phases: updatedPhases
-        });
+    case "planner": {
+      const context: PlannerPromptContext = {
+        milestoneName: milestone.name,
+        milestoneId: milestone.id,
+        description: milestone.description,
+        acceptanceCriteria: milestone.acceptanceCriteria
       };
 
-      // ── Phase 1: Orchestrator ────────────────────────────────────────────
-      phases[0] = { role: "orchestrator", status: "running" };
-      emitState([...phases] as FourPhases);
-
-      let orchestratorHandoff: OrchestratorHandoff;
-      try {
-        const response = await this.modelGateway.send(
-          [{ role: "user", content: buildOrchestratorUserMessage(node) }],
-          { systemPrompt: buildOrchestratorSystemPrompt() }
-        );
-        orchestratorHandoff = parseHandoff(response, OrchestratorHandoffSchema);
-        phases[0] = {
-          role: "orchestrator",
-          status: "done",
-          taskSummary: orchestratorHandoff.description
-        };
-      } catch (err) {
-        phases[0] = {
-          role: "orchestrator",
-          status: "failed",
-          errorLabel: String(err)
-        };
-        phases[1] = { role: "planner", status: "skipped" };
-        phases[2] = { role: "implementer", status: "skipped" };
-        phases[3] = { role: "reviewer", status: "skipped" };
-        emitState([...phases] as FourPhases);
-        continue;
+      if (phaseResults.orchestratorHandoff) {
+        context.priorHandoffSummary = `Orchestrator handoff: ${phaseResults.orchestratorHandoff.description}`;
       }
-      emitState([...phases] as FourPhases);
 
-      // ── Phase 2: Planner ─────────────────────────────────────────────────
-      phases[1] = { role: "planner", status: "running" };
-      emitState([...phases] as FourPhases);
+      return [
+        ...buildPlannerSystemPrompt(context),
+        ...buildPlannerUserMessage(context)
+      ];
+    }
 
-      let plannerHandoff: PlannerHandoff;
-      try {
-        const response = await this.modelGateway.send(
-          [
-            {
-              role: "user",
-              content: buildPlannerUserMessage(orchestratorHandoff)
-            }
-          ],
-          { systemPrompt: buildPlannerSystemPrompt() }
-        );
-        plannerHandoff = parseHandoff(response, PlannerHandoffSchema);
-        phases[1] = {
-          role: "planner",
-          status: "done",
-          taskSummary: `${plannerHandoff.tasks.length} tasks planned`
-        };
-      } catch (err) {
-        phases[1] = {
-          role: "planner",
-          status: "failed",
-          errorLabel: String(err)
-        };
-        phases[2] = { role: "implementer", status: "skipped" };
-        phases[3] = { role: "reviewer", status: "skipped" };
-        emitState([...phases] as FourPhases);
-        continue;
+    case "implementer": {
+      if (!phaseResults.plannerHandoff) {
+        throw new Error("Planner handoff required for implementer phase");
       }
-      emitState([...phases] as FourPhases);
 
-      // ── Phase 3: Implementer ─────────────────────────────────────────────
-      phases[2] = { role: "implementer", status: "running" };
-      emitState([...phases] as FourPhases);
+      const priorHandoffSummary = `Planner handoff: ${phaseResults.plannerHandoff.tasks.length} tasks planned, ${phaseResults.plannerHandoff.filesLikelyAffected.length} files likely affected`;
 
-      let implementerHandoff: ImplementerHandoff;
-      try {
-        const response = await this.modelGateway.send(
-          [
-            {
-              role: "user",
-              content: buildImplementerUserMessage(plannerHandoff)
-            }
-          ],
-          { systemPrompt: buildImplementerSystemPrompt(worktreePath) }
-        );
-        implementerHandoff = parseHandoff(response, ImplementerHandoffSchema);
-        phases[2] = {
-          role: "implementer",
-          status: "done",
-          taskSummary: implementerHandoff.summary
-        };
-      } catch (err) {
-        phases[2] = {
-          role: "implementer",
-          status: "failed",
-          errorLabel: String(err)
-        };
-        phases[3] = { role: "reviewer", status: "skipped" };
-        emitState([...phases] as FourPhases);
-        continue;
+      const context: ImplementerPromptContext = {
+        milestoneName: milestone.name,
+        milestoneId: milestone.id,
+        tasks: phaseResults.plannerHandoff.tasks,
+        filesLikelyAffected: phaseResults.plannerHandoff.filesLikelyAffected,
+        priorHandoffSummary
+      };
+      return [
+        ...buildImplementerSystemPrompt(context),
+        ...buildImplementerUserMessage(context)
+      ];
+    }
+
+    case "reviewer": {
+      if (!phaseResults.implementerHandoff) {
+        throw new Error("Implementer handoff required for reviewer phase");
       }
-      emitState([...phases] as FourPhases);
 
-      // ── Phase 4: Reviewer ────────────────────────────────────────────────
-      phases[3] = { role: "reviewer", status: "running" };
-      emitState([...phases] as FourPhases);
+      const priorHandoffSummary = `Implementer handoff: ${phaseResults.implementerHandoff.tasksCompleted.length} tasks completed, tests ${phaseResults.implementerHandoff.testsPassed ? "passed" : "failed"}`;
 
-      try {
-        const response = await this.modelGateway.send(
-          [
-            {
-              role: "user",
-              content: buildReviewerUserMessage(implementerHandoff)
-            }
-          ],
-          { systemPrompt: buildReviewerSystemPrompt() }
-        );
-        const reviewerHandoff: ReviewerHandoff = parseHandoff(
-          response,
-          ReviewerHandoffSchema
-        );
-        phases[3] = reviewerHandoff.approved
-          ? {
-              role: "reviewer",
-              status: "done",
-              taskSummary: reviewerHandoff.comments.join("; ") || "Approved"
-            }
-          : {
-              role: "reviewer",
-              status: "failed",
-              errorLabel:
-                reviewerHandoff.comments.join("; ") || "Changes required"
-            };
-      } catch (err) {
-        phases[3] = {
-          role: "reviewer",
-          status: "failed",
-          errorLabel: String(err)
-        };
+      const context: ReviewerPromptContext = {
+        milestoneName: milestone.name,
+        milestoneId: milestone.id,
+        tasksCompleted: phaseResults.implementerHandoff.tasksCompleted,
+        implementationSummary: phaseResults.implementerHandoff.summary,
+        testsPassed: phaseResults.implementerHandoff.testsPassed,
+        priorHandoffSummary
+      };
+      return [
+        ...buildReviewerSystemPrompt(context),
+        ...buildReviewerUserMessage(context)
+      ];
+    }
+  }
+}
+
+/**
+ * Orchestrates multi-agent execution across milestones.
+ */
+export class OrchestrationLoop {
+  /**
+   * Execute the full orchestration loop across all milestones.
+   * Milestones are processed in order-field ascending sort.
+   * Each milestone goes through 4 phases: orchestrator → planner → implementer → reviewer.
+   */
+  async execute(options: OrchestrationOptions): Promise<void> {
+    // Sort milestones by order ascending
+    const sortedMilestones = [...options.milestones].sort(
+      (a, b) => a.order - b.order
+    );
+
+    // Process each milestone sequentially
+    for (let i = 0; i < sortedMilestones.length; i++) {
+      const milestone = sortedMilestones[i];
+      if (!milestone) continue;
+
+      // Check abort signal before starting milestone
+      if (options.signal?.aborted) {
+        // Remaining milestones are skipped; exit cleanly
+        return;
       }
-      emitState([...phases] as FourPhases);
+
+      await this.executeMilestone(
+        milestone,
+        i,
+        sortedMilestones.length,
+        options
+      );
     }
   }
 
-  private topologicalSort(nodes: GraphNode[]): GraphNode[] {
-    const result: GraphNode[] = [];
-    const visited = new Set<string>();
+  /**
+   * Execute all phases for a single milestone.
+   */
+  private async executeMilestone(
+    milestone: MilestoneInput,
+    milestoneIndex: number,
+    milestoneCount: number,
+    options: OrchestrationOptions
+  ): Promise<void> {
+    const phaseResults: PhaseResults = {};
 
-    const visit = (node: GraphNode): void => {
-      if (visited.has(node.id)) return;
-      visited.add(node.id);
-      for (const depId of node.dependsOn) {
-        const dep = nodes.find((n) => n.id === depId);
-        if (dep !== undefined) visit(dep);
-      }
-      result.push(node);
+    // Track status of all 4 phases
+    const roleStatuses: Record<Role, AgentRoleStatus> = {
+      orchestrator: "waiting",
+      planner: "waiting",
+      implementer: "waiting",
+      reviewer: "waiting"
     };
 
-    for (const node of nodes) {
-      visit(node);
+    const emitState = () => {
+      const state: OrchestrationStatePayload = {
+        runId: options.runId,
+        milestoneIndex,
+        milestoneCount,
+        milestoneName: milestone.name,
+        phases: [
+          { role: "orchestrator", status: roleStatuses.orchestrator },
+          { role: "planner", status: roleStatuses.planner },
+          { role: "implementer", status: roleStatuses.implementer },
+          { role: "reviewer", status: roleStatuses.reviewer }
+        ]
+      };
+      try {
+        options.onStateChange(state);
+      } catch {
+        // Observer failure must not affect orchestration flow
+      }
+    };
+
+    // Initial state: all waiting
+    emitState();
+
+    // Phase 1: Orchestrator
+    const orchestratorSuccess = await this.executePhase(
+      "orchestrator",
+      milestone,
+      options,
+      phaseResults,
+      roleStatuses,
+      emitState
+    );
+    if (!orchestratorSuccess) return;
+
+    // Phase 2: Planner
+    const plannerSuccess = await this.executePhase(
+      "planner",
+      milestone,
+      options,
+      phaseResults,
+      roleStatuses,
+      emitState
+    );
+    if (!plannerSuccess) return;
+
+    // Phase 3: Implementer
+    const implementerSuccess = await this.executePhase(
+      "implementer",
+      milestone,
+      options,
+      phaseResults,
+      roleStatuses,
+      emitState
+    );
+    if (!implementerSuccess) return;
+
+    // Phase 4: Reviewer
+    await this.executePhase(
+      "reviewer",
+      milestone,
+      options,
+      phaseResults,
+      roleStatuses,
+      emitState
+    );
+  }
+
+  /**
+   * Execute a single phase for a milestone.
+   * @returns true if phase succeeded, false if it failed (milestone should stop)
+   */
+  private async executePhase(
+    role: Role,
+    milestone: MilestoneInput,
+    options: OrchestrationOptions,
+    phaseResults: PhaseResults,
+    roleStatuses: Record<Role, AgentRoleStatus>,
+    emitState: () => void
+  ): Promise<boolean> {
+    // Check abort before starting phase
+    if (options.signal?.aborted) {
+      roleStatuses[role] = "canceled" as AgentRoleStatus;
+      emitState();
+      return false;
     }
-    return result;
+
+    // Mark phase as running
+    roleStatuses[role] = "running";
+    emitState();
+
+    try {
+      // Build messages for this role
+      const messages = buildMessagesForRole(
+        role,
+        milestone,
+        options,
+        phaseResults
+      );
+
+      // Send to model
+      const rawResponse = await options.modelGateway.send(
+        messages,
+        options.signal ? { signal: options.signal } : undefined
+      );
+
+      // Check abort after send (signal may have fired during await)
+      if (options.signal?.aborted && role !== "reviewer") {
+        roleStatuses[role] = "canceled" as AgentRoleStatus;
+        emitState();
+        return false;
+      }
+
+      // Parse handoff based on role
+      let handoff:
+        | OrchestratorHandoff
+        | PlannerHandoff
+        | ImplementerHandoff
+        | ReviewerHandoff;
+
+      switch (role) {
+        case "orchestrator": {
+          const parsed = parseHandoffResponse(rawResponse);
+          const parsedObj = parsed as {
+            milestoneId?: string;
+            milestoneName?: string;
+            description?: string;
+            acceptanceCriteria?: string[];
+          };
+
+          if (
+            parsedObj.milestoneId !== undefined &&
+            parsedObj.milestoneId !== milestone.id
+          ) {
+            throw new Error(
+              `Orchestrator milestoneId mismatch: expected "${milestone.id}", got "${parsedObj.milestoneId}"`
+            );
+          }
+
+          if (
+            parsedObj.milestoneName !== undefined &&
+            parsedObj.milestoneName !== milestone.name
+          ) {
+            throw new Error(
+              `Orchestrator milestoneName mismatch: expected "${milestone.name}", got "${parsedObj.milestoneName}"`
+            );
+          }
+
+          handoff = buildOrchestratorHandoff(
+            milestone.id,
+            milestone.name,
+            parsedObj.description ?? milestone.description,
+            parsedObj.acceptanceCriteria ?? milestone.acceptanceCriteria
+          );
+          phaseResults.orchestratorHandoff = handoff;
+          break;
+        }
+
+        case "planner": {
+          handoff = buildPlannerHandoff(rawResponse, milestone.id);
+          phaseResults.plannerHandoff = handoff;
+          break;
+        }
+
+        case "implementer": {
+          handoff = buildImplementerHandoff(rawResponse, milestone.id);
+          phaseResults.implementerHandoff = handoff;
+          break;
+        }
+
+        case "reviewer": {
+          handoff = buildReviewerHandoff(rawResponse, milestone.id);
+          phaseResults.reviewerHandoff = handoff;
+          // Gate on reviewer approval
+          if (!phaseResults.reviewerHandoff.approved) {
+            throw new Error("Review rejected: changes required");
+          }
+          break;
+        }
+      }
+
+      // Emit handoff (observer failure must not affect orchestration flow)
+      try {
+        options.onHandoff(handoff, role);
+      } catch {
+        // Observer failure must not affect orchestration flow
+      }
+
+      // Mark phase as done
+      roleStatuses[role] = "done";
+      emitState();
+
+      return true;
+    } catch (error) {
+      // Mark phase as failed
+      roleStatuses[role] = "failed";
+      emitState();
+
+      // Emit error
+      options.onError(
+        error instanceof Error ? error : new Error(String(error)),
+        milestone.id,
+        role
+      );
+
+      return false;
+    }
   }
 }

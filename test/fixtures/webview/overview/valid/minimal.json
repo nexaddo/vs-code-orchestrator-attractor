@@ -1,30 +1,44 @@
 {
   "version": 1,
-  "requestId": "req_overview_001",
+  "requestId": "req-001",
   "type": "overview.state",
   "payload": {
-    "summary": {
-      "totalRepositories": 2,
-      "totalPlans": 1,
-      "activeRuns": 0
-    },
     "repositories": [
       {
         "version": 1,
-        "id": "repo_alpha",
+        "id": "repo-alpha",
         "name": "repo-alpha",
         "rootUri": "file:///workspace/repo-alpha",
         "defaultBranch": "main",
-        "labels": ["workspace", "primary"]
+        "labels": []
       },
       {
         "version": 1,
-        "id": "repo_docs",
+        "id": "repo-docs",
         "name": "repo-docs",
         "rootUri": "file:///workspace/repo-docs",
         "defaultBranch": "main",
-        "labels": ["context"]
+        "labels": []
       }
-    ]
+    ],
+    "activeRuns": [
+      {
+        "version": 1,
+        "id": "run-001",
+        "planId": "plan-001",
+        "status": "running",
+        "attempt": 1,
+        "createdAt": "2025-01-01T00:00:00Z",
+        "updatedAt": "2025-01-01T00:01:00Z"
+      }
+    ],
+    "recentFailures": [],
+    "stats": {
+      "totalRepos": 2,
+      "totalPlans": 1,
+      "activeRuns": 1,
+      "pausedRuns": 0,
+      "failedRuns24h": 0
+    }
   }
 }

@@ -1,10 +1,10 @@
 {
   "version": 1,
   "id": "evt_002",
-  "name": "run.started",
-  "aggregateType": "run",
-  "aggregateId": "run_001",
-  "correlationId": "corr_001",
+  "runId": "run_001",
+  "entityType": "run",
+  "entityId": "run_001",
+  "kind": "run.started",
   "timestamp": "2026-01-01T00:00:01.000Z",
   "payload": {
     "planId": "plan_001",

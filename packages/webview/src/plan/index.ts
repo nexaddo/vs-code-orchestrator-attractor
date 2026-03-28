@@ -1,3 +1,3 @@
-export { decodePlanState } from "./decoder";
-export { renderPlan, renderPlanRepositoryPicker } from "./renderer";
-export type { PlanState, PlanRepositoryPickerState } from "./model";
+export { PlanSurface } from "./PlanSurface";
+export type { PlanSurfaceProps } from "./PlanSurface";
+export type { PlanState } from "./model";

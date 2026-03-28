@@ -1,4 +1,8 @@
-import type { EventEnvelope, RunRecord, RunSnapshot } from "@attractor/shared";
+import type {
+  EventEnvelope,
+  RunRecord,
+  RunRecoverySnapshot
+} from "@attractor/shared";
 import { CONTRACT_VERSION } from "@attractor/shared";
 
 /**
@@ -26,7 +30,7 @@ export class RunAggregate {
    * @param events    Events appended after snapshot.lastEventIndex (slice already performed by caller).
    */
   static fromSnapshot(
-    snapshot: RunSnapshot,
+    snapshot: RunRecoverySnapshot,
     events: EventEnvelope[]
   ): RunAggregate {
     const agg = new RunAggregate(snapshot.runRecord);
@@ -89,7 +93,7 @@ export class RunAggregate {
    * Capture the current state as a snapshot at the given event log index.
    * @param lastEventIndex  0-based index of the last event applied (from EventLog.readAll()).
    */
-  takeSnapshot(lastEventIndex: number): RunSnapshot {
+  takeSnapshot(lastEventIndex: number): RunRecoverySnapshot {
     return {
       version: CONTRACT_VERSION,
       runId: this._record.id,

@@ -1,30 +1,84 @@
+// @ts-check
+
 import esbuild from "esbuild";
+import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const isWatch = process.argv.includes("--watch");
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-/** @type {import('esbuild').BuildOptions} */
-const options = {
-  entryPoints: ["src/extension.ts"],
-  bundle: true,
-  outfile: "dist/bundle.js",
-  external: ["vscode"],
-  format: "cjs",
-  platform: "node",
-  target: "node22",
-  sourcemap: true,
-  minify: !isWatch,
-  // Treat @attractor/shared as bundled (no node_modules at runtime)
-  alias: {}
+const watch = process.argv.includes("--watch");
+// Default to production for one-shot builds; dev only when watching unless
+// NODE_ENV is set explicitly.
+const production =
+  process.env.NODE_ENV !== undefined
+    ? process.env.NODE_ENV === "production"
+    : !watch;
+
+const outDir = path.join(__dirname, "dist", "bundle");
+
+const stageWebviewBundle = () => {
+  // Post-build: stage webview bundle into extension package
+  const webviewSrc = path.join(__dirname, "..", "webview", "dist", "bundle");
+  const webviewDest = path.join(outDir, "webview");
+  if (!existsSync(webviewSrc)) {
+    if (watch) {
+      console.warn(
+        "[attractor/extension] webview bundle not found, skipping staging"
+      );
+      return;
+    }
+    throw new Error(
+      `Webview bundle not found at ${webviewSrc}. Run webview build first.`
+    );
+  }
+  // Clean destination to avoid stale files from previous builds
+  if (existsSync(webviewDest)) {
+    rmSync(webviewDest, { recursive: true });
+  }
+  cpSync(webviewSrc, webviewDest, { recursive: true });
 };
 
-if (isWatch) {
-  const ctx = await esbuild.context(options);
-  await ctx.watch();
-  console.log("esbuild: watching for changes...");
-} else {
-  const result = await esbuild.build({ ...options, metafile: true });
-  const text = await esbuild.analyzeMetafile(result.metafile, {
-    verbose: false
+// Ensure output directory exists
+mkdirSync(outDir, { recursive: true });
+
+/** @type {import('esbuild').BuildOptions} */
+const baseOptions = {
+  entryPoints: [path.join(__dirname, "src", "extension.ts")],
+  bundle: true,
+  outfile: path.join(outDir, "extension.js"),
+  platform: "node",
+  format: "cjs",
+  target: ["node22"],
+  external: ["vscode"],
+  sourcemap: watch ? "external" : false,
+  minify: production
+};
+
+if (watch) {
+  let hasStagedWebviewBundle = false;
+
+  const ctx = await esbuild.context({
+    ...baseOptions,
+    plugins: [
+      {
+        name: "stage-webview-bundle-once",
+        setup(build) {
+          build.onEnd((result) => {
+            if (!result.errors.length && !hasStagedWebviewBundle) {
+              stageWebviewBundle();
+              hasStagedWebviewBundle = true;
+            }
+          });
+        }
+      }
+    ]
   });
-  console.log(text);
+
+  await ctx.watch();
+  console.log("[attractor/extension] watching for changes…");
+} else {
+  await esbuild.build(baseOptions);
+  stageWebviewBundle();
+  console.log("[attractor/extension] build complete");
 }

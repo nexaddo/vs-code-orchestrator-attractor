@@ -5,10 +5,24 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json && node esbuild.config.mjs",
+    "build:bundle": "node esbuild.config.mjs",
+    "build:types": "tsc -p tsconfig.json",
+    "watch": "node esbuild.config.mjs --watch"
   },
   "dependencies": {
     "@attractor/shared": "workspace:*",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "preact": "^10.29.0",
+    "tailwind-merge": "^3.5.0",
     "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "esbuild": "^0.24.0",
+    "postcss": "^8.5.0",
+    "postcss-cli": "^11.0.0",
+    "tailwindcss": "^4.1.0"
   }
 }

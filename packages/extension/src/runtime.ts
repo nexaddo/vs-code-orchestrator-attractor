@@ -1,27 +1,36 @@
-import { OrchestrationLoop, RunCommandHandler, RunRecoveryService } from "./application";
-import type { ModelGateway } from "./application";
 import {
-  FileGraphRepository,
-  FileRepositoryRegistry,
-  FileRunRepository,
-  FileRunSnapshotStore,
-  FileWorktreeLeaseStore,
-  GitWorktreeManager,
-  NdjsonEventLog,
-  NoOpEventPublisher,
-  OrphanWorktreeRecovery,
+  CONTRACT_VERSION,
+  WebviewInboundMessageSchema
+} from "@attractor/shared";
+
+import {
+  createStorageServices,
+  getStorageRoot,
+  type StorageServices
+} from "./storage/services";
+import { NoOpModelGateway, type ModelGateway } from "./application/ports";
+import {
+  handleWebviewMessage,
+  type WebviewPanelLike,
+  type BridgeOrchestrationContext
+} from "./dashboard/bridge";
+import {
+  AttractorViewProvider,
+  type WebviewPostTarget
+} from "./dashboard/webview-provider";
+import {
   registerChatParticipant,
-  WebviewBridge,
   type ChatApiLike
-} from "./infrastructure";
+} from "./chat/attractor-chat-participant";
 
 export const ATTRACTOR_HELLO_COMMAND = "attractor.hello";
-export const ATTRACTOR_RUN_START_COMMAND = "attractor.run.start";
-export const ATTRACTOR_RUN_CANCEL_COMMAND = "attractor.run.cancel";
-export const ATTRACTOR_PLAN_CREATE_COMMAND = "attractor.plan.create";
-export const ATTRACTOR_REPO_ADD_COMMAND = "attractor.repo.add";
-export const ATTRACTOR_REPO_REMOVE_COMMAND = "attractor.repo.remove";
-export const ATTRACTOR_REPO_LIST_COMMAND = "attractor.repo.list";
+export const ATTRACTOR_DASHBOARD_OPEN_COMMAND = "attractor.openDashboard";
+export const ATTRACTOR_DASHBOARD_VIEW_TYPE = "attractor.dashboard";
+export const ATTRACTOR_WEBVIEW_BUNDLE_PATH = [
+  "dist",
+  "bundle",
+  "webview"
+] as const;
 
 export interface DisposableLike {
   dispose(): void;
@@ -31,121 +40,59 @@ export interface CommandsApiLike {
   registerCommand(commandId: string, callback: () => void): DisposableLike;
 }
 
+/**
+ * Seam for vscode.window.registerWebviewViewProvider so runtime.ts stays
+ * testable without launching an extension host.
+ */
+export interface WindowApiLike {
+  registerWebviewViewProvider(
+    viewType: string,
+    provider: { resolveWebviewView(view: unknown): void }
+  ): DisposableLike;
+}
+
 export interface ExtensionContextLike {
   subscriptions: DisposableLike[];
-}
-
-class NoOpModelGateway implements ModelGateway {
-  async send(): Promise<string> {
-    return "";
-  }
-  async stream(): Promise<void> {
-    return;
-  }
-}
-
-export interface AttractorContainer {
-  runCommandHandler: RunCommandHandler;
-  repositoryRegistry: FileRepositoryRegistry;
-  graphRepo: FileGraphRepository;
-  leaseStore: FileWorktreeLeaseStore;
-  orchestrationLoop: OrchestrationLoop;
-  webviewBridge: WebviewBridge;
-  orphanRecovery: OrphanWorktreeRecovery;
-  runRecovery: RunRecoveryService;
-}
-
-export function createContainer(
-  workspaceRoot: string,
-  modelGateway: ModelGateway = new NoOpModelGateway()
-): AttractorContainer {
-  const publisher = new NoOpEventPublisher();
-  const runRepo = new FileRunRepository(workspaceRoot);
-  const graphRepo = new FileGraphRepository(workspaceRoot);
-  const leaseStore = new FileWorktreeLeaseStore(workspaceRoot);
-  const eventLog = new NdjsonEventLog(workspaceRoot);
-  const snapshotStore = new FileRunSnapshotStore(workspaceRoot);
-  const worktreeManager = new GitWorktreeManager(workspaceRoot);
-  const repositoryRegistry = new FileRepositoryRegistry(workspaceRoot);
-  const orchestrationLoop = new OrchestrationLoop(modelGateway);
-  const webviewBridge = new WebviewBridge();
-  const orphanRecovery = new OrphanWorktreeRecovery(
-    workspaceRoot,
-    leaseStore,
-    eventLog,
-    publisher
-  );
-  const runRecovery = new RunRecoveryService(
-    runRepo,
-    eventLog,
-    snapshotStore,
-    publisher
-  );
-
-  return {
-    runCommandHandler: new RunCommandHandler(
-      publisher,
-      runRepo,
-      eventLog,
-      leaseStore,
-      worktreeManager,
-      snapshotStore
-    ),
-    repositoryRegistry,
-    graphRepo,
-    leaseStore,
-    orchestrationLoop,
-    webviewBridge,
-    orphanRecovery,
-    runRecovery
+  extensionUri?: {
+    fsPath: string;
   };
+  storageUri?:
+    | {
+        fsPath: string;
+      }
+    | undefined;
+  globalStorageUri?:
+    | {
+        fsPath: string;
+      }
+    | undefined;
+  onWebviewMessage?: (raw: unknown, panel: WebviewPanelLike) => Promise<void>;
+}
+
+// Re-export seam types so callers can import them without reaching into internals.
+export type { StorageServices as StorageServicesLike };
+export type { WebviewPanelLike };
+export type { ChatApiLike };
+
+export interface RuntimeDependencies {
+  createStorageServices?: (rootDirectory: string) => StorageServices;
+  storageRoot?: string;
+  windowApi?: WindowApiLike;
+  chatApi?: ChatApiLike;
+  modelGateway?: ModelGateway;
+  outputChannel?: { appendLine(value: string): void };
 }
 
 export const registerAttractorCommands = (
   commandsApi: CommandsApiLike,
-  container: AttractorContainer
+  getViewProvider?: () => AttractorViewProvider | undefined
 ): DisposableLike[] => {
   return [
     commandsApi.registerCommand(ATTRACTOR_HELLO_COMMAND, () => {
       return;
     }),
-    commandsApi.registerCommand(ATTRACTOR_RUN_START_COMMAND, () => {
-      void (async () => {
-        const run = await container.runCommandHandler.startRun({
-          planId: "",
-          graphId: "",
-          correlationId: crypto.randomUUID()
-        });
-        if (run.graphId.length > 0) {
-          const graph = await container.graphRepo.find(run.graphId);
-          const lease = await container.leaseStore.findByRunId(run.id);
-          if (graph !== undefined && lease !== undefined) {
-            void container.orchestrationLoop.execute({
-              runId: run.id,
-              graph,
-              worktreePath: lease.worktreePath,
-              onStateUpdate: (state) => {
-                container.webviewBridge.postOrchestrationState(state);
-              }
-            });
-          }
-        }
-      })();
-    }),
-    commandsApi.registerCommand(ATTRACTOR_RUN_CANCEL_COMMAND, () => {
-      return;
-    }),
-    commandsApi.registerCommand(ATTRACTOR_PLAN_CREATE_COMMAND, () => {
-      return;
-    }),
-    commandsApi.registerCommand(ATTRACTOR_REPO_ADD_COMMAND, () => {
-      return;
-    }),
-    commandsApi.registerCommand(ATTRACTOR_REPO_REMOVE_COMMAND, () => {
-      return;
-    }),
-    commandsApi.registerCommand(ATTRACTOR_REPO_LIST_COMMAND, () => {
-      void container.repositoryRegistry.list();
+    commandsApi.registerCommand(ATTRACTOR_DASHBOARD_OPEN_COMMAND, () => {
+      getViewProvider?.()?.revealView();
     })
   ];
 };
@@ -153,18 +100,170 @@ export const registerAttractorCommands = (
 export const activateAttractor = (
   context: ExtensionContextLike,
   commandsApi: CommandsApiLike,
-  workspaceRoot: string,
-  chatApi?: ChatApiLike,
-  modelGateway?: ModelGateway
+  dependencies: RuntimeDependencies = {}
 ): void => {
-  const container = createContainer(workspaceRoot, modelGateway);
-  const disposables = registerAttractorCommands(commandsApi, container);
-  context.subscriptions.push(...disposables);
-  if (chatApi !== undefined) {
-    registerChatParticipant(chatApi, context);
+  const log = dependencies.outputChannel ?? { appendLine: () => {} };
+  log.appendLine("Attractor: activating…");
+
+  // --- Storage init (error-bounded) ---
+  const storageRoot = dependencies.storageRoot ?? getStorageRoot(context);
+  let services: StorageServices | null = null;
+
+  if (storageRoot) {
+    log.appendLine(`Attractor: storage root resolved → ${storageRoot}`);
+    try {
+      const buildStorageServices =
+        dependencies.createStorageServices ??
+        ((rootDirectory: string): StorageServices =>
+          createStorageServices(rootDirectory));
+      services = buildStorageServices(storageRoot);
+      log.appendLine("Attractor: storage services created");
+    } catch (err) {
+      log.appendLine(
+        `Attractor: storage services failed — ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  } else {
+    log.appendLine("Attractor: no storage root available");
   }
-  // Silently sweep orphaned worktree leases on every activation
-  void container.orphanRecovery.run();
-  // Resume any runs that were in-flight when the extension was last shut down
-  void container.runRecovery.recover();
+
+  let viewProvider: AttractorViewProvider | undefined;
+
+  // --- Commands (always register) ---
+  const disposables = registerAttractorCommands(
+    commandsApi,
+    () => viewProvider
+  );
+  context.subscriptions.push(...disposables);
+
+  const modelGateway = dependencies.modelGateway ?? new NoOpModelGateway();
+  const activeRuns = new Map<string, AbortController>();
+
+  const orchestrationContext: BridgeOrchestrationContext = {
+    modelGateway,
+    startOrchestration: async ({ runId, planId, panel: runPanel, signal }) => {
+      const controller = new AbortController();
+      activeRuns.set(runId, controller);
+
+      // Connect external signal if provided
+      if (signal) {
+        signal.addEventListener("abort", () => controller.abort(), {
+          once: true
+        });
+      }
+
+      try {
+        // Placeholder per M4 plan — actual OrchestrationLoop integration
+        // deferred to M4.5/M5. Will use OrchestrationLoop + services to
+        // load milestones, build MilestoneInput[], and run phases.
+        void planId;
+        void runPanel;
+      } finally {
+        activeRuns.delete(runId);
+      }
+    },
+    cancelOrchestration: (runId: string) => {
+      const controller = activeRuns.get(runId);
+      if (controller) {
+        controller.abort();
+        activeRuns.delete(runId);
+      }
+    }
+  };
+
+  // --- Webview message handler (with degraded-state support) ---
+  context.onWebviewMessage = async (
+    raw: unknown,
+    panel: WebviewPanelLike
+  ): Promise<void> => {
+    if (!services) {
+      // Degraded mode: respond to "ready" with empty overview + error
+      const parsed = WebviewInboundMessageSchema.safeParse(raw);
+      if (parsed.success && parsed.data.type === "ready") {
+        panel.postMessage({
+          version: CONTRACT_VERSION,
+          requestId: parsed.data.requestId,
+          type: "overview.state",
+          payload: {
+            repositories: [],
+            activeRuns: [],
+            recentFailures: [],
+            stats: {
+              totalRepos: 0,
+              totalPlans: 0,
+              activeRuns: 0,
+              pausedRuns: 0,
+              failedRuns24h: 0
+            },
+            error:
+              "Storage unavailable — extension storage failed to initialize"
+          }
+        });
+      }
+      return;
+    }
+    const parsed = WebviewInboundMessageSchema.safeParse(raw);
+    if (!parsed.success) {
+      return;
+    }
+    try {
+      await handleWebviewMessage(
+        parsed.data,
+        services,
+        panel,
+        orchestrationContext
+      );
+    } catch (error) {
+      log.appendLine(
+        `Attractor: failed to handle webview message — ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`
+      );
+    }
+  };
+
+  // --- Provider registration (error-bounded) ---
+  if (context.extensionUri && dependencies.windowApi) {
+    try {
+      const onMessage = async (
+        raw: unknown,
+        postTarget: WebviewPostTarget
+      ): Promise<void> => {
+        await context.onWebviewMessage!(raw, postTarget);
+      };
+
+      const provider = new AttractorViewProvider({
+        extensionUri: context.extensionUri,
+        webviewBundlePath: [...ATTRACTOR_WEBVIEW_BUNDLE_PATH],
+        onMessage
+      });
+
+      viewProvider = provider;
+
+      const providerDisposable =
+        dependencies.windowApi.registerWebviewViewProvider(
+          AttractorViewProvider.viewType,
+          provider
+        );
+      context.subscriptions.push(providerDisposable);
+      log.appendLine("Attractor: webview provider registered");
+    } catch (err) {
+      log.appendLine(
+        `Attractor: provider registration failed — ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
+
+  // --- Chat participant registration (error-bounded) ---
+  if (dependencies.chatApi) {
+    try {
+      const participant = registerChatParticipant(dependencies.chatApi);
+      context.subscriptions.push(participant);
+      log.appendLine("Attractor: chat participant registered");
+    } catch (err) {
+      log.appendLine(
+        `Attractor: chat registration failed — ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
+
+  log.appendLine("Attractor: activation complete");
 };

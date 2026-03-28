@@ -15,6 +15,7 @@ export const RepositoryRecordSchema = z.object({
 export type RepositoryRecord = z.infer<typeof RepositoryRecordSchema>;
 
 export const WebviewInboundMessageTypeSchema = z.enum([
+  "ready",
   "repository.open",
   "plan.create",
   "plan.run",
@@ -41,8 +42,8 @@ export const WebviewOutboundMessageTypeSchema = z.enum([
   "run.state",
   "timeline.update",
   "graph.update",
-  "orchestration.state",
-  "toast"
+  "toast",
+  "orchestration.state"
 ]);
 
 export const WebviewOutboundMessageSchema = z.object({
@@ -96,6 +97,14 @@ export const PlanRecordSchema = z
   })
   .refine(
     (plan) => {
+      return plan.repositories.some(
+        (r) => r.repositoryId === plan.primaryExecutableRepositoryId
+      );
+    },
+    { message: "Primary executable repository must exist in repositories" }
+  )
+  .refine(
+    (plan) => {
       const writableRepos = plan.repositories.filter(
         (r) => r.access === "read_write"
       );
@@ -136,19 +145,9 @@ export const PlanRecordSchema = z
       return new Set(ids).size === ids.length;
     },
     { message: "Repository IDs must be unique" }
-  )
-  .refine(
-    (plan) => {
-      return plan.repositories.some(
-        (r) => r.repositoryId === plan.primaryExecutableRepositoryId
-      );
-    },
-    { message: "Primary executable repository must exist in repositories" }
   );
 
 export type PlanRecord = z.infer<typeof PlanRecordSchema>;
-
-// ── RunRecord ──────────────────────────────────────────────────────────────
 
 export const RunStatusSchema = z.enum([
   "queued",
@@ -163,11 +162,12 @@ export const RunRecordSchema = z.object({
   version: z.literal(CONTRACT_VERSION),
   id: z.string().min(1),
   planId: z.string().min(1),
-  graphId: z.string().min(1),
-  worktreeId: z.string().min(1),
   status: RunStatusSchema,
+  attempt: z.number().int().min(1),
   createdAt: z.string().min(1),
   updatedAt: z.string().min(1),
+  graphId: z.string().min(1).optional(),
+  worktreeId: z.string().min(1).optional(),
   startedAt: z.string().min(1).optional(),
   completedAt: z.string().min(1).optional()
 });
@@ -194,8 +194,50 @@ export const GraphRecordSchema = z.object({
 export type GraphNode = z.infer<typeof GraphNodeSchema>;
 export type GraphRecord = z.infer<typeof GraphRecordSchema>;
 
-// ── EventEnvelope ──────────────────────────────────────────────────────────
+// ── M2 schemas ────────────────────────────────────────────────────────────────
 
+export const ExtensionEventEntityTypeSchema = z.enum([
+  "repository",
+  "plan",
+  "milestone",
+  "run",
+  "handoff",
+  "artifact",
+  "worktree"
+]);
+
+export const ExtensionEventKindSchema = z.enum([
+  "created",
+  "updated",
+  "status.changed",
+  "checkpoint.saved",
+  "checkpoint.restored",
+  "handoff.created",
+  "artifact.created",
+  "validation.failed",
+  "error"
+]);
+
+export const ExtensionEventSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  id: z.string().min(1),
+  requestId: z.string().min(1).optional(),
+  runId: z.string().min(1).optional(),
+  entityType: ExtensionEventEntityTypeSchema,
+  entityId: z.string().min(1),
+  kind: ExtensionEventKindSchema,
+  timestamp: z.string().min(1),
+  payload: z.record(z.string(), z.unknown())
+});
+
+export type ExtensionEvent = z.infer<typeof ExtensionEventSchema>;
+
+// ── EventEnvelope (domain event wrapper for run recovery) ──────────────────
+
+/**
+ * Generic domain event envelope for aggregate-scoped events.
+ * Used by the run recovery domain layer (RunAggregate, RunRecoveryService).
+ */
 export const EventEnvelopeSchema = z.object({
   version: z.literal(CONTRACT_VERSION),
   id: z.string().min(1),
@@ -213,7 +255,8 @@ export type EventEnvelope = z.infer<typeof EventEnvelopeSchema>;
 
 /** Emitted when a run is resumed from a persisted snapshot after extension restart. */
 export const RunResumedPayloadSchema = z.object({
-  resumedFromEventIndex: z.number().int().min(0)
+  /** Index of the last event applied before the resume, or -1 if no prior events exist. */
+  resumedFromEventIndex: z.number().int().min(-1)
 });
 
 export type RunResumedPayload = z.infer<typeof RunResumedPayloadSchema>;
@@ -228,63 +271,149 @@ export type OrphanedWorktreeDetectedPayload = z.infer<
   typeof OrphanedWorktreeDetectedPayloadSchema
 >;
 
-// ── RunSnapshot ─────────────────────────────────────────────────────────────
+// ── RunRecoverySnapshot ─────────────────────────────────────────────────────
 
 /**
  * A point-in-time snapshot of a run's derived state, paired with the index of
  * the last event that was applied. Used by RunAggregate.fromSnapshot() to
  * reconstruct in-flight runs without replaying the full event log.
  */
-export const RunSnapshotSchema = z.object({
+export const RunRecoverySnapshotSchema = z.object({
   version: z.literal(CONTRACT_VERSION),
   runId: z.string().min(1),
   lastEventIndex: z.number().int().min(0),
   runRecord: RunRecordSchema
 });
 
-export type RunSnapshot = z.infer<typeof RunSnapshotSchema>;
+export type RunRecoverySnapshot = z.infer<typeof RunRecoverySnapshotSchema>;
 
-// ── WorktreeLease ───────────────────────────────────────────────────────────
-
-export const WorktreeLeaseStatusSchema = z.enum([
-  "allocated",
-  "preparing",
-  "busy",
-  "releasing",
-  "retained"
+export const WorktreeLeaseStateSchema = z.enum([
+  "active",
+  "released",
+  "orphaned"
 ]);
 
 export const WorktreeLeaseSchema = z.object({
   version: z.literal(CONTRACT_VERSION),
+  id: z.string().min(1),
   runId: z.string().min(1),
+  repositoryId: z.string().min(1),
+  branchName: z.string().min(1),
   worktreePath: z.string().min(1),
-  status: WorktreeLeaseStatusSchema,
+  state: WorktreeLeaseStateSchema,
+  headCommit: z.string().min(1).optional(),
   createdAt: z.string().min(1),
-  updatedAt: z.string().min(1)
+  releasedAt: z.string().min(1).optional()
 });
 
-export type WorktreeLeaseStatus = z.infer<typeof WorktreeLeaseStatusSchema>;
 export type WorktreeLease = z.infer<typeof WorktreeLeaseSchema>;
 
-export const WorktreeLeaseStoreRecordSchema = z.object({
+export const MilestoneStatusSchema = z.enum([
+  "pending",
+  "ready",
+  "running",
+  "paused",
+  "completed",
+  "failed",
+  "canceled",
+  "blocked"
+]);
+
+export const MilestoneRecordSchema = z.object({
   version: z.literal(CONTRACT_VERSION),
-  leases: z.array(WorktreeLeaseSchema)
+  id: z.string().min(1),
+  planId: z.string().min(1),
+  title: z.string().min(1),
+  order: z.number().int().min(0),
+  status: MilestoneStatusSchema,
+  acceptanceCriteria: z.array(z.string()),
+  nodeIds: z.array(z.string())
 });
 
-export type WorktreeLeaseStoreRecord = z.infer<
-  typeof WorktreeLeaseStoreRecordSchema
->;
+export type MilestoneRecord = z.infer<typeof MilestoneRecordSchema>;
 
-// ── Typed webview payload schemas ───────────────────────────────────────────
-
-export const RepositoryStatePayloadSchema = z.object({
-  repository: RepositoryRecordSchema,
-  plans: z.array(PlanRecordSchema)
+export const RunSnapshotSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  runId: z.string().min(1),
+  status: RunStatusSchema,
+  currentMilestoneId: z.string().min(1).nullable(),
+  lastCheckpointId: z.string().min(1).nullable(),
+  snapshotAt: z.string().min(1)
 });
 
-export type RepositoryStatePayload = z.infer<
-  typeof RepositoryStatePayloadSchema
->;
+export type RunSnapshot = z.infer<typeof RunSnapshotSchema>;
+
+// ── M3.6 schemas ──────────────────────────────────────────────────────────────
+
+export const NodeStatusSchema = z.enum([
+  "queued",
+  "running",
+  "blocked",
+  "failed",
+  "succeeded",
+  "canceled"
+]);
+
+export const MilestoneRunRecordSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  id: z.string().min(1),
+  runId: z.string().min(1),
+  milestoneId: z.string().min(1),
+  nodeId: z.string().min(1),
+  status: NodeStatusSchema,
+  startedAt: z.string().min(1),
+  endedAt: z.string().min(1).optional(),
+  errorMessage: z.string().optional()
+});
+
+export type MilestoneRunRecord = z.infer<typeof MilestoneRunRecordSchema>;
+
+export const ArtifactTypeSchema = z.enum([
+  "task-pack",
+  "handoff",
+  "log",
+  "patch",
+  "report",
+  "other"
+]);
+
+export const ArtifactRecordSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  id: z.string().min(1),
+  runId: z.string().min(1),
+  nodeId: z.string().min(1).optional(),
+  milestoneId: z.string().min(1).optional(),
+  type: ArtifactTypeSchema,
+  title: z.string().min(1),
+  uri: z.string().min(1),
+  createdAt: z.string().min(1)
+});
+
+export type ArtifactRecord = z.infer<typeof ArtifactRecordSchema>;
+
+export const RoleSchema = z.enum([
+  "orchestrator",
+  "planner",
+  "implementer",
+  "reviewer"
+]);
+
+export const HandoffEnvelopeSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  id: z.string().min(1),
+  runId: z.string().min(1),
+  nodeId: z.string().min(1),
+  fromRole: RoleSchema,
+  toRole: RoleSchema,
+  task: z.string().min(1),
+  reason: z.string().min(1),
+  context: z.record(z.string(), z.unknown()).optional(),
+  createdAt: z.string().min(1)
+});
+
+export type HandoffEnvelope = z.infer<typeof HandoffEnvelopeSchema>;
+
+// ── Node status for graph renderer ─────────────────────────────────────────
 
 export const NodeStatusValueSchema = z.enum([
   "pending",
@@ -295,19 +424,51 @@ export const NodeStatusValueSchema = z.enum([
 
 export type NodeStatusValue = z.infer<typeof NodeStatusValueSchema>;
 
-export const NodeStatusSchema = z.object({
+export const NodeStatusEntrySchema = z.object({
   nodeId: z.string().min(1),
   status: NodeStatusValueSchema
 });
 
-export type NodeStatus = z.infer<typeof NodeStatusSchema>;
+export type NodeStatusEntry = z.infer<typeof NodeStatusEntrySchema>;
+
+// ── Typed outbound payload schemas ────────────────────────────────────────────
+
+export const WorkspaceSummaryStatsSchema = z.object({
+  totalRepos: z.number().int().min(0),
+  totalPlans: z.number().int().min(0),
+  activeRuns: z.number().int().min(0),
+  pausedRuns: z.number().int().min(0),
+  failedRuns24h: z.number().int().min(0)
+});
+
+export type WorkspaceSummaryStats = z.infer<typeof WorkspaceSummaryStatsSchema>;
+
+export const OverviewStatePayloadSchema = z.object({
+  repositories: z.array(RepositoryRecordSchema),
+  activeRuns: z.array(RunRecordSchema),
+  recentFailures: z.array(RunRecordSchema),
+  stats: WorkspaceSummaryStatsSchema,
+  error: z.string().optional()
+});
+
+export type OverviewStatePayload = z.infer<typeof OverviewStatePayloadSchema>;
+
+export const RepositoryStatePayloadSchema = z.object({
+  repository: RepositoryRecordSchema,
+  plans: z.array(PlanRecordSchema),
+  runs: z.array(RunRecordSchema),
+  activity: z.array(ExtensionEventSchema)
+});
+
+export type RepositoryStatePayload = z.infer<
+  typeof RepositoryStatePayloadSchema
+>;
 
 export const PlanStatePayloadSchema = z.object({
   plan: PlanRecordSchema,
-  graph: GraphRecordSchema.nullable(),
-  runs: z.array(RunRecordSchema),
-  activeRun: RunRecordSchema.nullable(),
-  repositories: z.array(RepositoryRecordSchema).optional()
+  milestones: z.array(MilestoneRecordSchema),
+  history: z.array(RunRecordSchema),
+  validationEvents: z.array(ExtensionEventSchema)
 });
 
 export type PlanStatePayload = z.infer<typeof PlanStatePayloadSchema>;
@@ -315,9 +476,9 @@ export type PlanStatePayload = z.infer<typeof PlanStatePayloadSchema>;
 export const RunStatePayloadSchema = z.object({
   run: RunRecordSchema,
   plan: PlanRecordSchema,
-  currentStep: z.string().nullable(),
-  logTail: z.array(z.string()),
-  repositories: z.array(RepositoryRecordSchema).optional()
+  milestoneRuns: z.array(MilestoneRunRecordSchema),
+  artifacts: z.array(ArtifactRecordSchema),
+  currentHandoff: HandoffEnvelopeSchema.optional()
 });
 
 export type RunStatePayload = z.infer<typeof RunStatePayloadSchema>;
@@ -330,23 +491,21 @@ export const TimelineUpdatePayloadSchema = z.object({
 export type TimelineUpdatePayload = z.infer<typeof TimelineUpdatePayloadSchema>;
 
 export const GraphUpdatePayloadSchema = z.object({
-  runId: z.string().min(1),
-  graph: GraphRecordSchema,
-  nodeStatuses: z.array(NodeStatusSchema)
+  nodeId: z.string().min(1),
+  status: NodeStatusSchema
 });
 
 export type GraphUpdatePayload = z.infer<typeof GraphUpdatePayloadSchema>;
 
-// ── Orchestration / Agent Role schemas ─────────────────────────────────────
+export const ToastPayloadSchema = z.object({
+  message: z.string().min(1),
+  severity: z.enum(["info", "warning", "error"]),
+  actions: z.array(z.string())
+});
 
-export const AgentRoleSchema = z.enum([
-  "orchestrator",
-  "planner",
-  "implementer",
-  "reviewer"
-]);
+export type ToastPayload = z.infer<typeof ToastPayloadSchema>;
 
-export type AgentRole = z.infer<typeof AgentRoleSchema>;
+// ── M4 orchestration schemas ──────────────────────────────────────────────────
 
 export const AgentRoleStatusSchema = z.enum([
   "done",
@@ -359,7 +518,7 @@ export const AgentRoleStatusSchema = z.enum([
 export type AgentRoleStatus = z.infer<typeof AgentRoleStatusSchema>;
 
 export const AgentRolePhaseSchema = z.object({
-  role: AgentRoleSchema,
+  role: RoleSchema,
   status: AgentRoleStatusSchema,
   taskSummary: z.string().optional(),
   errorLabel: z.string().optional()
@@ -367,40 +526,47 @@ export const AgentRolePhaseSchema = z.object({
 
 export type AgentRolePhase = z.infer<typeof AgentRolePhaseSchema>;
 
+// Alias for backward compatibility with domain layer using AgentRole
+export const AgentRoleSchema = RoleSchema;
+export type AgentRole = z.infer<typeof AgentRoleSchema>;
+
 export const OrchestrationStatePayloadSchema = z.object({
   runId: z.string().min(1),
-  milestoneIndex: z.number().int().min(1),
+  milestoneIndex: z.number().int().min(0),
   milestoneCount: z.number().int().min(1),
   milestoneName: z.string().min(1),
-  phases: z.array(AgentRolePhaseSchema).length(4)
+  phases: z.tuple([
+    AgentRolePhaseSchema.extend({ role: z.literal("orchestrator") }),
+    AgentRolePhaseSchema.extend({ role: z.literal("planner") }),
+    AgentRolePhaseSchema.extend({ role: z.literal("implementer") }),
+    AgentRolePhaseSchema.extend({ role: z.literal("reviewer") })
+  ])
 });
 
 export type OrchestrationStatePayload = z.infer<
   typeof OrchestrationStatePayloadSchema
 >;
 
-// ── Handoff Artifacts ────────────────────────────────────────────────────────
-
 export const OrchestratorHandoffSchema = z.object({
   version: z.literal(CONTRACT_VERSION),
   milestoneId: z.string().min(1),
   milestoneName: z.string().min(1),
   description: z.string().min(1),
-  acceptanceCriteria: z.array(z.string()).min(1)
+  acceptanceCriteria: z.array(z.string())
 });
 
 export type OrchestratorHandoff = z.infer<typeof OrchestratorHandoffSchema>;
 
-export const PlannerTaskSchema = z.object({
-  id: z.string().min(1),
-  description: z.string().min(1),
-  testFirst: z.boolean()
-});
-
 export const PlannerHandoffSchema = z.object({
   version: z.literal(CONTRACT_VERSION),
   milestoneId: z.string().min(1),
-  tasks: z.array(PlannerTaskSchema).min(1),
+  tasks: z.array(
+    z.object({
+      id: z.string().min(1),
+      description: z.string().min(1),
+      testFirst: z.boolean()
+    })
+  ),
   filesLikelyAffected: z.array(z.string())
 });
 
@@ -416,12 +582,16 @@ export const ImplementerHandoffSchema = z.object({
 
 export type ImplementerHandoff = z.infer<typeof ImplementerHandoffSchema>;
 
-export const ReviewerHandoffSchema = z.object({
-  version: z.literal(CONTRACT_VERSION),
-  milestoneId: z.string().min(1),
-  approved: z.boolean(),
-  comments: z.array(z.string()),
-  requiresChanges: z.boolean()
-});
+export const ReviewerHandoffSchema = z
+  .object({
+    version: z.literal(CONTRACT_VERSION),
+    milestoneId: z.string().min(1),
+    approved: z.boolean(),
+    comments: z.array(z.string()),
+    requiresChanges: z.boolean()
+  })
+  .refine((h) => !(h.approved === true && h.requiresChanges === true), {
+    message: "Reviewer cannot approve and require changes simultaneously"
+  });
 
 export type ReviewerHandoff = z.infer<typeof ReviewerHandoffSchema>;

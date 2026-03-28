@@ -1,12 +1,11 @@
 import type { RunRecord } from "@attractor/shared";
 
-import { RunAggregate, makeRunId, makeWorktreeId } from "../domain";
+import { RunAggregate, makeRunId } from "../domain";
 import type {
   EventLog,
   EventPublisher,
   RunRepository,
   RunSnapshotStore,
-  WorktreeLeaseStore,
   WorktreeManager
 } from "./ports";
 
@@ -21,22 +20,23 @@ export class RunCommandHandler {
     private readonly publisher: EventPublisher,
     private readonly runRepo: RunRepository,
     private readonly eventLog: EventLog,
-    private readonly leaseStore: WorktreeLeaseStore,
     private readonly worktreeManager: WorktreeManager,
     private readonly snapshotStore?: RunSnapshotStore
   ) {}
 
   async startRun(command: StartRunCommand): Promise<RunRecord> {
+    if (command.planId.trim().length === 0) {
+      throw new Error("planId must not be empty");
+    }
+    if (command.graphId.trim().length === 0) {
+      throw new Error("graphId must not be empty");
+    }
+
     const runId = makeRunId(crypto.randomUUID());
     const now = new Date().toISOString();
 
     // Allocate worktree
     const worktreePath = await this.worktreeManager.allocate(runId);
-    const worktreeId = makeWorktreeId(runId);
-
-    // Register lease
-    await this.leaseStore.allocate(runId, worktreePath);
-    await this.leaseStore.updateStatus(runId, "preparing");
 
     // Persist run record
     const run: RunRecord = {
@@ -44,18 +44,19 @@ export class RunCommandHandler {
       id: runId,
       planId: command.planId,
       graphId: command.graphId,
-      worktreeId,
+      worktreeId: worktreePath,
+      attempt: 1,
       status: "queued",
       createdAt: now,
       updatedAt: now
     };
     await this.runRepo.save(run);
 
-    // Emit domain event
+    // Emit domain event (dot-case name for replay compatibility)
     const envelope = {
       version: 1 as const,
       id: crypto.randomUUID(),
-      name: "RunCreated",
+      name: "run.created",
       aggregateType: "run",
       aggregateId: runId,
       correlationId: command.correlationId,
@@ -73,10 +74,7 @@ export class RunCommandHandler {
       payload: envelope.payload
     });
 
-    // Mark lease as busy
-    await this.leaseStore.updateStatus(runId, "busy");
-
-    // Persist initial snapshot (index 0 = the RunCreated event we just appended)
+    // Persist initial snapshot (index 0 = the run.created event we just appended)
     if (this.snapshotStore !== undefined) {
       const aggregate = RunAggregate.create(run);
       await this.snapshotStore.save(aggregate.takeSnapshot(0));

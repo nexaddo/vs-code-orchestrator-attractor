@@ -1,7 +1,3 @@
-export { decodeRunState, decodeOrchestrationState } from "./decoder";
-export {
-  renderRun,
-  renderOrchestrationPhaseBar,
-  renderRepoBadgeRow
-} from "./renderer";
-export type { RunState, OrchestrationState, AgentRolePhaseView } from "./model";
+export { RunSurface } from "./RunSurface";
+export type { RunSurfaceProps } from "./RunSurface";
+export type { RunState } from "./model";

@@ -1,0 +1,130 @@
+<mxfile version="21.2.8" type="device">
+  <diagram id="repo-diagram" name="Repository Detail">
+    <mxGraphModel dx="1440" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1440" pageHeight="900">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="repo-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry width="1440" height="900" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-top" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry width="1440" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-breadcrumb" value="Attractor / repo-beta" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="5" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-btn-refresh" value="Refresh" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="5" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-btn-open-folder" value="Open Folder" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="5" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-header" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry y="40" width="1440" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-title" value="repo-beta" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontStyle=1;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="20" y="50" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-subtitle" value="Branch: main   Worktree Root: /.attractor/worktrees   Last Sync: 3m ago" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="20" y="80" width="800" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-btn-cp" value="Create Plan" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="20" y="120" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-btn-ig" value="Import Graph" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="150" y="120" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-btn-rlp" value="Run Last Plan" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="280" y="120" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-btn-ogs" value="Open Git Status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="410" y="120" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-tabs" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry y="160" width="1440" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-tab-text" value="Tabs: [Plans] [Runs] [Artifacts] [History]" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="20" y="165" width="600" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-col-left" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry y="200" width="400" height="700" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-lp-title" value="Plans" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="210" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-lp-add" value="+ New Plan" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="20" y="240" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-lp-1" value="&gt; Release Prep" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="270" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-lp-2" value="&gt; Nightly Verification" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="20" y="300" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-lp-3" value="&gt; Docs + Changelog" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="20" y="330" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-ar-title" value="Active Runs" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="450" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-ar-1" value="- Release Prep / Running" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="20" y="480" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-ar-2" value="- Docs + Changelog / Paused" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="20" y="510" width="300" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-btn-or" value="Open Run" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="20" y="550" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-btn-rr" value="Resume" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="130" y="550" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-btn-cr" value="Cancel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="240" y="550" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-main" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="400" y="200" width="1040" height="700" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-mp-title" value="Plan: Release Prep" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontStyle=1;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="440" y="210" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-mp-badge" value="" style="ellipse;whiteSpace=wrap;html=1;strokeColor=none;fillColor=#0e7ad0;" vertex="1" parent="1">
+          <mxGeometry x="440" y="258" width="14" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-mp-status" value="Status: Ready   Last Run: Failed" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="460" y="250" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-btn-rpl" value="Run Plan" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="440" y="290" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-btn-epl" value="Edit Plan" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="550" y="290" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-btn-dup" value="Duplicate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3c3c3c;fontColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="660" y="290" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-gp-title" value="Graph Preview" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="340" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-gp-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#252526;strokeColor=#3c3c3c;" vertex="1" parent="1">
+          <mxGeometry x="440" y="380" width="960" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-gp-text" value="start -&gt; verify -&gt; docs -&gt; package -&gt; publish" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="460" y="415" width="920" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-tl-title" value="Recent Timeline" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="520" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-tl-1" value="10:42 plan created" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="440" y="550" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-tl-2" value="10:51 run started" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;" vertex="1" parent="1">
+          <mxGeometry x="440" y="580" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="repo-tl-3" value="10:58 node failed: publish" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#cccccc;fontColor=#f44747;" vertex="1" parent="1">
+          <mxGeometry x="440" y="610" width="400" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

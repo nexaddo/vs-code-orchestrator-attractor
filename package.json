@@ -7,7 +7,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc -b && pnpm --filter @attractor/webview build:bundle && pnpm --filter attractor build:bundle",
     "ci:fast-checks": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test",
     "typecheck": "tsc -b --pretty false",
     "lint": "eslint .",
@@ -16,14 +16,15 @@
     "test": "vitest run --config vitest.config.ts",
     "test:coverage": "vitest run --config vitest.config.ts --coverage",
     "test:evals": "vitest run --config vitest.config.ts packages/extension/test/evals",
-    "postinstall": "git config core.hooksPath .githooks",
-    "pack": "pnpm --filter @attractor/extension run package",
-    "release:dry": "pnpm run ci:fast-checks && pnpm run pack"
+    "vsce:package": "pnpm build && pnpm --filter attractor exec vsce package --no-dependencies -o ../../attractor.vsix",
+    "vsce:ls": "pnpm --filter attractor exec vsce ls --no-dependencies",
+    "postinstall": "node -e \"try{const{execSync}=require('child_process');execSync('git rev-parse --is-inside-work-tree',{stdio:'ignore'});execSync('git config core.hooksPath .githooks',{stdio:'ignore'});}catch(e){}\""
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
     "@types/node": "^24.6.1",
     "@vitest/coverage-v8": "3.2.4",
+    "@vscode/vsce": "^3.7.1",
     "eslint": "^9.36.0",
     "globals": "^16.4.0",
     "lint-staged": "^15.2.11",

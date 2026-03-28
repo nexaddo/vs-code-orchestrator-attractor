@@ -3,9 +3,8 @@ import type {
   GraphRecord,
   RepositoryRecord,
   RunRecord,
-  RunSnapshot,
-  WorktreeLease,
-  WorktreeLeaseStatus
+  RunRecoverySnapshot,
+  WorktreeLease
 } from "@attractor/shared";
 
 import type { DomainEvent } from "../domain/events";
@@ -28,10 +27,7 @@ export interface GraphRepository {
 }
 
 export interface WorktreeLeaseStore {
-  allocate(runId: string, worktreePath: string): Promise<WorktreeLease>;
-  updateStatus(runId: string, status: WorktreeLeaseStatus): Promise<void>;
   findByRunId(runId: string): Promise<WorktreeLease | undefined>;
-  release(runId: string): Promise<void>;
   listAll(): Promise<WorktreeLease[]>;
 }
 
@@ -41,8 +37,8 @@ export interface EventLog {
 }
 
 export interface RunSnapshotStore {
-  save(snapshot: RunSnapshot): Promise<void>;
-  find(runId: string): Promise<RunSnapshot | undefined>;
+  save(snapshot: RunRecoverySnapshot): Promise<void>;
+  find(runId: string): Promise<RunRecoverySnapshot | undefined>;
 }
 
 // ── Worktree manager port ────────────────────────────────────────────────────
@@ -63,23 +59,63 @@ export interface RepositoryRegistry {
 
 // ── ModelGateway port ────────────────────────────────────────────────────────
 
+/**
+ * Represents a message sent to or received from a language model.
+ */
 export interface ModelMessage {
-  role: "user" | "assistant";
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
+/**
+ * Options for configuring a model request.
+ */
 export interface ModelRequestOptions {
-  systemPrompt?: string;
+  modelFamily?: string;
+  maxTokens?: number;
+  temperature?: number;
+  signal?: AbortSignal;
 }
 
+/**
+ * Abstract gateway for language model interactions.
+ * Implementations may target VS Code Copilot, OpenAI, or test stubs.
+ */
 export interface ModelGateway {
   send(
     messages: ModelMessage[],
     options?: ModelRequestOptions
   ): Promise<string>;
+
   stream(
     messages: ModelMessage[],
     onChunk: (text: string) => void,
     options?: ModelRequestOptions
   ): Promise<void>;
+}
+
+/**
+ * A no-op gateway that returns empty responses.
+ * Used as the default when no real model provider is configured.
+ */
+export class NoOpModelGateway implements ModelGateway {
+  async send(
+    messages: ModelMessage[],
+    options?: ModelRequestOptions
+  ): Promise<string> {
+    void messages;
+    void options;
+    return "";
+  }
+
+  async stream(
+    messages: ModelMessage[],
+    onChunk: (text: string) => void,
+    options?: ModelRequestOptions
+  ): Promise<void> {
+    void messages;
+    void onChunk;
+    void options;
+    return;
+  }
 }

@@ -1,3 +1,3 @@
-export { decodeRepositoryState } from "./decoder";
-export { renderRepository } from "./renderer";
+export { RepositorySurface } from "./RepositorySurface";
+export type { RepositorySurfaceProps } from "./RepositorySurface";
 export type { RepositoryState } from "./model";

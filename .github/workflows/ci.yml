@@ -30,9 +30,12 @@ jobs:
       - name: Run fast checks
         run: pnpm ci:fast-checks
 
-  coverage:
-    runs-on: ubuntu-latest
+  package-check:
     needs: fast-checks
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,45 +54,42 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run coverage with thresholds
-        run: pnpm test:coverage
+      - name: Build
+        run: pnpm build
 
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-report
-          path: "**/coverage/"
-          retention-days: 14
+      - name: Package VSIX
+        run: pnpm --filter attractor exec vsce package --no-dependencies
 
-  evals:
-    runs-on: ubuntu-latest
-    needs: fast-checks
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Validate VSIX contents
+        shell: bash
+        run: |
+          output=$(pnpm --filter attractor exec vsce ls --no-dependencies)
+          echo "$output"
+          echo "$output" | grep -q "dist/bundle/extension.js" || { echo "FAIL: missing extension.js"; exit 1; }
+          echo "$output" | grep -q "dist/bundle/webview/webview.js" || { echo "FAIL: missing webview.js"; exit 1; }
+          echo "$output" | grep -q "dist/bundle/webview/webview.css" || { echo "FAIL: missing webview.css"; exit 1; }
+          if echo "$output" | grep -E '\.ts$' | grep -v '\.d\.ts$'; then
+            echo "FAIL: .ts source files found in package"; exit 1
+          fi
+          if echo "$output" | grep 'test/'; then
+            echo "FAIL: test files found in package"; exit 1
+          fi
+          echo "VSIX content validation passed"
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.32.0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run orchestration evals
-        run: pnpm test:evals
-
-      - name: Upload eval metrics
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: eval-metrics
-          path: test-results/eval-metrics.json
-          retention-days: 30
+      - name: Check VSIX bundle size
+        shell: bash
+        run: |
+          vsix_file=$(find packages/extension -maxdepth 1 -name '*.vsix' | head -1)
+          if [ -z "$vsix_file" ]; then
+            echo "FAIL: no .vsix file found"; exit 1
+          fi
+          size=$(wc -c < "$vsix_file" | tr -d ' ')
+          size_kb=$((size / 1024))
+          max_kb=200
+          max_bytes=$((max_kb * 1024))
+          echo "VSIX size: ${size_kb}KB ($size bytes)"
+          if [ "$size" -gt "$max_bytes" ]; then
+            echo "FAIL: VSIX exceeds ${max_kb}KB threshold (${size_kb}KB, $size bytes)"
+            exit 1
+          fi
+          echo "VSIX size check passed (${size_kb}KB ($size bytes) <= ${max_kb}KB)"

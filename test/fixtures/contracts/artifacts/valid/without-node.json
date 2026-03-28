@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "id": "art_002",
+  "runId": "run_001",
+  "type": "log",
+  "title": "run.log",
+  "uri": "file:///workspace/.attractor/runs/run_001/artifacts/art_002/run.log",
+  "createdAt": "2026-03-16T01:20:00Z"
+}
