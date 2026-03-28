@@ -21,7 +21,9 @@ export function decodeRepositoryState(
       success: true,
       state: {
         repository: parsed.payload.repository,
-        plans: parsed.payload.plans
+        plans: parsed.payload.plans,
+        runs: parsed.payload.runs,
+        activity: parsed.payload.activity
       }
     };
   } catch (error) {

@@ -146,9 +146,10 @@ export function renderRun(state: RunState): string {
 </div>`
       : "";
 
+  const resolvedLogTail = logTail ?? [];
   const logHtml =
-    logTail.length > 0
-      ? logTail
+    resolvedLogTail.length > 0
+      ? resolvedLogTail
           .map((line) => `<div class="log-line">${escapeHtml(line)}</div>`)
           .join("")
       : `<div class="log-empty">No log output</div>`;

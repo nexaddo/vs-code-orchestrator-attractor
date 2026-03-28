@@ -13,8 +13,8 @@ describe("decodeRunState", () => {
       expect(result.state.run.id).toBe("run_001");
       expect(result.state.run.status).toBe("running");
       expect(result.state.plan.title).toBe("Implement Feature X");
-      expect(result.state.currentStep).toBe("A");
-      expect(result.state.logTail).toHaveLength(2);
+      expect(result.state.milestoneRuns).toHaveLength(0);
+      expect(result.state.artifacts).toHaveLength(0);
     }
   });
 

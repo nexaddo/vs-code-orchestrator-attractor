@@ -3,7 +3,9 @@ import {
   WebviewOutboundMessageSchema,
   PlanRecordSchema,
   GraphRecordSchema,
-  RunRecordSchema
+  RunRecordSchema,
+  MilestoneRecordSchema,
+  ExtensionEventSchema
 } from "@attractor/shared";
 import type { PlanState } from "./model";
 
@@ -11,7 +13,10 @@ const PlanViewPayloadSchema = z.object({
   plan: PlanRecordSchema,
   graph: GraphRecordSchema.nullable(),
   runs: z.array(RunRecordSchema),
-  activeRun: RunRecordSchema.nullable()
+  activeRun: RunRecordSchema.nullable(),
+  milestones: z.array(MilestoneRecordSchema).optional(),
+  history: z.array(RunRecordSchema).optional(),
+  validationEvents: z.array(ExtensionEventSchema).optional()
 });
 
 const PlanMessageSchema = WebviewOutboundMessageSchema.extend({
@@ -30,7 +35,10 @@ export function decodePlanState(
         plan: parsed.payload.plan,
         graph: parsed.payload.graph,
         runs: parsed.payload.runs,
-        activeRun: parsed.payload.activeRun
+        activeRun: parsed.payload.activeRun,
+        milestones: parsed.payload.milestones ?? [],
+        history: parsed.payload.history ?? [],
+        validationEvents: parsed.payload.validationEvents ?? []
       }
     };
   } catch (error) {

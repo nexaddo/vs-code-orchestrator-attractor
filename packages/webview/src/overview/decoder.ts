@@ -22,7 +22,9 @@ export function decodeOverviewState(
         activeRuns: parsed.payload.activeRuns,
         recentFailures: parsed.payload.recentFailures,
         stats: parsed.payload.stats,
-        error: parsed.payload.error
+        ...(parsed.payload.error !== undefined
+          ? { error: parsed.payload.error }
+          : {})
       }
     };
   } catch (error) {
