@@ -58,7 +58,8 @@ describe("WorktreeLeaseSchema", () => {
   });
 
   it("rejects missing required fields", () => {
-    const { repositoryId: _r, ...withoutRepo } = validLease;
+    const { repositoryId: _repositoryId, ...withoutRepo } = validLease;
+    void _repositoryId;
     expect(WorktreeLeaseSchema.safeParse(withoutRepo).success).toBe(false);
   });
 });

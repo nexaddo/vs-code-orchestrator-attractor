@@ -22,8 +22,7 @@ export class CopilotModelGateway implements ModelGateway {
   }
 
   private toVsCodeMessages(
-    messages: ModelMessage[],
-    _options?: ModelRequestOptions
+    messages: ModelMessage[]
   ): vscode.LanguageModelChatMessage[] {
     const result: vscode.LanguageModelChatMessage[] = [];
     for (const msg of messages) {
@@ -40,8 +39,9 @@ export class CopilotModelGateway implements ModelGateway {
     messages: ModelMessage[],
     options?: ModelRequestOptions
   ): Promise<string> {
+    void options;
     const model = await this.getModel();
-    const vsMessages = this.toVsCodeMessages(messages, options);
+    const vsMessages = this.toVsCodeMessages(messages);
     const cts = new vscode.CancellationTokenSource();
     try {
       const request = await model.sendRequest(vsMessages, {}, cts.token);
@@ -62,8 +62,9 @@ export class CopilotModelGateway implements ModelGateway {
     onChunk: (text: string) => void,
     options?: ModelRequestOptions
   ): Promise<void> {
+    void options;
     const model = await this.getModel();
-    const vsMessages = this.toVsCodeMessages(messages, options);
+    const vsMessages = this.toVsCodeMessages(messages);
     const cts = new vscode.CancellationTokenSource();
     try {
       const request = await model.sendRequest(vsMessages, {}, cts.token);
