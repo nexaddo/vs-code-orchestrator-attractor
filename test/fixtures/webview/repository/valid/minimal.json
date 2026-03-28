@@ -11,6 +11,8 @@
       "defaultBranch": "main",
       "labels": ["workspace"]
     },
-    "plans": []
+    "plans": [],
+    "runs": [],
+    "activity": []
   }
 }

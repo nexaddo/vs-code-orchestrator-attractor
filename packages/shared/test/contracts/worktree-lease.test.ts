@@ -1,105 +1,64 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  WorktreeLeaseSchema,
-  WorktreeLeaseStoreRecordSchema
-} from "../../src/contracts";
+import { WorktreeLeaseSchema } from "../../src/contracts";
+
+const validLease = {
+  version: 1,
+  id: "lease-001",
+  runId: "run-001",
+  repositoryId: "repo-001",
+  branchName: "attractor/run-001",
+  worktreePath: "/tmp/attractor-worktrees/run-001",
+  state: "active",
+  createdAt: "2026-01-01T00:00:00.000Z"
+};
 
 describe("WorktreeLeaseSchema", () => {
-  it("accepts a valid lease", () => {
+  it("accepts a valid active lease", () => {
+    const result = WorktreeLeaseSchema.safeParse(validLease);
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts all valid states", () => {
+    const states = ["active", "released", "orphaned"] as const;
+    for (const state of states) {
+      const result = WorktreeLeaseSchema.safeParse({ ...validLease, state });
+      expect(result.success, `state '${state}' should be valid`).toBe(true);
+    }
+  });
+
+  it("accepts optional headCommit", () => {
     const result = WorktreeLeaseSchema.safeParse({
-      version: 1,
-      runId: "run-001",
-      worktreePath: "/tmp/attractor-worktrees/run-001",
-      status: "allocated",
-      createdAt: "2026-01-01T00:00:00.000Z",
-      updatedAt: "2026-01-01T00:00:00.000Z"
+      ...validLease,
+      headCommit: "abc123"
     });
     expect(result.success).toBe(true);
   });
 
-  it("accepts all valid statuses", () => {
-    const statuses = [
-      "allocated",
-      "preparing",
-      "busy",
-      "releasing",
-      "retained"
-    ] as const;
-    for (const status of statuses) {
-      const result = WorktreeLeaseSchema.safeParse({
-        version: 1,
-        runId: "run-001",
-        worktreePath: "/tmp/wt",
-        status,
-        createdAt: "2026-01-01T00:00:00.000Z",
-        updatedAt: "2026-01-01T00:00:00.000Z"
-      });
-      expect(result.success, `status '${status}' should be valid`).toBe(true);
-    }
+  it("accepts optional releasedAt", () => {
+    const result = WorktreeLeaseSchema.safeParse({
+      ...validLease,
+      state: "released",
+      releasedAt: "2026-01-02T00:00:00.000Z"
+    });
+    expect(result.success).toBe(true);
   });
 
-  it("rejects invalid status", () => {
+  it("rejects invalid state", () => {
     const result = WorktreeLeaseSchema.safeParse({
-      version: 1,
-      runId: "run-001",
-      worktreePath: "/tmp/wt",
-      status: "unknown",
-      createdAt: "2026-01-01T00:00:00.000Z",
-      updatedAt: "2026-01-01T00:00:00.000Z"
+      ...validLease,
+      state: "unknown"
     });
     expect(result.success).toBe(false);
   });
 
   it("rejects empty runId", () => {
-    const result = WorktreeLeaseSchema.safeParse({
-      version: 1,
-      runId: "",
-      worktreePath: "/tmp/wt",
-      status: "allocated",
-      createdAt: "2026-01-01T00:00:00.000Z",
-      updatedAt: "2026-01-01T00:00:00.000Z"
-    });
+    const result = WorktreeLeaseSchema.safeParse({ ...validLease, runId: "" });
     expect(result.success).toBe(false);
   });
-});
 
-describe("WorktreeLeaseStoreRecordSchema", () => {
-  it("accepts an empty lease store", () => {
-    const result = WorktreeLeaseStoreRecordSchema.safeParse({
-      version: 1,
-      leases: []
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it("accepts a store with multiple leases", () => {
-    const result = WorktreeLeaseStoreRecordSchema.safeParse({
-      version: 1,
-      leases: [
-        {
-          version: 1,
-          runId: "run-a",
-          worktreePath: "/tmp/a",
-          status: "busy",
-          createdAt: "2026-01-01T00:00:00.000Z",
-          updatedAt: "2026-01-01T00:00:00.000Z"
-        },
-        {
-          version: 1,
-          runId: "run-b",
-          worktreePath: "/tmp/b",
-          status: "allocated",
-          createdAt: "2026-01-01T00:00:00.000Z",
-          updatedAt: "2026-01-01T00:00:00.000Z"
-        }
-      ]
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it("rejects missing version", () => {
-    const result = WorktreeLeaseStoreRecordSchema.safeParse({ leases: [] });
-    expect(result.success).toBe(false);
+  it("rejects missing required fields", () => {
+    const { repositoryId: _r, ...withoutRepo } = validLease;
+    expect(WorktreeLeaseSchema.safeParse(withoutRepo).success).toBe(false);
   });
 });

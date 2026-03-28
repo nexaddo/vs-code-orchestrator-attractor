@@ -16,18 +16,38 @@ import { afterAll, describe, expect, it } from "vitest";
 
 import { OrchestrationLoop } from "../../src/application/orchestration-loop";
 import type {
+  MilestoneInput,
+  OrchestrationOptions
+} from "../../src/application/orchestration-loop";
+import type {
   ModelGateway,
-  ModelMessage,
-  ModelRequestOptions
+  ModelMessage
 } from "../../src/application/ports";
 import type { GraphRecord, OrchestrationStatePayload } from "@attractor/shared";
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Extract system message content from a messages array. */
+function getSysContent(msgs: ModelMessage[]): string {
+  return msgs.find((m) => m.role === "system")?.content ?? "";
+}
+
+/** Convert a GraphRecord to MilestoneInput[] for the orchestration loop. */
+function graphToMilestones(graph: GraphRecord): MilestoneInput[] {
+  return graph.nodes.map((node, i) => ({
+    id: node.id,
+    name: node.label,
+    order: i,
+    description: node.label,
+    acceptanceCriteria: ["Implementation complete"]
+  }));
+}
+
 // ── Shared fixture responses ──────────────────────────────────────────────────
 
+// Orchestrator fixture: only description + acceptanceCriteria (no milestoneId —
+// the loop supplies the ID from context and validates any ID provided).
 const ORCHESTRATOR_OK = JSON.stringify({
-  version: 1,
-  milestoneId: "X",
-  milestoneName: "Milestone",
   description: "Implement feature.",
   acceptanceCriteria: ["Tests pass", "No regressions"]
 });
@@ -60,11 +80,8 @@ const REVIEWER_OK = JSON.stringify({
 /** All phases always succeed. */
 function makeHappyGateway(): ModelGateway {
   return {
-    send: async (
-      _msgs: ModelMessage[],
-      opts?: ModelRequestOptions
-    ): Promise<string> => {
-      const sys = opts?.systemPrompt ?? "";
+    send: async (msgs: ModelMessage[]): Promise<string> => {
+      const sys = getSysContent(msgs);
       if (sys.includes("acceptanceCriteria")) return ORCHESTRATOR_OK;
       if (sys.includes("filesLikelyAffected")) return PLANNER_OK;
       if (sys.includes("testsPassed")) return IMPLEMENTER_OK;
@@ -81,11 +98,8 @@ function makeHappyGateway(): ModelGateway {
  */
 function makeImplementerFailGateway(): ModelGateway {
   return {
-    send: async (
-      _msgs: ModelMessage[],
-      opts?: ModelRequestOptions
-    ): Promise<string> => {
-      const sys = opts?.systemPrompt ?? "";
+    send: async (msgs: ModelMessage[]): Promise<string> => {
+      const sys = getSysContent(msgs);
       if (sys.includes("acceptanceCriteria")) return ORCHESTRATOR_OK;
       if (sys.includes("filesLikelyAffected")) return PLANNER_OK;
       if (sys.includes("testsPassed"))
@@ -103,11 +117,8 @@ function makeImplementerFailGateway(): ModelGateway {
  */
 function makeOrchestratorFailGateway(): ModelGateway {
   return {
-    send: async (
-      _msgs: ModelMessage[],
-      opts?: ModelRequestOptions
-    ): Promise<string> => {
-      const sys = opts?.systemPrompt ?? "";
+    send: async (msgs: ModelMessage[]): Promise<string> => {
+      const sys = getSysContent(msgs);
       if (sys.includes("acceptanceCriteria"))
         throw new Error("Orchestrator unavailable");
       if (sys.includes("filesLikelyAffected")) return PLANNER_OK;
@@ -169,7 +180,9 @@ function computeMetrics(
     for (const phase of state.phases) {
       if (phase.status === "done") phasesDone++;
       else if (phase.status === "failed") phasesFailed++;
-      else if (phase.status === "skipped") phasesSkipped++;
+      // "waiting" in a terminal milestone state means the phase was never reached
+      else if (phase.status === "skipped" || phase.status === "waiting")
+        phasesSkipped++;
     }
   }
 
@@ -238,14 +251,20 @@ async function runScenario(
   graph: GraphRecord,
   expectedMilestoneOrder: string[]
 ): Promise<ScenarioResult> {
-  const loop = new OrchestrationLoop(gateway);
+  const loop = new OrchestrationLoop();
   const states: OrchestrationStatePayload[] = [];
-  await loop.execute({
+  const milestones = graphToMilestones(graph);
+  const options: OrchestrationOptions = {
+    modelGateway: gateway,
+    milestones,
     runId: `eval-${name}`,
-    graph,
-    worktreePath: "/tmp/eval-worktree",
-    onStateUpdate: (s) => states.push(s)
-  });
+    planTitle: "Eval Plan",
+    planGoal: "Complete all milestones",
+    onStateChange: (s) => states.push(s),
+    onHandoff: () => {},
+    onError: () => {}
+  };
+  await loop.execute(options);
   const result: ScenarioResult = {
     name,
     ...computeMetrics(states, expectedMilestoneOrder)
@@ -373,11 +392,8 @@ describe("Orchestration Evals", () => {
     // A succeeds, B fails at implementer
     let callCount = 0;
     const gateway: ModelGateway = {
-      send: async (
-        _msgs: ModelMessage[],
-        opts?: ModelRequestOptions
-      ): Promise<string> => {
-        const sys = opts?.systemPrompt ?? "";
+      send: async (msgs: ModelMessage[]): Promise<string> => {
+        const sys = getSysContent(msgs);
         if (sys.includes("acceptanceCriteria")) {
           callCount++;
           return ORCHESTRATOR_OK;

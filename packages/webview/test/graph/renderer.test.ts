@@ -71,7 +71,7 @@ describe("renderGraph", () => {
     };
     const html = renderGraph(state);
     expect(html).toContain("graph-node--pending");
-    expect(html).toContain("Pending: 0");
+    expect(html).toContain("Pending: 2");
   });
 
   it("should render failed nodes", () => {

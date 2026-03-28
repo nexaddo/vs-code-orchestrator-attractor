@@ -1,10 +1,11 @@
 {
   "version": 1,
   "id": "evt_001",
+  "requestId": "req_001",
   "runId": "run_001",
   "entityType": "run",
   "entityId": "run_001",
   "kind": "created",
-  "timestamp": "2026-03-16T00:00:00Z",
+  "timestamp": "2026-03-16T00:00:00.000Z",
   "payload": {}
 }

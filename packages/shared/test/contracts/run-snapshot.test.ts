@@ -2,22 +2,21 @@ import { describe, expect, it } from "vitest";
 
 import {
   OrphanedWorktreeDetectedPayloadSchema,
-  RunResumedPayloadSchema,
-  RunSnapshotSchema
+  RunRecoverySnapshotSchema,
+  RunResumedPayloadSchema
 } from "../../src/contracts";
 
 const validRunRecord = {
   version: 1 as const,
   id: "run-abc",
   planId: "plan-1",
-  graphId: "graph-1",
-  worktreeId: "wt-1",
+  attempt: 1,
   status: "running" as const,
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:01:00.000Z"
 };
 
-describe("RunSnapshotSchema", () => {
+describe("RunRecoverySnapshotSchema", () => {
   it("parses a valid snapshot", () => {
     const snapshot = {
       version: 1,
@@ -25,7 +24,7 @@ describe("RunSnapshotSchema", () => {
       lastEventIndex: 3,
       runRecord: validRunRecord
     };
-    const result = RunSnapshotSchema.safeParse(snapshot);
+    const result = RunRecoverySnapshotSchema.safeParse(snapshot);
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.runId).toBe("run-abc");
@@ -41,12 +40,12 @@ describe("RunSnapshotSchema", () => {
       lastEventIndex: -1,
       runRecord: validRunRecord
     };
-    expect(RunSnapshotSchema.safeParse(snapshot).success).toBe(false);
+    expect(RunRecoverySnapshotSchema.safeParse(snapshot).success).toBe(false);
   });
 
   it("rejects missing runId", () => {
     const snapshot = { version: 1, lastEventIndex: 0, runRecord: validRunRecord };
-    expect(RunSnapshotSchema.safeParse(snapshot).success).toBe(false);
+    expect(RunRecoverySnapshotSchema.safeParse(snapshot).success).toBe(false);
   });
 
   it("requires version: 1", () => {
@@ -56,7 +55,7 @@ describe("RunSnapshotSchema", () => {
       lastEventIndex: 0,
       runRecord: validRunRecord
     };
-    expect(RunSnapshotSchema.safeParse(snapshot).success).toBe(false);
+    expect(RunRecoverySnapshotSchema.safeParse(snapshot).success).toBe(false);
   });
 
   it("accepts lastEventIndex of 0 (first event)", () => {
@@ -66,7 +65,7 @@ describe("RunSnapshotSchema", () => {
       lastEventIndex: 0,
       runRecord: validRunRecord
     };
-    expect(RunSnapshotSchema.safeParse(snapshot).success).toBe(true);
+    expect(RunRecoverySnapshotSchema.safeParse(snapshot).success).toBe(true);
   });
 });
 
@@ -85,9 +84,15 @@ describe("RunResumedPayloadSchema", () => {
     ).toBe(true);
   });
 
-  it("rejects negative resumedFromEventIndex", () => {
+  it("accepts resumedFromEventIndex of -1 (no prior events)", () => {
     expect(
       RunResumedPayloadSchema.safeParse({ resumedFromEventIndex: -1 }).success
+    ).toBe(true);
+  });
+
+  it("rejects resumedFromEventIndex < -1", () => {
+    expect(
+      RunResumedPayloadSchema.safeParse({ resumedFromEventIndex: -2 }).success
     ).toBe(false);
   });
 

@@ -23,7 +23,7 @@ describe("FileWorktreeLeaseStore", () => {
     const lease = await store.allocate("run-001", "/tmp/wt/run-001");
     expect(lease.runId).toBe("run-001");
     expect(lease.worktreePath).toBe("/tmp/wt/run-001");
-    expect(lease.status).toBe("allocated");
+    expect(lease.state).toBe("active");
   });
 
   it("returns existing lease if already allocated", async () => {
@@ -43,19 +43,6 @@ describe("FileWorktreeLeaseStore", () => {
     expect(found).toBeUndefined();
   });
 
-  it("updates lease status", async () => {
-    await store.allocate("run-003", "/tmp/wt/run-003");
-    await store.updateStatus("run-003", "busy");
-    const lease = await store.findByRunId("run-003");
-    expect(lease?.status).toBe("busy");
-  });
-
-  it("throws when updating status for unknown runId", async () => {
-    await expect(store.updateStatus("no-such-run", "busy")).rejects.toThrow(
-      "No lease found for runId: no-such-run"
-    );
-  });
-
   it("releases a lease", async () => {
     await store.allocate("run-004", "/tmp/wt/run-004");
     await store.release("run-004");
@@ -63,7 +50,7 @@ describe("FileWorktreeLeaseStore", () => {
     expect(found).toBeUndefined();
   });
 
-  it("lists all leases", async () => {
+  it("lists all active leases", async () => {
     await store.allocate("run-a", "/tmp/wt/a");
     await store.allocate("run-b", "/tmp/wt/b");
     const leases = await store.listAll();
@@ -73,6 +60,15 @@ describe("FileWorktreeLeaseStore", () => {
   it("returns empty list initially", async () => {
     const leases = await store.listAll();
     expect(leases).toEqual([]);
+  });
+
+  it("released leases are excluded from listAll", async () => {
+    await store.allocate("run-a", "/tmp/wt/a");
+    await store.allocate("run-b", "/tmp/wt/b");
+    await store.release("run-a");
+    const leases = await store.listAll();
+    expect(leases).toHaveLength(1);
+    expect(leases[0]?.runId).toBe("run-b");
   });
 
   it("persists to .attractor/worktrees/leases.json", async () => {

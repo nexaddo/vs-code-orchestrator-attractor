@@ -1,15 +1,25 @@
 import { z } from "zod";
 import {
   WebviewOutboundMessageSchema,
-  RunStatePayloadSchema,
-  OrchestrationStatePayloadSchema
+  OrchestrationStatePayloadSchema,
+  RunRecordSchema,
+  PlanRecordSchema,
+  RepositoryRecordSchema
 } from "@attractor/shared";
 import type { AgentRolePhase } from "@attractor/shared";
 import type { AgentRolePhaseView, OrchestrationState, RunState } from "./model";
 
+const RunViewPayloadSchema = z.object({
+  run: RunRecordSchema,
+  plan: PlanRecordSchema,
+  currentStep: z.string().nullable(),
+  logTail: z.array(z.string()),
+  repositories: z.array(RepositoryRecordSchema).optional()
+});
+
 const RunMessageSchema = WebviewOutboundMessageSchema.extend({
   type: z.literal("run.state"),
-  payload: RunStatePayloadSchema
+  payload: RunViewPayloadSchema
 });
 
 const OrchestrationMessageSchema = WebviewOutboundMessageSchema.extend({
@@ -26,11 +36,9 @@ export function decodeRunState(
       run: parsed.payload.run,
       plan: parsed.payload.plan,
       currentStep: parsed.payload.currentStep,
-      logTail: parsed.payload.logTail
+      logTail: parsed.payload.logTail,
+      repositories: parsed.payload.repositories
     };
-    if (parsed.payload.repositories !== undefined) {
-      state.repositories = parsed.payload.repositories;
-    }
     return { success: true, state };
   } catch (error) {
     if (error instanceof z.ZodError) {

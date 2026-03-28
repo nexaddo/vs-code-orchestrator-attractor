@@ -7,7 +7,7 @@ import { EventEnvelopeSchema } from "../../src/contracts";
 
 const fixturesDir = path.resolve(
   __dirname,
-  "../../../../test/fixtures/contracts/events"
+  "../../../../test/fixtures/contracts/event-envelopes"
 );
 
 const loadFixture = (relativePath: string): unknown => {

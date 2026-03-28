@@ -1,13 +1,22 @@
 import { z } from "zod";
 import {
   WebviewOutboundMessageSchema,
-  PlanStatePayloadSchema
+  PlanRecordSchema,
+  GraphRecordSchema,
+  RunRecordSchema
 } from "@attractor/shared";
 import type { PlanState } from "./model";
 
+const PlanViewPayloadSchema = z.object({
+  plan: PlanRecordSchema,
+  graph: GraphRecordSchema.nullable(),
+  runs: z.array(RunRecordSchema),
+  activeRun: RunRecordSchema.nullable()
+});
+
 const PlanMessageSchema = WebviewOutboundMessageSchema.extend({
   type: z.literal("plan.state"),
-  payload: PlanStatePayloadSchema
+  payload: PlanViewPayloadSchema
 });
 
 export function decodePlanState(

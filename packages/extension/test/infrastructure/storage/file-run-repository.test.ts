@@ -11,8 +11,7 @@ const makeRun = (id: string): RunRecord => ({
   version: 1,
   id,
   planId: "plan-1",
-  graphId: "graph-1",
-  worktreeId: "wt-1",
+  attempt: 1,
   status: "queued",
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z"

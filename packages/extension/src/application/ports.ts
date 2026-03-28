@@ -29,6 +29,7 @@ export interface GraphRepository {
 export interface WorktreeLeaseStore {
   findByRunId(runId: string): Promise<WorktreeLease | undefined>;
   listAll(): Promise<WorktreeLease[]>;
+  release(runId: string): Promise<void>;
 }
 
 export interface EventLog {

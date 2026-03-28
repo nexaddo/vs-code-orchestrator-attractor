@@ -4,7 +4,7 @@ import * as path from "path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import type { RunSnapshot } from "@attractor/shared";
+import type { RunRecoverySnapshot } from "@attractor/shared";
 
 import { FileRunSnapshotStore } from "../../../src/infrastructure/storage/file-run-snapshot-store";
 
@@ -12,8 +12,7 @@ const validRunRecord = {
   version: 1 as const,
   id: "run-snap-01",
   planId: "plan-x",
-  graphId: "graph-x",
-  worktreeId: "wt-x",
+  attempt: 1,
   status: "running" as const,
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:01:00.000Z"
@@ -33,7 +32,7 @@ describe("FileRunSnapshotStore", () => {
   });
 
   it("saves and retrieves a snapshot", async () => {
-    const snap: RunSnapshot = {
+    const snap: RunRecoverySnapshot = {
       version: 1,
       runId: "run-snap-01",
       lastEventIndex: 2,
@@ -53,13 +52,13 @@ describe("FileRunSnapshotStore", () => {
   });
 
   it("overwrites an existing snapshot", async () => {
-    const snap1: RunSnapshot = {
+    const snap1: RunRecoverySnapshot = {
       version: 1,
       runId: "run-snap-01",
       lastEventIndex: 1,
       runRecord: validRunRecord
     };
-    const snap2: RunSnapshot = {
+    const snap2: RunRecoverySnapshot = {
       version: 1,
       runId: "run-snap-01",
       lastEventIndex: 5,
@@ -73,7 +72,7 @@ describe("FileRunSnapshotStore", () => {
   });
 
   it("persists to .attractor/runs/<runId>/snapshot.json", async () => {
-    const snap: RunSnapshot = {
+    const snap: RunRecoverySnapshot = {
       version: 1,
       runId: "run-snap-01",
       lastEventIndex: 0,

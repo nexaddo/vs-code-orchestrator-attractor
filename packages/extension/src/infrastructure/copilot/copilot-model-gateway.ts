@@ -23,14 +23,11 @@ export class CopilotModelGateway implements ModelGateway {
 
   private toVsCodeMessages(
     messages: ModelMessage[],
-    options?: ModelRequestOptions
+    _options?: ModelRequestOptions
   ): vscode.LanguageModelChatMessage[] {
     const result: vscode.LanguageModelChatMessage[] = [];
-    if (options?.systemPrompt !== undefined) {
-      result.push(vscode.LanguageModelChatMessage.User(options.systemPrompt));
-    }
     for (const msg of messages) {
-      if (msg.role === "user") {
+      if (msg.role === "user" || msg.role === "system") {
         result.push(vscode.LanguageModelChatMessage.User(msg.content));
       } else {
         result.push(vscode.LanguageModelChatMessage.Assistant(msg.content));

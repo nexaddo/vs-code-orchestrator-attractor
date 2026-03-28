@@ -1,13 +1,20 @@
 import { z } from "zod";
 import {
   WebviewOutboundMessageSchema,
-  GraphUpdatePayloadSchema
+  GraphRecordSchema,
+  NodeStatusEntrySchema
 } from "@attractor/shared";
 import type { GraphState } from "./model";
 
+const GraphStatePayloadSchema = z.object({
+  runId: z.string().min(1),
+  graph: GraphRecordSchema,
+  nodeStatuses: z.array(NodeStatusEntrySchema)
+});
+
 const GraphMessageSchema = WebviewOutboundMessageSchema.extend({
   type: z.literal("graph.update"),
-  payload: GraphUpdatePayloadSchema
+  payload: GraphStatePayloadSchema
 });
 
 export function decodeGraphUpdate(

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { EventEnvelope, RunRecord, RunSnapshot } from "@attractor/shared";
+import type { EventEnvelope, RunRecord, RunRecoverySnapshot } from "@attractor/shared";
 
 import { RunAggregate } from "../../src/domain/run-aggregate";
 
@@ -8,8 +8,7 @@ const baseRecord: RunRecord = {
   version: 1,
   id: "run-001",
   planId: "plan-1",
-  graphId: "graph-1",
-  worktreeId: "wt-1",
+  attempt: 1,
   status: "queued",
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z"
@@ -108,7 +107,7 @@ describe("RunAggregate.takeSnapshot", () => {
 
 describe("RunAggregate.fromSnapshot — clean resume", () => {
   it("restores state from snapshot with no additional events", () => {
-    const snapshot: RunSnapshot = {
+    const snapshot: RunRecoverySnapshot = {
       version: 1,
       runId: "run-001",
       lastEventIndex: 1,
@@ -119,7 +118,7 @@ describe("RunAggregate.fromSnapshot — clean resume", () => {
   });
 
   it("applies events that arrived after the snapshot", () => {
-    const snapshot: RunSnapshot = {
+    const snapshot: RunRecoverySnapshot = {
       version: 1,
       runId: "run-001",
       lastEventIndex: 1,

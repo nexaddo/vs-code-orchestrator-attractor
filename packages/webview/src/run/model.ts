@@ -1,15 +1,13 @@
 import type {
-  ArtifactRecord,
-  HandoffEnvelope,
-  MilestoneRunRecord,
   PlanRecord,
+  RepositoryRecord,
   RunRecord
 } from "@attractor/shared";
 
 export interface RunState {
   run: RunRecord;
   plan: PlanRecord;
-  milestoneRuns: MilestoneRunRecord[];
-  artifacts: ArtifactRecord[];
-  currentHandoff?: HandoffEnvelope;
+  currentStep: string | null;
+  logTail: string[];
+  repositories?: RepositoryRecord[];
 }

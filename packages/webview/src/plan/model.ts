@@ -1,13 +1,8 @@
-import type {
-  ExtensionEvent,
-  MilestoneRecord,
-  PlanRecord,
-  RunRecord
-} from "@attractor/shared";
+import type { GraphRecord, PlanRecord, RunRecord } from "@attractor/shared";
 
 export interface PlanState {
   plan: PlanRecord;
-  milestones: MilestoneRecord[];
-  history: RunRecord[];
-  validationEvents: ExtensionEvent[];
+  graph: GraphRecord | null;
+  runs: RunRecord[];
+  activeRun: RunRecord | null;
 }
