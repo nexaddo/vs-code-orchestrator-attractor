@@ -66,18 +66,53 @@ export const PARTICIPANT_ID = "attractor.attractor";
 export const buildChatHandler = (
   options: ChatHandlerDependencies
 ): ChatRequestHandler => {
-  // Suppress unused parameter warnings
-  void options;
-
   return async (request, context, stream, token): Promise<ChatResultLike> => {
     // Suppress unused parameter warnings
     void context;
     void token;
 
     switch (request.command) {
-      case "plan":
-        stream.markdown("Plan creation acknowledged. ...placeholder...");
+      case "plan": {
+        const { services } = options;
+
+        if (!services) {
+          stream.markdown("Attractor storage not initialized.");
+          return {};
+        }
+
+        const plans = await services.planRegistry.list();
+
+        if (plans.length === 0) {
+          stream.markdown(
+            "No plans found. Use the Attractor dashboard to create a plan."
+          );
+          return {};
+        }
+
+        // Format plans as markdown list
+        const planLines = await Promise.all(
+          plans.map(async (plan) => {
+            const truncatedGoal =
+              plan.goal.length > 80
+                ? `${plan.goal.slice(0, 80)}...`
+                : plan.goal;
+            const milestones = await services.milestoneRegistry.listByPlanId(
+              plan.id
+            );
+            const milestoneCount = milestones.length;
+
+            return (
+              `### ${plan.title}\n` +
+              `- Status: ${plan.status}\n` +
+              `- Goal: ${truncatedGoal}\n` +
+              `- Milestones: ${milestoneCount}`
+            );
+          })
+        );
+
+        stream.markdown(planLines.join("\n\n"));
         return {};
+      }
 
       case "run":
         stream.markdown("Run start acknowledged. ...placeholder...");

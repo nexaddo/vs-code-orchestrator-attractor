@@ -265,7 +265,7 @@ Max Concurrent: 4 (Wave 2)
   - Files: `packages/extension/src/extension.ts`, `packages/extension/test/...`
   - Pre-commit: `pnpm typecheck && pnpm test --run`
 
-- [ ] 2. Refactor Chat Handler Signature for Service Injection
+- [x] 2. Refactor Chat Handler Signature for Service Injection
 
   **What to do**:
   - Modify `buildChatHandler()` in `packages/extension/src/chat/attractor-chat-participant.ts` to accept an options parameter containing the services and orchestration context it needs: `buildChatHandler(options: ChatHandlerDependencies)`
@@ -352,7 +352,7 @@ Max Concurrent: 4 (Wave 2)
   - Files: `packages/extension/src/chat/attractor-chat-participant.ts`, `packages/extension/src/runtime.ts`, `packages/extension/test/chat/*.test.ts`, `packages/extension/test/integration/chat-participant.test.ts`
   - Pre-commit: `pnpm typecheck && pnpm test --run`
 
-- [ ] 3. Implement startOrchestration in runtime.ts
+- [x] 3. Implement startOrchestration in runtime.ts
 
   **What to do**:
   - Replace the placeholder in `startOrchestration` (runtime.ts ~lines 144-163) with a real implementation that:

@@ -8,7 +8,8 @@
     "ses_2c37e05c7ffeEhiri6OBE0J1xz",
     "ses_2c3779b16ffeOX03ih7w7wGJef",
     "ses_2c36fe912ffeBkbVOUJ4GUzymt",
-    "ses_2c36f41cefferQIvlDqNzbEKNu"
+    "ses_2c36f41cefferQIvlDqNzbEKNu",
+    "ses_2c3648792ffekiKcKzmo567IOY"
   ],
   "plan_name": "wire-orchestration",
   "agent": "atlas",
@@ -21,6 +22,24 @@
       "agent": "Sisyphus-Junior",
       "category": "quick",
       "updated_at": "2026-03-26T22:02:53.292Z"
+    },
+    "todo:2": {
+      "task_key": "todo:2",
+      "task_label": "2",
+      "task_title": "Refactor Chat Handler Signature for Service Injection",
+      "session_id": "ses_2c369ddb2ffeLI13lavRoLggrM",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-03-30T02:35:12.404Z"
+    },
+    "todo:3": {
+      "task_key": "todo:3",
+      "task_label": "3",
+      "task_title": "Implement startOrchestration in runtime.ts",
+      "session_id": "ses_2c3648792ffekiKcKzmo567IOY",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-03-30T02:43:19.386Z"
     }
   }
 }
