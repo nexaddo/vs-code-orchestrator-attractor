@@ -32,7 +32,10 @@ const baseState: PlanState = {
   plan: basePlan,
   graph: null,
   runs: [],
-  activeRun: null
+  activeRun: null,
+  milestones: [],
+  history: [],
+  validationEvents: []
 };
 
 describe("renderPlan", () => {

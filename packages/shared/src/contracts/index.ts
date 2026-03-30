@@ -46,6 +46,10 @@ export const WebviewOutboundMessageTypeSchema = z.enum([
   "orchestration.state"
 ]);
 
+export type WebviewOutboundMessageType = z.infer<
+  typeof WebviewOutboundMessageTypeSchema
+>;
+
 export const WebviewOutboundMessageSchema = z.object({
   version: z.literal(CONTRACT_VERSION),
   requestId: z.string().min(1),

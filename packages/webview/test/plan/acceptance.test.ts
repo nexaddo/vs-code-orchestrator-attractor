@@ -143,6 +143,9 @@ describe("UAC-PLAN-3: Plan Inspector RepoBadgeRow escapes HTML in repo name and 
       graph: null,
       runs: [],
       activeRun: null,
+      milestones: [],
+      history: [],
+      validationEvents: [],
       repositories: [
         {
           version: 1 as const,
@@ -170,6 +173,9 @@ describe("UAC-PLAN-3: Plan Inspector RepoBadgeRow escapes HTML in repo name and 
       graph: null,
       runs: [],
       activeRun: null,
+      milestones: [],
+      history: [],
+      validationEvents: [],
       repositories: [
         {
           version: 1 as const,

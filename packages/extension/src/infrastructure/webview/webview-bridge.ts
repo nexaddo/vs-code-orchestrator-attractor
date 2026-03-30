@@ -2,7 +2,7 @@ import type * as vscode from "vscode";
 
 import type {
   OrchestrationStatePayload,
-  WebviewOutboundMessage
+  WebviewOutboundMessageType
 } from "@attractor/shared";
 import { CONTRACT_VERSION } from "@attractor/shared";
 
@@ -20,12 +20,11 @@ export class WebviewBridge {
 
   postOrchestrationState(state: OrchestrationStatePayload): void {
     if (this.panel === undefined) return;
-    const message: WebviewOutboundMessage = {
+    void this.panel.webview.postMessage({
       version: CONTRACT_VERSION,
       requestId: crypto.randomUUID(),
-      type: "orchestration.state",
-      payload: state as unknown as Record<string, unknown>
-    };
-    void this.panel.webview.postMessage(message);
+      type: "orchestration.state" satisfies WebviewOutboundMessageType,
+      payload: state
+    });
   }
 }

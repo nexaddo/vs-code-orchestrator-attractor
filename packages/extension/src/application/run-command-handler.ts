@@ -1,3 +1,4 @@
+import { CONTRACT_VERSION } from "@attractor/shared";
 import type { RunRecord } from "@attractor/shared";
 
 import { RunAggregate, makeRunId } from "../domain";
@@ -54,7 +55,7 @@ export class RunCommandHandler {
 
     // Emit domain event (dot-case name for replay compatibility)
     const envelope = {
-      version: 1 as const,
+      version: CONTRACT_VERSION,
       id: crypto.randomUUID(),
       name: "run.created",
       aggregateType: "run",
