@@ -36,6 +36,7 @@ export interface OverviewRepositoryViewModel {
 export interface OverviewRunViewModel {
   id: string;
   planId: string;
+  planTitle?: string;
   status: Status;
   createdAt: string;
 }
@@ -103,12 +104,14 @@ export function buildOverviewViewModel(
     activeRuns: state.activeRuns.map((run) => ({
       id: run.id,
       planId: run.planId,
+      ...(run.planTitle !== undefined ? { planTitle: run.planTitle } : {}),
       status: toStatusBadgeStatus(run.status),
       createdAt: run.createdAt
     })),
     recentFailures: state.recentFailures.map((run) => ({
       id: run.id,
       planId: run.planId,
+      ...(run.planTitle !== undefined ? { planTitle: run.planTitle } : {}),
       status: "failed" as const,
       createdAt: run.createdAt
     }))
@@ -232,7 +235,7 @@ export function OverviewSurface({ state }: OverviewSurfaceProps): JSX.Element {
                   <div class="flex items-start justify-between gap-2">
                     <div class="min-w-0 flex-1">
                       <div class="truncate text-[length:var(--text-sm)] font-medium">
-                        {run.id}
+                        {run.planTitle ?? run.planId}
                       </div>
                       <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
                         Started {formatTimestamp(run.createdAt)}
@@ -291,7 +294,7 @@ export function OverviewSurface({ state }: OverviewSurfaceProps): JSX.Element {
                     <div class="flex items-start justify-between gap-2">
                       <div class="min-w-0 flex-1">
                         <div class="truncate text-[length:var(--text-sm)] font-medium">
-                          {run.id}
+                          {run.planTitle ?? run.planId}
                         </div>
                         <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
                           Failed {formatTimestamp(run.createdAt)}

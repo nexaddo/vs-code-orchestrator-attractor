@@ -23,6 +23,7 @@ export interface PlanSurfaceProps {
 
 export interface PlanRepositoryViewModel {
   repositoryId: string;
+  displayName: string;
   role: string;
   access: string;
   mountAlias: string;
@@ -196,13 +197,19 @@ export function buildPlanViewModel(state: PlanState): PlanViewModel {
     graphSource: state.plan.graphSource,
     createdAt: state.plan.createdAt,
     updatedAt: state.plan.updatedAt,
-    repositories: state.plan.repositories.map((repository) => ({
-      repositoryId: repository.repositoryId,
-      role: repository.role,
-      access: repository.access,
-      mountAlias: repository.mountAlias,
-      ref: repository.ref
-    })),
+    repositories: state.plan.repositories.map((repository) => {
+      const repoRecord = state.repositories?.find(
+        (r) => r.id === repository.repositoryId
+      );
+      return {
+        repositoryId: repository.repositoryId,
+        displayName: repoRecord?.name ?? repository.repositoryId,
+        role: repository.role,
+        access: repository.access,
+        mountAlias: repository.mountAlias,
+        ref: repository.ref
+      };
+    }),
     milestones,
     history: [...state.history].map((run) => ({
       id: run.id,
@@ -275,7 +282,7 @@ export function PlanSurface({ state }: PlanSurfaceProps): JSX.Element {
                 >
                   <div class="flex items-center justify-between gap-2">
                     <span class="truncate font-medium">
-                      {repository.repositoryId}
+                      {repository.displayName}
                     </span>
                     <span class="uppercase tracking-wide text-[color:var(--color-vscode-description)]">
                       {repository.access}

@@ -166,6 +166,7 @@ export const RunRecordSchema = z.object({
   version: z.literal(CONTRACT_VERSION),
   id: z.string().min(1),
   planId: z.string().min(1),
+  planTitle: z.string().min(1).optional(),
   status: RunStatusSchema,
   attempt: z.number().int().min(1),
   createdAt: z.string().min(1),
