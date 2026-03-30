@@ -11,7 +11,13 @@
     "ses_2c36f41cefferQIvlDqNzbEKNu",
     "ses_2c3648792ffekiKcKzmo567IOY",
     "ses_2c35c62d7ffemytYt40vqb93MI",
-    "ses_2c3595f5effefbI714tqXkY9dt"
+    "ses_2c3595f5effefbI714tqXkY9dt",
+    "ses_2c35905b7ffe9fgZ2b05z2Gu4K",
+    "ses_2c34db666ffeHb8hy0PcrUVsJ0",
+    "ses_2c34d59fdffeGYshnqPXLBYd6z",
+    "ses_2c34e3716ffeVvUh45KiwG7Z1T",
+    "ses_2c34df6b2ffe0T21KEfptpEqst",
+    "ses_2c3238e98ffeqkY89TcwXlp7U8"
   ],
   "plan_name": "wire-orchestration",
   "agent": "atlas",
@@ -51,6 +57,23 @@
       "agent": "Sisyphus-Junior",
       "category": "unspecified-high",
       "updated_at": "2026-03-30T02:54:06.309Z"
+    },
+    "todo:7": {
+      "task_key": "todo:7",
+      "task_label": "7",
+      "task_title": "Add Structured Orchestration Lifecycle Logging",
+      "session_id": "ses_2c353e69bffeCCteBwd17Q3Xn0",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-03-30T03:00:42.725Z"
+    },
+    "final-wave:f1": {
+      "task_key": "final-wave:f1",
+      "task_label": "F1",
+      "task_title": "**Plan Compliance Audit** — `oracle`",
+      "session_id": "ses_2c34e3716ffeVvUh45KiwG7Z1T",
+      "agent": "oracle",
+      "updated_at": "2026-03-30T03:09:41.314Z"
     }
   }
 }

@@ -478,7 +478,7 @@ Max Concurrent: 4 (Wave 2)
   - Files: `packages/extension/src/runtime.ts`, `packages/extension/test/...`
   - Pre-commit: `pnpm typecheck && pnpm test --run`
 
-- [ ] 4. Implement Chat /plan Command
+- [x] 4. Implement Chat /plan Command
 
   **What to do**:
   - In `attractor-chat-participant.ts`, update the `"plan"` case in the command handler to:
@@ -560,7 +560,7 @@ Max Concurrent: 4 (Wave 2)
   - Files: `packages/extension/src/chat/attractor-chat-participant.ts`, tests
   - Pre-commit: `pnpm typecheck && pnpm test --run`
 
-- [ ] 5. Implement Chat /run Command
+- [x] 5. Implement Chat /run Command
 
   **What to do**:
   - In `attractor-chat-participant.ts`, update the `"run"` case to:
@@ -661,7 +661,7 @@ Max Concurrent: 4 (Wave 2)
   - Files: `packages/extension/src/chat/attractor-chat-participant.ts`, tests
   - Pre-commit: `pnpm typecheck && pnpm test --run`
 
-- [ ] 6. Implement Chat /status Command
+- [x] 6. Implement Chat /status Command
 
   **What to do**:
   - In `attractor-chat-participant.ts`, update the `"status"` case to:
@@ -742,7 +742,7 @@ Max Concurrent: 4 (Wave 2)
   - Files: `packages/extension/src/chat/attractor-chat-participant.ts`, tests
   - Pre-commit: `pnpm typecheck && pnpm test --run`
 
-- [ ] 7. Add Structured Orchestration Lifecycle Logging
+- [x] 7. Add Structured Orchestration Lifecycle Logging
 
   **What to do**:
   - In the `startOrchestration` implementation (runtime.ts), add structured log messages to the OutputChannel at each lifecycle point:
