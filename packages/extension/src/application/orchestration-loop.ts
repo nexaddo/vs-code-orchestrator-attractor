@@ -7,7 +7,19 @@ import {
   type ReviewerHandoff
 } from "@attractor/shared";
 
-type Role = "orchestrator" | "planner" | "implementer" | "reviewer";
+export type Role = "orchestrator" | "planner" | "implementer" | "reviewer";
+
+export const ROLE_ORDER: readonly Role[] = [
+  "orchestrator",
+  "planner",
+  "implementer",
+  "reviewer"
+];
+
+export function nextRoleAfter(role: Role): Role {
+  const idx = ROLE_ORDER.indexOf(role);
+  return ROLE_ORDER[(idx + 1) % ROLE_ORDER.length]!;
+}
 
 import type { ModelGateway, ModelMessage } from "./ports";
 import {

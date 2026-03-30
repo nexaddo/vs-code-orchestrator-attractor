@@ -12,7 +12,9 @@ import {
 import { NoOpModelGateway, type ModelGateway } from "./application/ports";
 import {
   OrchestrationLoop,
-  type MilestoneInput
+  nextRoleAfter,
+  type MilestoneInput,
+  type Role
 } from "./application/orchestration-loop";
 import {
   handleWebviewMessage,
@@ -261,14 +263,8 @@ export const activateAttractor = (
             }
             postRunMessage("run.state", state);
           },
-          onHandoff: (handoff, role) => {
-            const nextRoleMap: Record<string, string> = {
-              orchestrator: "planner",
-              planner: "implementer",
-              implementer: "reviewer",
-              reviewer: "orchestrator"
-            };
-            const toRole = nextRoleMap[role] ?? "unknown";
+          onHandoff: (handoff, role: Role) => {
+            const toRole = nextRoleAfter(role);
             const reason =
               "description" in handoff &&
               typeof handoff.description === "string"
