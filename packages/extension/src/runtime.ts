@@ -1,5 +1,6 @@
 import {
   CONTRACT_VERSION,
+  type ExtensionEvent,
   WebviewInboundMessageSchema
 } from "@attractor/shared";
 
@@ -9,6 +10,10 @@ import {
   type StorageServices
 } from "./storage/services";
 import { NoOpModelGateway, type ModelGateway } from "./application/ports";
+import {
+  OrchestrationLoop,
+  type MilestoneInput
+} from "./application/orchestration-loop";
 import {
   handleWebviewMessage,
   type WebviewPanelLike,
@@ -153,12 +158,157 @@ export const activateAttractor = (
         });
       }
 
+      const panel = (runPanel ?? null) as WebviewPanelLike | null;
+      const postRunMessage = (type: string, payload: unknown): void => {
+        if (!panel) {
+          return;
+        }
+        void panel.postMessage({
+          version: 1,
+          type,
+          payload
+        });
+      };
+
+      if (!services) {
+        const message =
+          "Attractor: orchestration start failed — storage services unavailable";
+        log.appendLine(message);
+        postRunMessage("run.error", {
+          runId,
+          milestoneId: null,
+          role: "orchestrator",
+          message
+        });
+        activeRuns.delete(runId);
+        return;
+      }
+
+      const now = new Date().toISOString();
+      const runningRecord = {
+        version: CONTRACT_VERSION,
+        id: runId,
+        planId,
+        status: "running" as const,
+        attempt: 1,
+        createdAt: now,
+        updatedAt: now,
+        startedAt: now
+      };
+      let runRecordSaved = false;
+      let observedLoopError = false;
+
       try {
-        // Placeholder per M4 plan — actual OrchestrationLoop integration
-        // deferred to M4.5/M5. Will use OrchestrationLoop + services to
-        // load milestones, build MilestoneInput[], and run phases.
-        void planId;
-        void runPanel;
+        await services.runRegistry.save(runningRecord);
+        runRecordSaved = true;
+
+        const plan = await services.planRegistry.getById(planId);
+        if (!plan) {
+          throw new Error(`Plan not found: ${planId}`);
+        }
+
+        const milestoneRecords =
+          await services.milestoneRegistry.listByPlanId(planId);
+        if (milestoneRecords.length === 0) {
+          throw new Error(`No milestones found for plan: ${planId}`);
+        }
+
+        const milestones: MilestoneInput[] = milestoneRecords
+          .map((record) => ({
+            id: record.id,
+            // MilestoneRecord has no description field; use title for both
+            // MilestoneInput.name and MilestoneInput.description.
+            name: record.title,
+            order: record.order,
+            description: record.title,
+            acceptanceCriteria: record.acceptanceCriteria
+          }))
+          .sort((left, right) => left.order - right.order);
+
+        const loop = new OrchestrationLoop();
+        await loop.execute({
+          modelGateway: orchestrationContext.modelGateway,
+          milestones,
+          runId,
+          planTitle: plan.title,
+          planGoal: plan.goal,
+          onStateChange: (state) => {
+            postRunMessage("run.state", state);
+          },
+          onHandoff: (handoff, role) => {
+            const event: ExtensionEvent = {
+              version: CONTRACT_VERSION,
+              id: `${runId}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+              runId,
+              entityType: "handoff",
+              entityId:
+                "milestoneId" in handoff &&
+                typeof handoff.milestoneId === "string"
+                  ? handoff.milestoneId
+                  : runId,
+              kind: "handoff.created",
+              timestamp: new Date().toISOString(),
+              payload: {
+                role,
+                handoff
+              }
+            };
+
+            void services.eventLog.append(event).catch((error: unknown) => {
+              log.appendLine(
+                `Attractor: failed to append handoff event — ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`
+              );
+            });
+
+            postRunMessage("run.handoff", {
+              role,
+              handoff
+            });
+          },
+          onError: (error, milestoneId, role) => {
+            observedLoopError = true;
+            log.appendLine(
+              `Attractor: orchestration phase error [${role}/${milestoneId}] — ${error.stack ?? error.message}`
+            );
+            postRunMessage("run.error", {
+              runId,
+              milestoneId,
+              role,
+              message: error.message
+            });
+          },
+          signal: controller.signal
+        });
+
+        if (runRecordSaved) {
+          const completedAt = new Date().toISOString();
+          await services.runRegistry.save({
+            ...runningRecord,
+            status: observedLoopError ? "failed" : "completed",
+            updatedAt: completedAt,
+            completedAt
+          });
+        }
+      } catch (error) {
+        log.appendLine(
+          `Attractor: orchestration failed [run ${runId}] — ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`
+        );
+        if (runRecordSaved) {
+          const completedAt = new Date().toISOString();
+          await services.runRegistry.save({
+            ...runningRecord,
+            status: "failed",
+            updatedAt: completedAt,
+            completedAt
+          });
+        }
+
+        postRunMessage("run.error", {
+          runId,
+          milestoneId: null,
+          role: "orchestrator",
+          message: error instanceof Error ? error.message : String(error)
+        });
       } finally {
         activeRuns.delete(runId);
       }
