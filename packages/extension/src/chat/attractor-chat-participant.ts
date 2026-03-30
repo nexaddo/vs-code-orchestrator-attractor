@@ -3,6 +3,26 @@
  * Provides /plan, /run, /status slash commands.
  */
 
+import type { StorageServices } from "../storage/services";
+
+export interface OutputChannelLike {
+  appendLine(value: string): void;
+}
+
+export interface ChatHandlerDependencies {
+  services: StorageServices | null;
+  orchestration: {
+    startOrchestration: (options: {
+      runId: string;
+      planId: string;
+      panel: any; // WebviewPanelLike, but avoiding circular import
+      signal?: AbortSignal;
+    }) => Promise<void>;
+    cancelOrchestration: (runId: string) => void;
+  } | null;
+  outputChannel: OutputChannelLike | null;
+}
+
 export interface ChatResponseStreamLike {
   markdown(value: string): void;
 }
@@ -43,7 +63,12 @@ export const PARTICIPANT_ID = "attractor.attractor";
 /**
  * Build the chat request handler that dispatches on slash commands.
  */
-export const buildChatHandler = (): ChatRequestHandler => {
+export const buildChatHandler = (
+  options: ChatHandlerDependencies
+): ChatRequestHandler => {
+  // Suppress unused parameter warnings
+  void options;
+
   return async (request, context, stream, token): Promise<ChatResultLike> => {
     // Suppress unused parameter warnings
     void context;
@@ -73,7 +98,11 @@ export const buildChatHandler = (): ChatRequestHandler => {
  * Register the Attractor chat participant with the VS Code chat API.
  */
 export const registerChatParticipant = (
-  chatApi: ChatApiLike
+  chatApi: ChatApiLike,
+  dependencies: ChatHandlerDependencies
 ): ChatParticipantLike => {
-  return chatApi.createChatParticipant(PARTICIPANT_ID, buildChatHandler());
+  return chatApi.createChatParticipant(
+    PARTICIPANT_ID,
+    buildChatHandler(dependencies)
+  );
 };

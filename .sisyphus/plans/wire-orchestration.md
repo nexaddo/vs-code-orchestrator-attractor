@@ -3,14 +3,15 @@
 ## TL;DR
 
 > **Quick Summary**: Wire the 3 placeholder gaps in the Attractor VS Code extension (model gateway, orchestration loop, chat commands) and add structured logging so that "Run Plan" from the dashboard and `/run` from chat actually execute the orchestration pipeline end-to-end.
-> 
+>
 > **Deliverables**:
+>
 > - Real `CopilotModelGateway` wired at activation (replaces `NoOpModelGateway`)
 > - `startOrchestration` loads plan + milestones from storage, runs `OrchestrationLoop.execute()`
 > - Chat `/run` triggers orchestration, `/plan` lists plans, `/status` shows active runs
 > - Structured lifecycle logging visible in "Attractor" Output channel
 > - Updated tests covering all new wiring (baseline 503 tests preserved)
-> 
+>
 > **Estimated Effort**: Medium
 > **Parallel Execution**: YES — 3 waves + final verification
 > **Critical Path**: Task 1 (gateway adapter) → Task 3 (startOrchestration) → Task 5 (chat /run) → Task 7 (logging) → F1–F4 (verification)
@@ -20,10 +21,13 @@
 ## Context
 
 ### Original Request
+
 Wire the 3 placeholder gaps in the Attractor VS Code extension so orchestration actually executes when "Run Plan" is clicked or `/run` is typed in chat. Add debugging/observability infrastructure via the Output channel.
 
 ### Interview Summary
+
 **Key Discussions**:
+
 - Extension is a pnpm monorepo (shared, extension, webview) — dashboard, OrchestrationLoop, CopilotModelGateway, storage all fully implemented but not wired
 - 3 gaps: (1) `startOrchestration` placeholder in runtime.ts, (2) `NoOpModelGateway` default, (3) chat commands return placeholder text
 - User confirmed: proceed with wiring, add debugging
@@ -32,6 +36,7 @@ Wire the 3 placeholder gaps in the Attractor VS Code extension so orchestration 
 - `/status` command: Wire to real active run state
 
 **Research Findings**:
+
 - `OrchestrationLoop.execute()` is stateless — all via `OrchestrationOptions` (modelGateway, milestones, runId, planTitle, planGoal, callbacks, signal)
 - `CopilotModelGateway` constructor needs `LanguageModelApiLike` adapter wrapping `vscode.lm`
 - Bridge `plan.run` handler already calls `orchestration.startOrchestration` correctly — just needs the implementation to actually work
@@ -39,7 +44,9 @@ Wire the 3 placeholder gaps in the Attractor VS Code extension so orchestration 
 - 503 existing tests pass — this is the regression baseline
 
 ### Metis Review
+
 **Identified Gaps** (addressed):
+
 - `MilestoneRecord` has no `description` field but `MilestoneInput` requires one → map `title` to both `name` and `description` with code comment
 - Chat handler signature change will break 6 existing tests → update them as part of the refactor task
 - `vscode.lm` may return empty models array → `CopilotModelGateway` already throws, ensure `startOrchestration` catches and logs
@@ -51,15 +58,18 @@ Wire the 3 placeholder gaps in the Attractor VS Code extension so orchestration 
 ## Work Objectives
 
 ### Core Objective
+
 Replace all placeholder/no-op wiring with real implementations so the orchestration pipeline executes end-to-end from either the dashboard webview or the `@attractor` chat participant.
 
 ### Concrete Deliverables
+
 - `packages/extension/src/extension.ts` — `createLanguageModelApi()` adapter + pass `CopilotModelGateway` in dependencies
 - `packages/extension/src/runtime.ts` — real `startOrchestration` implementation with plan loading, milestone mapping, OrchestrationLoop invocation, RunRecord lifecycle, and structured logging
 - `packages/extension/src/chat/attractor-chat-participant.ts` — parameterized `buildChatHandler` with `/run`, `/plan`, `/status` implementations
 - `packages/extension/test/` — new and updated tests covering all wiring
 
 ### Definition of Done
+
 - [ ] `pnpm typecheck` passes with zero errors
 - [ ] `pnpm test --run` passes (all 503+ tests green)
 - [ ] `pnpm lint` passes
@@ -69,6 +79,7 @@ Replace all placeholder/no-op wiring with real implementations so the orchestrat
 - [ ] `@attractor /status` shows active run info
 
 ### Must Have
+
 - Real `CopilotModelGateway` wired at extension activation
 - `startOrchestration` that loads plan, maps milestones, runs OrchestrationLoop, updates RunRecord
 - Chat commands with real behavior (not placeholders)
@@ -76,6 +87,7 @@ Replace all placeholder/no-op wiring with real implementations so the orchestrat
 - All existing tests still pass
 
 ### Must NOT Have (Guardrails)
+
 - **DO NOT** modify `orchestration-loop.ts` — FROZEN
 - **DO NOT** modify `copilot-model-gateway.ts` — FROZEN
 - **DO NOT** modify `ports.ts` (ModelGateway interface) — FROZEN
@@ -96,12 +108,14 @@ Replace all placeholder/no-op wiring with real implementations so the orchestrat
 > **ZERO HUMAN INTERVENTION** — ALL verification is agent-executed. No exceptions.
 
 ### Test Decision
+
 - **Infrastructure exists**: YES (Vitest)
 - **Automated tests**: Tests-after (update existing + add new for wiring)
 - **Framework**: Vitest (`pnpm test --run`)
 - **Baseline**: 503 tests must pass at every commit
 
 ### QA Policy
+
 Every task includes agent-executed QA scenarios.
 Evidence saved to `.sisyphus/evidence/task-{N}-{scenario-slug}.{ext}`.
 
@@ -142,16 +156,16 @@ Max Concurrent: 4 (Wave 2)
 
 ### Dependency Matrix
 
-| Task | Depends On | Blocks |
-|------|-----------|--------|
-| 1 (Gateway adapter) | — | 3, 5 |
-| 2 (Chat signature refactor) | — | 4, 5, 6 |
-| 3 (startOrchestration) | 1 | 5, 7 |
-| 4 (Chat /plan) | 2 | 7 |
-| 5 (Chat /run) | 1, 2, 3 | 7 |
-| 6 (Chat /status) | 2 | 7 |
-| 7 (Logging) | 3, 4, 5, 6 | F1-F4 |
-| F1-F4 | 7 | — |
+| Task                        | Depends On | Blocks  |
+| --------------------------- | ---------- | ------- |
+| 1 (Gateway adapter)         | —          | 3, 5    |
+| 2 (Chat signature refactor) | —          | 4, 5, 6 |
+| 3 (startOrchestration)      | 1          | 5, 7    |
+| 4 (Chat /plan)              | 2          | 7       |
+| 5 (Chat /run)               | 1, 2, 3    | 7       |
+| 6 (Chat /status)            | 2          | 7       |
+| 7 (Logging)                 | 3, 4, 5, 6 | F1-F4   |
+| F1-F4                       | 7          | —       |
 
 ### Agent Dispatch Summary
 
@@ -164,7 +178,7 @@ Max Concurrent: 4 (Wave 2)
 
 ## TODOs
 
-- [ ] 1. Wire CopilotModelGateway at Extension Activation
+- [x] 1. Wire CopilotModelGateway at Extension Activation
 
   **What to do**:
   - In `packages/extension/src/extension.ts`, add a `createLanguageModelApi()` factory function following the same adapter pattern as `createWindowApi()` and `createChatApi()` (lines 12–55)
@@ -214,7 +228,6 @@ Max Concurrent: 4 (Wave 2)
   - `runtime.ts:139`: Confirms the fallback logic — your gateway replaces `NoOpModelGateway` only when provided
 
   **Acceptance Criteria**:
-
   - [ ] `pnpm typecheck` passes
   - [ ] `pnpm test --run` passes (503+ tests, 0 failures)
   - [ ] New test confirms `activateAttractor({ modelGateway: myGateway })` uses provided gateway
@@ -301,7 +314,6 @@ Max Concurrent: 4 (Wave 2)
   - Test files: Must update ALL of them or build breaks
 
   **Acceptance Criteria**:
-
   - [ ] `buildChatHandler` accepts `ChatHandlerDependencies` parameter
   - [ ] `registerChatParticipant` accepts and forwards dependencies
   - [ ] `runtime.ts` call site passes real services and orchestration context
@@ -411,7 +423,6 @@ Max Concurrent: 4 (Wave 2)
   - Test files: The testing patterns to follow — StubModelGateway, mock services, callback capture
 
   **Acceptance Criteria**:
-
   - [ ] `startOrchestration` loads plan from `planRegistry.getById(planId)`
   - [ ] Milestones loaded from `milestoneRegistry.listByPlanId(planId)` and mapped to `MilestoneInput[]`
   - [ ] `OrchestrationLoop.execute()` called with complete `OrchestrationOptions`
@@ -514,7 +525,6 @@ Max Concurrent: 4 (Wave 2)
   - Existing chat tests: Pattern for asserting `stream.markdown()` calls
 
   **Acceptance Criteria**:
-
   - [ ] `/plan` with services lists all plans as markdown
   - [ ] `/plan` with no plans shows "No plans found" guidance
   - [ ] `/plan` with null services shows initialization error
@@ -603,7 +613,6 @@ Max Concurrent: 4 (Wave 2)
   - `CancellationToken`: May need to adapt VS Code's CancellationToken to AbortSignal for startOrchestration
 
   **Acceptance Criteria**:
-
   - [ ] `/run plan-123` calls startOrchestration with planId "plan-123"
   - [ ] `/run` without plan ID lists available plans
   - [ ] `/run` with no orchestration context shows error message
@@ -699,7 +708,6 @@ Max Concurrent: 4 (Wave 2)
   - `RunRecordSchema`: Fields available for display
 
   **Acceptance Criteria**:
-
   - [ ] `/status` with active runs shows run details
   - [ ] `/status` with no active runs shows "No active runs"
   - [ ] `/status` with null services shows initialization error
@@ -792,7 +800,6 @@ Max Concurrent: 4 (Wave 2)
   - OutputChannel mock: Test pattern for capturing and asserting log output
 
   **Acceptance Criteria**:
-
   - [ ] OutputChannel shows orchestration start with run ID and plan ID
   - [ ] OutputChannel shows milestone progress
   - [ ] OutputChannel shows errors with message text
@@ -843,38 +850,39 @@ Max Concurrent: 4 (Wave 2)
 > **Do NOT auto-proceed after verification. Wait for user's explicit approval before marking work complete.**
 
 - [ ] F1. **Plan Compliance Audit** — `oracle`
-  Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, run command). For each "Must NOT Have": search codebase for forbidden patterns — reject with file:line if found. Check evidence files exist in `.sisyphus/evidence/`. Compare deliverables against plan.
-  Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
+      Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, run command). For each "Must NOT Have": search codebase for forbidden patterns — reject with file:line if found. Check evidence files exist in `.sisyphus/evidence/`. Compare deliverables against plan.
+      Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
 - [ ] F2. **Code Quality Review** — `unspecified-high`
-  Run `pnpm typecheck && pnpm lint && pnpm test --run`. Review all changed files for: `as any`/`@ts-ignore`, empty catches, console.log in prod, commented-out code, unused imports. Check AI slop: excessive comments, over-abstraction, generic names.
-  Output: `Build [PASS/FAIL] | Lint [PASS/FAIL] | Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
+      Run `pnpm typecheck && pnpm lint && pnpm test --run`. Review all changed files for: `as any`/`@ts-ignore`, empty catches, console.log in prod, commented-out code, unused imports. Check AI slop: excessive comments, over-abstraction, generic names.
+      Output: `Build [PASS/FAIL] | Lint [PASS/FAIL] | Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
 
 - [ ] F3. **Real Manual QA** — `unspecified-high`
-  Start from clean build (`pnpm build`). Run all test suites. Verify: (1) `pnpm typecheck` clean, (2) `pnpm test --run` all green, (3) no regressions in 503 baseline tests. Attempt F5 launch if Extension Development Host available — verify dashboard loads, Output channel shows activation.
-  Output: `Typecheck [PASS/FAIL] | Tests [N/N pass] | Baseline [503 preserved?] | VERDICT`
+      Start from clean build (`pnpm build`). Run all test suites. Verify: (1) `pnpm typecheck` clean, (2) `pnpm test --run` all green, (3) no regressions in 503 baseline tests. Attempt F5 launch if Extension Development Host available — verify dashboard loads, Output channel shows activation.
+      Output: `Typecheck [PASS/FAIL] | Tests [N/N pass] | Baseline [503 preserved?] | VERDICT`
 
 - [ ] F4. **Scope Fidelity Check** — `deep`
-  For each task: read "What to do", read actual changes. Verify 1:1 — everything in spec was built (no missing), nothing beyond spec was built (no creep). Check FROZEN files are untouched: `orchestration-loop.ts`, `copilot-model-gateway.ts`, `ports.ts`, `bridge.ts`, `packages/shared/**`, `packages/webview/**`. Flag unaccounted changes.
-  Output: `Tasks [N/N compliant] | Frozen files [CLEAN/N violations] | Unaccounted [CLEAN/N files] | VERDICT`
+      For each task: read "What to do", read actual changes. Verify 1:1 — everything in spec was built (no missing), nothing beyond spec was built (no creep). Check FROZEN files are untouched: `orchestration-loop.ts`, `copilot-model-gateway.ts`, `ports.ts`, `bridge.ts`, `packages/shared/**`, `packages/webview/**`. Flag unaccounted changes.
+      Output: `Tasks [N/N compliant] | Frozen files [CLEAN/N violations] | Unaccounted [CLEAN/N files] | VERDICT`
 
 ---
 
 ## Commit Strategy
 
-| Commit | Scope | Message | Files | Pre-commit |
-|--------|-------|---------|-------|------------|
-| 1 | Gateway | `feat(extension): wire CopilotModelGateway at activation` | extension.ts, test | `pnpm typecheck && pnpm test --run` |
-| 2 | Chat refactor | `refactor(chat): parameterize buildChatHandler for service injection` | attractor-chat-participant.ts, runtime.ts, tests | `pnpm typecheck && pnpm test --run` |
-| 3 | Orchestration | `feat(runtime): implement startOrchestration with OrchestrationLoop` | runtime.ts, tests | `pnpm typecheck && pnpm test --run` |
-| 4 | Chat commands | `feat(chat): wire /plan, /run, /status commands` | attractor-chat-participant.ts, tests | `pnpm typecheck && pnpm test --run` |
-| 5 | Logging | `feat(runtime): add structured orchestration lifecycle logging` | runtime.ts, attractor-chat-participant.ts, tests | `pnpm typecheck && pnpm test --run` |
+| Commit | Scope         | Message                                                               | Files                                            | Pre-commit                          |
+| ------ | ------------- | --------------------------------------------------------------------- | ------------------------------------------------ | ----------------------------------- |
+| 1      | Gateway       | `feat(extension): wire CopilotModelGateway at activation`             | extension.ts, test                               | `pnpm typecheck && pnpm test --run` |
+| 2      | Chat refactor | `refactor(chat): parameterize buildChatHandler for service injection` | attractor-chat-participant.ts, runtime.ts, tests | `pnpm typecheck && pnpm test --run` |
+| 3      | Orchestration | `feat(runtime): implement startOrchestration with OrchestrationLoop`  | runtime.ts, tests                                | `pnpm typecheck && pnpm test --run` |
+| 4      | Chat commands | `feat(chat): wire /plan, /run, /status commands`                      | attractor-chat-participant.ts, tests             | `pnpm typecheck && pnpm test --run` |
+| 5      | Logging       | `feat(runtime): add structured orchestration lifecycle logging`       | runtime.ts, attractor-chat-participant.ts, tests | `pnpm typecheck && pnpm test --run` |
 
 ---
 
 ## Success Criteria
 
 ### Verification Commands
+
 ```bash
 pnpm typecheck        # Expected: zero errors
 pnpm test --run       # Expected: 503+ tests, 0 failures
@@ -882,6 +890,7 @@ pnpm lint             # Expected: zero errors/warnings
 ```
 
 ### Final Checklist
+
 - [ ] All "Must Have" present
 - [ ] All "Must NOT Have" absent (FROZEN files untouched)
 - [ ] All 503+ tests pass

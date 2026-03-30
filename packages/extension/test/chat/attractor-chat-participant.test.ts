@@ -6,6 +6,7 @@ import {
   registerChatParticipant,
   type ChatApiLike,
   type ChatContextLike,
+  type ChatHandlerDependencies,
   type ChatRequestLike,
   type ChatResponseStreamLike
 } from "../../src/chat/attractor-chat-participant";
@@ -16,8 +17,14 @@ describe("buildChatHandler", () => {
     markdown: vi.fn()
   });
 
+  const makeNullDependencies = (): ChatHandlerDependencies => ({
+    services: null,
+    orchestration: null,
+    outputChannel: null
+  });
+
   it("handles /plan command with acknowledgment", async () => {
-    const handler = buildChatHandler();
+    const handler = buildChatHandler(makeNullDependencies());
     const request: ChatRequestLike = { command: "plan", prompt: "test" };
     const stream = makeMockStream();
 
@@ -30,7 +37,7 @@ describe("buildChatHandler", () => {
   });
 
   it("handles /run command with acknowledgment", async () => {
-    const handler = buildChatHandler();
+    const handler = buildChatHandler(makeNullDependencies());
     const request: ChatRequestLike = { command: "run", prompt: "test" };
     const stream = makeMockStream();
 
@@ -43,7 +50,7 @@ describe("buildChatHandler", () => {
   });
 
   it("handles /status command with status response", async () => {
-    const handler = buildChatHandler();
+    const handler = buildChatHandler(makeNullDependencies());
     const request: ChatRequestLike = { command: "status", prompt: "test" };
     const stream = makeMockStream();
 
@@ -56,7 +63,7 @@ describe("buildChatHandler", () => {
   });
 
   it("handles unknown command with help text", async () => {
-    const handler = buildChatHandler();
+    const handler = buildChatHandler(makeNullDependencies());
     const request: ChatRequestLike = {
       command: "unknown",
       prompt: "test"
@@ -72,7 +79,7 @@ describe("buildChatHandler", () => {
   });
 
   it("handles missing command with help text", async () => {
-    const handler = buildChatHandler();
+    const handler = buildChatHandler(makeNullDependencies());
     const request: ChatRequestLike = { prompt: "test" };
     const stream = makeMockStream();
 
@@ -86,13 +93,19 @@ describe("buildChatHandler", () => {
 });
 
 describe("registerChatParticipant", () => {
+  const makeNullDependencies = (): ChatHandlerDependencies => ({
+    services: null,
+    orchestration: null,
+    outputChannel: null
+  });
+
   it("calls createChatParticipant with correct participant ID", () => {
     const mockParticipant = { dispose: vi.fn() };
     const chatApi: ChatApiLike = {
       createChatParticipant: vi.fn(() => mockParticipant)
     };
 
-    const result = registerChatParticipant(chatApi);
+    const result = registerChatParticipant(chatApi, makeNullDependencies());
 
     expect(chatApi.createChatParticipant).toHaveBeenCalledWith(
       PARTICIPANT_ID,

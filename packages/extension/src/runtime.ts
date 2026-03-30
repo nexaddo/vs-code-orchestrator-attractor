@@ -20,7 +20,8 @@ import {
 } from "./dashboard/webview-provider";
 import {
   registerChatParticipant,
-  type ChatApiLike
+  type ChatApiLike,
+  type ChatHandlerDependencies
 } from "./chat/attractor-chat-participant";
 
 export const ATTRACTOR_HELLO_COMMAND = "attractor.hello";
@@ -255,7 +256,15 @@ export const activateAttractor = (
   // --- Chat participant registration (error-bounded) ---
   if (dependencies.chatApi) {
     try {
-      const participant = registerChatParticipant(dependencies.chatApi);
+      const chatDependencies: ChatHandlerDependencies = {
+        services,
+        orchestration: orchestrationContext,
+        outputChannel: log
+      };
+      const participant = registerChatParticipant(
+        dependencies.chatApi,
+        chatDependencies
+      );
       context.subscriptions.push(participant);
       log.appendLine("Attractor: chat participant registered");
     } catch (err) {

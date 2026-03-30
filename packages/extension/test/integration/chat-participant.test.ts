@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   type ChatApiLike,
+  type ChatHandlerDependencies,
   type ChatRequestHandler,
   PARTICIPANT_ID,
   registerChatParticipant
@@ -12,6 +13,12 @@ import {
  * These tests verify registration details NOT covered by activation.test.ts smoke tests.
  */
 describe("registerChatParticipant — registration wiring", () => {
+  const makeNullDependencies = (): ChatHandlerDependencies => ({
+    services: null,
+    orchestration: null,
+    outputChannel: null
+  });
+
   it("registers with the exact PARTICIPANT_ID constant value", () => {
     // This tests that the registration uses PARTICIPANT_ID="attractor.attractor" explicitly,
     // which is NOT covered by activation.test.ts (that test only verifies createChatParticipant was called).
@@ -25,7 +32,7 @@ describe("registerChatParticipant — registration wiring", () => {
       }
     };
 
-    registerChatParticipant(chatApi);
+    registerChatParticipant(chatApi, makeNullDependencies());
 
     expect(capturedId).toBe(PARTICIPANT_ID);
     expect(capturedId).toBe("attractor.attractor");
@@ -44,7 +51,7 @@ describe("registerChatParticipant — registration wiring", () => {
       }
     };
 
-    registerChatParticipant(chatApi);
+    registerChatParticipant(chatApi, makeNullDependencies());
 
     expect(capturedHandler).toBeDefined();
     expect(capturedHandler).not.toBeNull();
