@@ -2,15 +2,18 @@ import type { JSX } from "preact";
 
 import {
   Badge,
+  Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   EmptyState,
+  ProgressBar,
   StatusBadge,
   type Status
 } from "../components";
-import { cn } from "../lib/utils";
+import { cancelRun, openRun } from "../app/postMessage";
+import { cn, formatTimestamp } from "../lib/utils";
 import type { OverviewState } from "./model";
 
 export interface OverviewSurfaceProps {
@@ -34,6 +37,7 @@ export interface OverviewRunViewModel {
   id: string;
   planId: string;
   status: Status;
+  createdAt: string;
 }
 
 export interface OverviewViewModel {
@@ -99,12 +103,14 @@ export function buildOverviewViewModel(
     activeRuns: state.activeRuns.map((run) => ({
       id: run.id,
       planId: run.planId,
-      status: toStatusBadgeStatus(run.status)
+      status: toStatusBadgeStatus(run.status),
+      createdAt: run.createdAt
     })),
     recentFailures: state.recentFailures.map((run) => ({
       id: run.id,
       planId: run.planId,
-      status: "failed"
+      status: "failed" as const,
+      createdAt: run.createdAt
     }))
   };
 }
@@ -224,15 +230,41 @@ export function OverviewSurface({ state }: OverviewSurfaceProps): JSX.Element {
                   )}
                 >
                   <div class="flex items-start justify-between gap-2">
-                    <div class="min-w-0">
+                    <div class="min-w-0 flex-1">
                       <div class="truncate text-[length:var(--text-sm)] font-medium">
                         {run.id}
                       </div>
                       <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
-                        Plan: {run.planId}
+                        Started {formatTimestamp(run.createdAt)}
+                      </div>
+                      <ProgressBar
+                        status={run.status}
+                        class="mt-1.5"
+                        label="Run progress"
+                        height={4}
+                      />
+                    </div>
+                    <div class="flex shrink-0 flex-col items-end gap-1">
+                      <StatusBadge status={run.status} variant="text" />
+                      <div class="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => openRun(run.id)}
+                        >
+                          Open
+                        </Button>
+                        {run.status === "running" && (
+                          <Button
+                            size="sm"
+                            variant="danger"
+                            onClick={() => cancelRun(run.id)}
+                          >
+                            Cancel
+                          </Button>
+                        )}
                       </div>
                     </div>
-                    <StatusBadge status={run.status} variant="text" />
                   </div>
                 </div>
               ))
@@ -257,15 +289,24 @@ export function OverviewSurface({ state }: OverviewSurfaceProps): JSX.Element {
                 <Card key={run.id} intent="failure">
                   <CardContent class="px-2 py-1.5">
                     <div class="flex items-start justify-between gap-2">
-                      <div class="min-w-0">
+                      <div class="min-w-0 flex-1">
                         <div class="truncate text-[length:var(--text-sm)] font-medium">
                           {run.id}
                         </div>
                         <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
-                          Plan: {run.planId}
+                          Failed {formatTimestamp(run.createdAt)}
                         </div>
                       </div>
-                      <StatusBadge status="failed" variant="text" />
+                      <div class="flex shrink-0 flex-col items-end gap-1">
+                        <StatusBadge status="failed" variant="text" />
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => openRun(run.id)}
+                        >
+                          Triage
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

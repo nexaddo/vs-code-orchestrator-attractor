@@ -150,18 +150,21 @@ describe("RepositorySurface", () => {
         id: "plan-draft",
         title: "Draft Plan",
         status: "queued",
+        planStatus: "draft",
         updatedAt: "2026-01-11T00:00:00Z"
       },
       {
         id: "plan-completed",
         title: "Completed Plan",
         status: "succeeded",
+        planStatus: "completed",
         updatedAt: "2026-01-13T00:00:00Z"
       },
       {
         id: "plan-paused",
         title: "Paused Plan",
         status: "blocked",
+        planStatus: "paused",
         updatedAt: "2026-01-15T00:00:00Z"
       }
     ]);

@@ -2,6 +2,7 @@ import type { ExtensionEvent } from "@attractor/shared";
 import type { JSX } from "preact";
 
 import {
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -12,7 +13,8 @@ import {
   StatusBadge,
   type Status
 } from "../components";
-import { cn } from "../lib/utils";
+import { runPlan } from "../app/postMessage";
+import { cn, formatTimestamp } from "../lib/utils";
 import type { PlanState } from "./model";
 
 export interface PlanSurfaceProps {
@@ -51,9 +53,11 @@ export interface PlanValidationEventViewModel {
 }
 
 export interface PlanViewModel {
+  planId: string;
   title: string;
   goal: string;
   status: Status;
+  planStatus: string;
   graphSource: string;
   createdAt: string;
   updatedAt: string;
@@ -184,9 +188,11 @@ export function buildPlanViewModel(state: PlanState): PlanViewModel {
   ).length;
 
   return {
+    planId: state.plan.id,
     title: state.plan.title,
     goal: state.plan.goal,
     status: toPlanStatus(state.plan.status),
+    planStatus: state.plan.status,
     graphSource: state.plan.graphSource,
     createdAt: state.plan.createdAt,
     updatedAt: state.plan.updatedAt,
@@ -225,7 +231,7 @@ export function PlanSurface({ state }: PlanSurfaceProps): JSX.Element {
     <div class="flex flex-col gap-3" data-testid="plan-content">
       <Card data-testid="plan-header">
         <CardHeader>
-          <div class="min-w-0">
+          <div class="min-w-0 flex-1">
             <CardTitle class="truncate text-[length:var(--text-base)]">
               {viewModel.title}
             </CardTitle>
@@ -233,14 +239,26 @@ export function PlanSurface({ state }: PlanSurfaceProps): JSX.Element {
               {viewModel.goal}
             </p>
           </div>
-          <StatusBadge status={viewModel.status} variant="text" />
+          <div class="flex shrink-0 flex-col items-end gap-1">
+            <StatusBadge status={viewModel.status} variant="text" />
+            {viewModel.planStatus === "ready" && (
+              <Button
+                size="sm"
+                icon="codicon codicon-play"
+                onClick={() => runPlan(viewModel.planId)}
+              >
+                Run Plan
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent class="space-y-2">
           <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
             Graph Source: {viewModel.graphSource}
           </div>
           <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
-            Created: {viewModel.createdAt} · Updated: {viewModel.updatedAt}
+            Created: {formatTimestamp(viewModel.createdAt)} · Updated:{" "}
+            {formatTimestamp(viewModel.updatedAt)}
           </div>
           <div class="space-y-1">
             <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
@@ -344,7 +362,8 @@ export function PlanSurface({ state }: PlanSurfaceProps): JSX.Element {
                           {run.id}
                         </div>
                         <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
-                          Attempt {run.attempt} · {run.createdAt}
+                          Attempt {run.attempt} ·{" "}
+                          {formatTimestamp(run.createdAt)}
                         </div>
                       </div>
                       <StatusBadge status={run.status} variant="text" />

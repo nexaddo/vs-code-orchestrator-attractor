@@ -2,6 +2,7 @@ import type { JSX } from "preact";
 
 import {
   Badge,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -11,7 +12,8 @@ import {
   StatusBadge,
   type Status
 } from "../components";
-import { cn } from "../lib/utils";
+import { createPlan, runPlan } from "../app/postMessage";
+import { cn, formatTimestamp } from "../lib/utils";
 import type { RepositoryState } from "./model";
 
 export interface RepositorySurfaceProps {
@@ -22,6 +24,7 @@ export interface RepositoryPlanViewModel {
   id: string;
   title: string;
   status: Status;
+  planStatus: string;
   updatedAt: string;
 }
 
@@ -116,6 +119,7 @@ export function buildRepositoryViewModel(
       id: plan.id,
       title: plan.title,
       status: toPlanStatusBadgeStatus(plan.status),
+      planStatus: plan.status,
       updatedAt: plan.updatedAt
     })),
     runs: state.runs.map((run) => ({
@@ -154,6 +158,17 @@ export function RepositorySurface({
               {label}
             </Badge>
           ))}
+          <div class="ml-auto">
+            <Button
+              size="sm"
+              icon="codicon codicon-add"
+              onClick={() =>
+                createPlan(viewModel.id, "New Plan", "Describe the goal")
+              }
+            >
+              Create Plan
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -179,15 +194,26 @@ export function RepositorySurface({
                   )}
                 >
                   <div class="flex items-start justify-between gap-2">
-                    <div class="min-w-0">
+                    <div class="min-w-0 flex-1">
                       <div class="truncate text-[length:var(--text-sm)] font-medium">
                         {plan.title}
                       </div>
                       <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
-                        {plan.updatedAt}
+                        Updated {formatTimestamp(plan.updatedAt)}
                       </div>
                     </div>
-                    <StatusBadge status={plan.status} variant="text" />
+                    <div class="flex shrink-0 flex-col items-end gap-1">
+                      <StatusBadge status={plan.status} variant="text" />
+                      {plan.planStatus === "ready" && (
+                        <Button
+                          size="sm"
+                          icon="codicon codicon-play"
+                          onClick={() => runPlan(plan.id)}
+                        >
+                          Run
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))
@@ -222,7 +248,7 @@ export function RepositorySurface({
                           {run.id}
                         </div>
                         <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
-                          Attempt {run.attempt} · {run.createdAt}
+                          Attempt {run.attempt} · {formatTimestamp(run.createdAt)}
                         </div>
                       </div>
                       <StatusBadge status={run.status} variant="text" />

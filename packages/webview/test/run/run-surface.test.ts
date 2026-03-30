@@ -102,6 +102,7 @@ describe("RunSurface", () => {
     expect(vm.header).toEqual({
       runId: "run-001",
       status: "blocked",
+      runStatus: "paused",
       planTitle: "Ship run inspector surface",
       attemptLabel: "Attempt 2"
     });

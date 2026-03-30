@@ -2,6 +2,7 @@ import type { JSX } from "preact";
 
 import {
   Badge,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -11,7 +12,8 @@ import {
   StatusBadge,
   type Status
 } from "../components";
-import { cn } from "../lib/utils";
+import { cancelRun, resumeRun, retryRun } from "../app/postMessage";
+import { cn, formatDuration, formatTimestamp } from "../lib/utils";
 import type { RunState } from "./model";
 
 export interface RunSurfaceProps {
@@ -45,6 +47,7 @@ export interface RunViewModel {
   header: {
     runId: string;
     status: Status;
+    runStatus: string;
     planTitle: string;
     attemptLabel: string;
   };
@@ -107,6 +110,7 @@ export function buildRunViewModel(state: RunState): RunViewModel {
     header: {
       runId: state.run.id,
       status: toRunStatus(state.run.status),
+      runStatus: state.run.status,
       planTitle: state.plan.title,
       attemptLabel: `Attempt ${state.run.attempt}`
     },
@@ -115,7 +119,7 @@ export function buildRunViewModel(state: RunState): RunViewModel {
       id: artifact.id,
       title: artifact.title,
       type: artifact.type,
-      createdAt: artifact.createdAt
+      createdAt: formatTimestamp(artifact.createdAt)
     })),
     progress: {
       succeeded,
@@ -147,7 +151,7 @@ export function RunSurface({ state }: RunSurfaceProps): JSX.Element {
           class="flex flex-wrap items-start justify-between gap-2"
           data-testid="run-header"
         >
-          <div class="min-w-0">
+          <div class="min-w-0 flex-1">
             <h2 class="truncate text-[length:var(--text-base)] font-semibold">
               {viewModel.header.runId}
             </h2>
@@ -155,9 +159,40 @@ export function RunSurface({ state }: RunSurfaceProps): JSX.Element {
               {viewModel.header.planTitle}
             </p>
           </div>
-          <div class="flex items-center gap-2">
-            <StatusBadge status={viewModel.header.status} variant="text" />
-            <Badge variant="outline">{viewModel.header.attemptLabel}</Badge>
+          <div class="flex shrink-0 flex-col items-end gap-1">
+            <div class="flex items-center gap-2">
+              <StatusBadge status={viewModel.header.status} variant="text" />
+              <Badge variant="outline">{viewModel.header.attemptLabel}</Badge>
+            </div>
+            <div class="flex gap-1">
+              {viewModel.header.runStatus === "paused" && (
+                <Button
+                  size="sm"
+                  icon="codicon codicon-debug-continue"
+                  onClick={() => resumeRun(viewModel.header.runId)}
+                >
+                  Resume
+                </Button>
+              )}
+              {viewModel.header.runStatus === "running" && (
+                <Button
+                  size="sm"
+                  variant="danger"
+                  onClick={() => cancelRun(viewModel.header.runId)}
+                >
+                  Cancel
+                </Button>
+              )}
+              {viewModel.header.runStatus === "failed" && (
+                <Button
+                  size="sm"
+                  icon="codicon codicon-refresh"
+                  onClick={() => retryRun(viewModel.header.runId)}
+                >
+                  Retry Failed
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -203,14 +238,26 @@ export function RunSurface({ state }: RunSurfaceProps): JSX.Element {
                       <div class="truncate text-[length:var(--text-sm)] font-medium">
                         {milestoneRun.nodeId}
                       </div>
-                      <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
-                        Started: {milestoneRun.startedAt}
-                      </div>
-                      {milestoneRun.endedAt && (
+                      {milestoneRun.status !== "queued" && (
                         <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
-                          Ended: {milestoneRun.endedAt}
+                          Started: {formatTimestamp(milestoneRun.startedAt)}
                         </div>
                       )}
+                      {milestoneRun.endedAt && (
+                        <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
+                          Ended: {formatTimestamp(milestoneRun.endedAt)}
+                        </div>
+                      )}
+                      {milestoneRun.status === "succeeded" &&
+                        milestoneRun.endedAt && (
+                          <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
+                            Duration:{" "}
+                            {formatDuration(
+                              milestoneRun.startedAt,
+                              milestoneRun.endedAt
+                            )}
+                          </div>
+                        )}
                       {milestoneRun.errorMessage && (
                         <div class="mt-1 text-[length:var(--text-xs)] text-[color:var(--color-status-failed)]">
                           {milestoneRun.errorMessage}

@@ -83,11 +83,26 @@ describe("OverviewSurface", () => {
     expect(vm.repositories).toHaveLength(2);
     expect(vm.repositories[1].defaultBranch).toBe("develop");
     expect(vm.activeRuns).toEqual([
-      { id: "run-001", planId: "plan-001", status: "running" },
-      { id: "run-002", planId: "plan-002", status: "blocked" }
+      {
+        id: "run-001",
+        planId: "plan-001",
+        status: "running",
+        createdAt: "2025-01-01T00:00:00Z"
+      },
+      {
+        id: "run-002",
+        planId: "plan-002",
+        status: "blocked",
+        createdAt: "2025-01-02T00:00:00Z"
+      }
     ]);
     expect(vm.recentFailures).toEqual([
-      { id: "run-003", planId: "plan-003", status: "failed" }
+      {
+        id: "run-003",
+        planId: "plan-003",
+        status: "failed",
+        createdAt: "2025-01-03T00:00:00Z"
+      }
     ]);
   });
 

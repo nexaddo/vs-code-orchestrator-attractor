@@ -45,6 +45,10 @@ export function focusGraphNode(nodeId: string, status: string): void {
   sendMessage("graph.focus", { nodeId, status });
 }
 
+export function openRun(runId: string): void {
+  sendMessage("run.open", { runId });
+}
+
 // ---- Action commands (deferred to M4+ runtime, but message shape is ready) ----
 
 export function createPlan(
