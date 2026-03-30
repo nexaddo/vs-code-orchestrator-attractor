@@ -40,11 +40,15 @@ export interface ChatResultLike {
   metadata?: Record<string, unknown>;
 }
 
+export interface CancellationTokenLike {
+  onCancellationRequested(listener: () => void): void;
+}
+
 export type ChatRequestHandler = (
   request: ChatRequestLike,
   context: ChatContextLike,
   stream: ChatResponseStreamLike,
-  token: unknown
+  token: CancellationTokenLike
 ) => Promise<ChatResultLike>;
 
 export interface ChatParticipantLike {
@@ -69,7 +73,6 @@ export const buildChatHandler = (
   return async (request, context, stream, token): Promise<ChatResultLike> => {
     // Suppress unused parameter warnings
     void context;
-    void token;
 
     switch (request.command) {
       case "plan": {
@@ -114,13 +117,92 @@ export const buildChatHandler = (
         return {};
       }
 
-      case "run":
-        stream.markdown("Run start acknowledged. ...placeholder...");
-        return {};
+      case "run": {
+        const { services, orchestration } = options;
 
-      case "status":
-        stream.markdown("No active orchestration run.");
+        // Check orchestration availability first
+        if (!orchestration) {
+          stream.markdown("Orchestration not available.");
+          return {};
+        }
+
+        // Parse plan ID from prompt
+        const planId = request.prompt.trim();
+
+        // If no plan ID, list available plans
+        if (!planId) {
+          if (!services) {
+            stream.markdown(
+              "Please specify a plan ID: `/run <plan-id>`. Attractor storage not initialized."
+            );
+            return {};
+          }
+
+          const plans = await services.planRegistry.list();
+          if (plans.length === 0) {
+            stream.markdown(
+              "Please specify a plan ID: `/run <plan-id>`. No plans found."
+            );
+            return {};
+          }
+
+          const planList = plans.map((p) => `- ${p.id}: ${p.title}`).join("\n");
+          stream.markdown(
+            `Please specify a plan ID: \`/run <plan-id>\`. Available plans:\n\n${planList}`
+          );
+          return {};
+        }
+
+        // Generate run ID
+        const runId = crypto.randomUUID();
+
+        // Convert CancellationToken to AbortSignal
+        const abortController = new AbortController();
+        token.onCancellationRequested(() => abortController.abort());
+        const signal = abortController.signal;
+
+        // Start orchestration (fire and forget)
+        void orchestration.startOrchestration({
+          runId,
+          planId,
+          panel: null,
+          signal
+        });
+
+        stream.markdown(
+          `Starting orchestration run \`${runId}\` for plan \`${planId}\`...`
+        );
+
         return {};
+      }
+
+      case "status": {
+        const { services } = options;
+
+        if (!services) {
+          stream.markdown("Attractor storage not initialized.");
+          return {};
+        }
+
+        const activeRuns = await services.runRegistry.listActiveRuns();
+
+        if (activeRuns.length === 0) {
+          stream.markdown("No active orchestration runs.");
+          return {};
+        }
+
+        // Format runs as markdown list
+        const runLines = activeRuns.map(
+          (run) =>
+            `### Run ${run.id}\n` +
+            `- Plan: ${run.planId}\n` +
+            `- Status: ${run.status}\n` +
+            `- Started: ${run.startedAt || "N/A"}`
+        );
+
+        stream.markdown(runLines.join("\n\n"));
+        return {};
+      }
 
       default:
         stream.markdown("Available commands: /plan, /run, /status");

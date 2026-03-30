@@ -9,7 +9,9 @@
     "ses_2c3779b16ffeOX03ih7w7wGJef",
     "ses_2c36fe912ffeBkbVOUJ4GUzymt",
     "ses_2c36f41cefferQIvlDqNzbEKNu",
-    "ses_2c3648792ffekiKcKzmo567IOY"
+    "ses_2c3648792ffekiKcKzmo567IOY",
+    "ses_2c35c62d7ffemytYt40vqb93MI",
+    "ses_2c3595f5effefbI714tqXkY9dt"
   ],
   "plan_name": "wire-orchestration",
   "agent": "atlas",
@@ -40,6 +42,15 @@
       "agent": "Sisyphus-Junior",
       "category": "deep",
       "updated_at": "2026-03-30T02:43:19.386Z"
+    },
+    "todo:4": {
+      "task_key": "todo:4",
+      "task_label": "4",
+      "task_title": "Implement Chat /plan Command",
+      "session_id": "ses_2c3595f5effefbI714tqXkY9dt",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-03-30T02:54:06.309Z"
     }
   }
 }

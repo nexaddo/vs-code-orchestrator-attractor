@@ -16,6 +16,7 @@ describe("buildChatHandler", () => {
   const makeMockStream = (): ChatResponseStreamLike => ({
     markdown: vi.fn()
   });
+  const makeMockToken = () => ({ onCancellationRequested: vi.fn() });
 
   const makeNullDependencies = (): ChatHandlerDependencies => ({
     services: null,
@@ -46,7 +47,7 @@ describe("buildChatHandler", () => {
       request,
       makeMockContext(),
       mockStream,
-      undefined
+      makeMockToken()
     );
 
     expect(mockStream.markdown).toHaveBeenCalledWith(
@@ -60,24 +61,103 @@ describe("buildChatHandler", () => {
     const request: ChatRequestLike = { command: "run", prompt: "test" };
     const stream = makeMockStream();
 
-    const result = await handler(request, makeMockContext(), stream, undefined);
+    const result = await handler(request, makeMockContext(), stream, {
+      onCancellationRequested: vi.fn()
+    });
 
     expect(stream.markdown).toHaveBeenCalledWith(
-      "Run start acknowledged. ...placeholder..."
+      "Orchestration not available."
     );
     expect(result).toEqual({});
   });
 
-  it("handles /status command with status response", async () => {
+  it("handles /status command with null services", async () => {
     const handler = buildChatHandler(makeNullDependencies());
     const request: ChatRequestLike = { command: "status", prompt: "test" };
     const stream = makeMockStream();
 
-    const result = await handler(request, makeMockContext(), stream, undefined);
+    const result = await handler(
+      request,
+      makeMockContext(),
+      stream,
+      makeMockToken()
+    );
 
     expect(stream.markdown).toHaveBeenCalledWith(
-      "No active orchestration run."
+      "Attractor storage not initialized."
     );
+    expect(result).toEqual({});
+  });
+
+  it("handles /status command with no active runs", async () => {
+    const mockStream = makeMockStream();
+    const mockServices = {
+      runRegistry: {
+        listActiveRuns: vi.fn().mockResolvedValue([])
+      }
+    };
+    const dependencies: ChatHandlerDependencies = {
+      services: mockServices as any,
+      orchestration: null,
+      outputChannel: null
+    };
+
+    const handler = buildChatHandler(dependencies);
+    const request: ChatRequestLike = { command: "status", prompt: "test" };
+
+    const result = await handler(
+      request,
+      makeMockContext(),
+      mockStream,
+      makeMockToken()
+    );
+
+    expect(mockStream.markdown).toHaveBeenCalledWith(
+      "No active orchestration runs."
+    );
+    expect(result).toEqual({});
+  });
+
+  it("handles /status command with active run", async () => {
+    const mockStream = makeMockStream();
+    const mockServices = {
+      runRegistry: {
+        listActiveRuns: vi.fn().mockResolvedValue([
+          {
+            id: "run-123",
+            planId: "plan-456",
+            status: "running",
+            attempt: 1,
+            startedAt: "2024-03-15T10:30:00.000Z",
+            createdAt: "2024-03-15T10:30:00.000Z",
+            updatedAt: "2024-03-15T10:30:00.000Z"
+          }
+        ])
+      }
+    };
+    const dependencies: ChatHandlerDependencies = {
+      services: mockServices as any,
+      orchestration: null,
+      outputChannel: null
+    };
+
+    const handler = buildChatHandler(dependencies);
+    const request: ChatRequestLike = { command: "status", prompt: "test" };
+
+    const result = await handler(
+      request,
+      makeMockContext(),
+      mockStream,
+      makeMockToken()
+    );
+
+    expect(mockStream.markdown).toHaveBeenCalled();
+    const callArg = (mockStream.markdown as any).mock.calls[0][0] as string;
+
+    expect(callArg).toContain("run-123");
+    expect(callArg).toContain("plan-456");
+    expect(callArg).toContain("running");
+    expect(callArg).toContain("2024-03-15T10:30:00.000Z");
     expect(result).toEqual({});
   });
 
@@ -89,7 +169,12 @@ describe("buildChatHandler", () => {
     };
     const stream = makeMockStream();
 
-    const result = await handler(request, makeMockContext(), stream, undefined);
+    const result = await handler(
+      request,
+      makeMockContext(),
+      stream,
+      makeMockToken()
+    );
 
     expect(stream.markdown).toHaveBeenCalledWith(
       "Available commands: /plan, /run, /status"
@@ -102,7 +187,12 @@ describe("buildChatHandler", () => {
     const request: ChatRequestLike = { prompt: "test" };
     const stream = makeMockStream();
 
-    const result = await handler(request, makeMockContext(), stream, undefined);
+    const result = await handler(
+      request,
+      makeMockContext(),
+      stream,
+      makeMockToken()
+    );
 
     expect(stream.markdown).toHaveBeenCalledWith(
       "Available commands: /plan, /run, /status"
@@ -115,7 +205,12 @@ describe("buildChatHandler", () => {
     const request: ChatRequestLike = { command: "plan", prompt: "test" };
     const stream = makeMockStream();
 
-    const result = await handler(request, makeMockContext(), stream, undefined);
+    const result = await handler(
+      request,
+      makeMockContext(),
+      stream,
+      makeMockToken()
+    );
 
     expect(stream.markdown).toHaveBeenCalledWith(
       "Attractor storage not initialized."
@@ -146,7 +241,7 @@ describe("buildChatHandler", () => {
       request,
       makeMockContext(),
       mockStream,
-      undefined
+      makeMockToken()
     );
 
     expect(mockStream.markdown).toHaveBeenCalledWith(
@@ -209,7 +304,7 @@ describe("buildChatHandler", () => {
       request,
       makeMockContext(),
       mockStream,
-      undefined
+      makeMockToken()
     );
 
     // Get the markdown argument passed to stream.markdown()
@@ -226,6 +321,114 @@ describe("buildChatHandler", () => {
     // Check that goal is truncated (80 chars + "...")
     expect(callArg).toContain(
       "Wire the 3 placeholder gaps in the Attractor VS Code extension so orchestration ..."
+    );
+    expect(result).toEqual({});
+  });
+
+  it("invokes startOrchestration when /run called with plan ID", async () => {
+    const mockStartOrchestration = vi.fn().mockResolvedValue(undefined);
+    const mockOrchestration = {
+      startOrchestration: mockStartOrchestration,
+      cancelOrchestration: vi.fn()
+    };
+    const mockStream = makeMockStream();
+    const mockToken = makeMockToken();
+
+    const dependencies: ChatHandlerDependencies = {
+      services: null,
+      orchestration: mockOrchestration,
+      outputChannel: null
+    };
+
+    const handler = buildChatHandler(dependencies);
+
+    const result = await handler(
+      { command: "run", prompt: "plan-123" },
+      makeMockContext(),
+      mockStream,
+      mockToken
+    );
+
+    expect(mockStartOrchestration).toHaveBeenCalledWith(
+      expect.objectContaining({
+        planId: "plan-123",
+        panel: null,
+        runId: expect.stringMatching(/^[0-9a-f-]{36}$/), // UUID format
+        signal: expect.any(AbortSignal)
+      })
+    );
+    expect(mockStream.markdown).toHaveBeenCalledWith(
+      expect.stringContaining("Starting orchestration")
+    );
+    expect(result).toEqual({});
+  });
+
+  it("lists available plans when /run called without plan ID", async () => {
+    const mockServices = {
+      planRegistry: {
+        list: vi.fn().mockResolvedValue([
+          { id: "plan-abc", title: "Plan Alpha" },
+          { id: "plan-xyz", title: "Plan Beta" }
+        ])
+      },
+      milestoneRegistry: {
+        listByPlanId: vi.fn()
+      }
+    };
+    const mockOrchestration = {
+      startOrchestration: vi.fn(),
+      cancelOrchestration: vi.fn()
+    };
+    const mockStream = makeMockStream();
+
+    const dependencies: ChatHandlerDependencies = {
+      services: mockServices as any,
+      orchestration: mockOrchestration,
+      outputChannel: null
+    };
+
+    const handler = buildChatHandler(dependencies);
+
+    const result = await handler(
+      { command: "run", prompt: "" },
+      makeMockContext(),
+      mockStream,
+      makeMockToken()
+    );
+
+    expect(mockOrchestration.startOrchestration).not.toHaveBeenCalled();
+    expect(mockStream.markdown).toHaveBeenCalledWith(
+      expect.stringContaining("Please specify a plan ID")
+    );
+    expect(mockStream.markdown).toHaveBeenCalledWith(
+      expect.stringContaining("plan-abc")
+    );
+    expect(mockStream.markdown).toHaveBeenCalledWith(
+      expect.stringContaining("plan-xyz")
+    );
+    expect(result).toEqual({});
+  });
+
+  it("responds not available when /run called without orchestration", async () => {
+    const mockStream = makeMockStream();
+
+    const dependencies: ChatHandlerDependencies = {
+      services: null,
+      orchestration: null,
+      outputChannel: null
+    };
+
+    const handler = buildChatHandler(dependencies);
+
+    const result = await handler(
+      { command: "run", prompt: "plan-123" },
+      makeMockContext(),
+      mockStream,
+      makeMockToken()
+    );
+
+    expect(mockStream.markdown).toHaveBeenCalledWith(
+      "Orchestration not available."
     );
     expect(result).toEqual({});
   });
