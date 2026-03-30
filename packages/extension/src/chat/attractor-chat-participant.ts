@@ -76,7 +76,7 @@ export const buildChatHandler = (
 
     switch (request.command) {
       case "plan": {
-        const { services } = options;
+        const { services, outputChannel } = options;
 
         if (!services) {
           stream.markdown("Attractor storage not initialized.");
@@ -84,6 +84,12 @@ export const buildChatHandler = (
         }
 
         const plans = await services.planRegistry.list();
+
+        if (outputChannel) {
+          outputChannel.appendLine(
+            `Attractor: /plan command — ${plans.length} plans found`
+          );
+        }
 
         if (plans.length === 0) {
           stream.markdown(
@@ -118,7 +124,7 @@ export const buildChatHandler = (
       }
 
       case "run": {
-        const { services, orchestration } = options;
+        const { services, orchestration, outputChannel } = options;
 
         // Check orchestration availability first
         if (!orchestration) {
@@ -128,6 +134,10 @@ export const buildChatHandler = (
 
         // Parse plan ID from prompt
         const planId = request.prompt.trim();
+
+        if (outputChannel) {
+          outputChannel.appendLine(`Attractor: /run command — plan=${planId}`);
+        }
 
         // If no plan ID, list available plans
         if (!planId) {

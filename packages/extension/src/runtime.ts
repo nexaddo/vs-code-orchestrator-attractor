@@ -150,6 +150,11 @@ export const activateAttractor = (
     startOrchestration: async ({ runId, planId, panel: runPanel, signal }) => {
       const controller = new AbortController();
       activeRuns.set(runId, controller);
+      const startTime = Date.now();
+
+      log.appendLine(
+        `Attractor: orchestration started — run=${runId} plan=${planId}`
+      );
 
       // Connect external signal if provided
       if (signal) {
@@ -213,6 +218,10 @@ export const activateAttractor = (
           throw new Error(`No milestones found for plan: ${planId}`);
         }
 
+        log.appendLine(
+          `Attractor: plan loaded — ${plan.title} (${milestoneRecords.length} milestones)`
+        );
+
         const milestones: MilestoneInput[] = milestoneRecords
           .map((record) => ({
             id: record.id,
@@ -225,6 +234,7 @@ export const activateAttractor = (
           }))
           .sort((left, right) => left.order - right.order);
 
+        let previousMilestoneIndex = -1;
         const loop = new OrchestrationLoop();
         await loop.execute({
           modelGateway: orchestrationContext.modelGateway,
@@ -233,9 +243,22 @@ export const activateAttractor = (
           planTitle: plan.title,
           planGoal: plan.goal,
           onStateChange: (state) => {
+            if (state.milestoneIndex !== previousMilestoneIndex) {
+              previousMilestoneIndex = state.milestoneIndex;
+              log.appendLine(
+                `Attractor: milestone ${state.milestoneIndex + 1}/${state.milestoneCount} — ${state.milestoneName}`
+              );
+            }
             postRunMessage("run.state", state);
           },
           onHandoff: (handoff, role) => {
+            const handoffType =
+              "milestoneId" in handoff &&
+              typeof handoff.milestoneId === "string"
+                ? handoff.milestoneId
+                : runId;
+            log.appendLine(`Attractor: handoff ${role} — ${handoffType}`);
+
             const event: ExtensionEvent = {
               version: CONTRACT_VERSION,
               id: `${runId}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
@@ -268,7 +291,7 @@ export const activateAttractor = (
           onError: (error, milestoneId, role) => {
             observedLoopError = true;
             log.appendLine(
-              `Attractor: orchestration phase error [${role}/${milestoneId}] — ${error.stack ?? error.message}`
+              `Attractor: error in ${role} at milestone ${milestoneId} — ${error.message}`
             );
             postRunMessage("run.error", {
               runId,
@@ -281,6 +304,7 @@ export const activateAttractor = (
         });
 
         if (runRecordSaved) {
+          const duration = Date.now() - startTime;
           const completedAt = new Date().toISOString();
           await services.runRegistry.save({
             ...runningRecord,
@@ -288,11 +312,33 @@ export const activateAttractor = (
             updatedAt: completedAt,
             completedAt
           });
+
+          if (observedLoopError) {
+            log.appendLine(
+              `Attractor: orchestration failed — run=${runId} duration=${duration}ms`
+            );
+          } else {
+            log.appendLine(
+              `Attractor: orchestration completed — run=${runId} duration=${duration}ms`
+            );
+          }
         }
       } catch (error) {
-        log.appendLine(
-          `Attractor: orchestration failed [run ${runId}] — ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`
-        );
+        const duration = Date.now() - startTime;
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+
+        if (
+          error instanceof Error &&
+          (error.name === "AbortError" ||
+            (error.message && error.message.includes("abort")))
+        ) {
+          log.appendLine(`Attractor: orchestration canceled — run=${runId}`);
+        } else {
+          log.appendLine(
+            `Attractor: orchestration failed — run=${runId} error=${errorMessage}`
+          );
+        }
         if (runRecordSaved) {
           const completedAt = new Date().toISOString();
           await services.runRegistry.save({

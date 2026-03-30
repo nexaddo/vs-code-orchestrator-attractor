@@ -255,6 +255,150 @@ describe("runtime startOrchestration", () => {
     expect(logLines.some((line) => line.includes("failed"))).toBe(false);
   });
 
+  it("logs orchestration lifecycle events to OutputChannel", async () => {
+    executeMock.mockImplementation(async (options) => {
+      // Simulate state change
+      options.onStateChange({
+        runId: options.runId,
+        milestoneIndex: 0,
+        milestoneCount: options.milestones.length,
+        milestoneName: options.milestones[0]?.name ?? "",
+        phases: [
+          { role: "orchestrator", status: "running" },
+          { role: "planner", status: "waiting" },
+          { role: "implementer", status: "waiting" },
+          { role: "reviewer", status: "waiting" }
+        ]
+      });
+
+      // Simulate handoff
+      options.onHandoff(
+        {
+          milestoneId: options.milestones[0]?.id ?? "m-1",
+          milestoneName: options.milestones[0]?.name ?? "First Milestone",
+          description: "handoff description",
+          acceptanceCriteria: []
+        } as never,
+        "orchestrator"
+      );
+    });
+
+    const { services, runSave } = makeServices();
+    const context = makeContext();
+    const { panel } = makePanel();
+    const logLines: string[] = [];
+
+    activateAttractor(context, makeCommandsApi(), {
+      storageRoot: "/tmp/storage",
+      createStorageServices: () => services as never,
+      modelGateway: makeGateway(),
+      outputChannel: {
+        appendLine: (line) => {
+          logLines.push(line);
+        }
+      }
+    });
+
+    await context.onWebviewMessage!(
+      {
+        version: 1,
+        requestId: "req-logging-test",
+        type: "plan.run",
+        payload: { planId: "plan-1", runId: "run-logging-test" }
+      },
+      panel
+    );
+
+    await waitForRunToSettle(runSave);
+
+    // Verify all expected log messages
+    expect(
+      logLines.some((line) =>
+        line.match(
+          /Attractor: orchestration started — run=run-logging-test plan=plan-1/
+        )
+      )
+    ).toBe(true);
+
+    expect(
+      logLines.some((line) =>
+        line.match(
+          /Attractor: plan loaded — Ship Runtime Orchestration \(1 milestones\)/
+        )
+      )
+    ).toBe(true);
+
+    expect(
+      logLines.some((line) =>
+        line.match(/Attractor: milestone 1\/1 — First Milestone/)
+      )
+    ).toBe(true);
+
+    expect(
+      logLines.some((line) =>
+        line.match(/Attractor: handoff orchestrator — m-1/)
+      )
+    ).toBe(true);
+
+    expect(
+      logLines.some((line) =>
+        line.match(
+          /Attractor: orchestration completed — run=run-logging-test duration=\d+ms/
+        )
+      )
+    ).toBe(true);
+  });
+
+  it("logs error when onError callback is invoked", async () => {
+    executeMock.mockImplementation(async (options) => {
+      options.onError(new Error("test error message"), "m-1", "planner");
+    });
+
+    const { services, runSave } = makeServices();
+    const context = makeContext();
+    const { panel } = makePanel();
+    const logLines: string[] = [];
+
+    activateAttractor(context, makeCommandsApi(), {
+      storageRoot: "/tmp/storage",
+      createStorageServices: () => services as never,
+      modelGateway: makeGateway(),
+      outputChannel: {
+        appendLine: (line) => {
+          logLines.push(line);
+        }
+      }
+    });
+
+    await context.onWebviewMessage!(
+      {
+        version: 1,
+        requestId: "req-error-test",
+        type: "plan.run",
+        payload: { planId: "plan-1", runId: "run-error-test" }
+      },
+      panel
+    );
+
+    await waitForRunToSettle(runSave);
+
+    expect(
+      logLines.some((line) =>
+        line.match(
+          /Attractor: error in planner at milestone m-1 — test error message/
+        )
+      )
+    ).toBe(true);
+
+    expect(
+      logLines.some((line) =>
+        line.match(
+          /Attractor: orchestration failed — run=run-error-test duration=\d+ms/
+        )
+      )
+    ).toBe(true);
+  });
+
   it("fails gracefully when plan is missing", async () => {
     const { services, runSave } = makeServices({ plan: null });
     const context = makeContext();

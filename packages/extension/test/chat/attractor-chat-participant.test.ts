@@ -456,3 +456,109 @@ describe("registerChatParticipant", () => {
     expect(result).toBe(mockParticipant);
   });
 });
+
+describe("buildChatHandler logging", () => {
+  const makeMockContext = (): ChatContextLike => ({ history: [] });
+  const makeMockStream = (): ChatResponseStreamLike => ({
+    markdown: vi.fn()
+  });
+  const makeMockToken = () => ({ onCancellationRequested: vi.fn() });
+
+  it("logs /plan command with plan count", async () => {
+    const mockStream = makeMockStream();
+    const logLines: string[] = [];
+    const mockServices = {
+      planRegistry: {
+        list: vi.fn().mockResolvedValue([
+          {
+            id: "plan-1",
+            title: "Test Plan",
+            goal: "Test goal",
+            status: "ready",
+            repositories: []
+          }
+        ])
+      },
+      milestoneRegistry: {
+        listByPlanId: vi.fn().mockResolvedValue([{ id: "m1" }])
+      }
+    };
+
+    const dependencies: ChatHandlerDependencies = {
+      services: mockServices as any,
+      orchestration: null,
+      outputChannel: {
+        appendLine: (line) => {
+          logLines.push(line);
+        }
+      }
+    };
+
+    const handler = buildChatHandler(dependencies);
+    const request: ChatRequestLike = { command: "plan", prompt: "test" };
+
+    await handler(request, makeMockContext(), mockStream, makeMockToken());
+
+    expect(
+      logLines.some((line) =>
+        line.match(/Attractor: \/plan command — 1 plans found/)
+      )
+    ).toBe(true);
+  });
+
+  it("logs /run command with plan ID", async () => {
+    const mockStream = makeMockStream();
+    const logLines: string[] = [];
+    const mockOrchestration = {
+      startOrchestration: vi.fn().mockResolvedValue(undefined),
+      cancelOrchestration: vi.fn()
+    };
+
+    const dependencies: ChatHandlerDependencies = {
+      services: null,
+      orchestration: mockOrchestration,
+      outputChannel: {
+        appendLine: (line) => {
+          logLines.push(line);
+        }
+      }
+    };
+
+    const handler = buildChatHandler(dependencies);
+    const request: ChatRequestLike = { command: "run", prompt: "plan-123" };
+
+    await handler(request, makeMockContext(), mockStream, makeMockToken());
+
+    expect(
+      logLines.some((line) =>
+        line.match(/Attractor: \/run command — plan=plan-123/)
+      )
+    ).toBe(true);
+  });
+
+  it("does not log when outputChannel is null", async () => {
+    const mockStream = makeMockStream();
+    const mockServices = {
+      planRegistry: {
+        list: vi.fn().mockResolvedValue([])
+      },
+      milestoneRegistry: {
+        listByPlanId: vi.fn()
+      }
+    };
+
+    const dependencies: ChatHandlerDependencies = {
+      services: mockServices as any,
+      orchestration: null,
+      outputChannel: null
+    };
+
+    const handler = buildChatHandler(dependencies);
+    const request: ChatRequestLike = { command: "plan", prompt: "test" };
+
+    // Should not throw when outputChannel is null
+    await expect(
+      handler(request, makeMockContext(), mockStream, makeMockToken())
+    ).resolves.toEqual({});
+  });
+});
