@@ -1,10 +1,15 @@
-import { chat, commands, window, type ExtensionContext } from "vscode";
+import { chat, commands, lm, window, type ExtensionContext } from "vscode";
 
 import {
   activateAttractor,
   type ChatApiLike,
   type WindowApiLike
 } from "./runtime";
+import {
+  CopilotModelGateway,
+  type ChatModelLike,
+  type LanguageModelApiLike
+} from "./copilot/copilot-model-gateway";
 
 /**
  * Build a WindowApiLike adapter from the VS Code window namespace.
@@ -54,6 +59,30 @@ const createChatApi = (): ChatApiLike => {
   };
 };
 
+/**
+ * Build a LanguageModelApiLike adapter from the VS Code lm namespace.
+ */
+const createLanguageModelApi = (): LanguageModelApiLike => {
+  return {
+    async selectChatModels(selector) {
+      const models = await lm.selectChatModels({
+        vendor: selector.vendor ?? "copilot",
+        family: selector.family ?? "gpt-4o"
+      });
+      // VS Code models are structurally compatible with ChatModelLike
+      // (both have sendRequest(messages, options?, token?) returning Thenable<response>)
+      return models as unknown as ChatModelLike[];
+    },
+    createChatMessage(role, content) {
+      // Adapt to LanguageModelChatMessageLike shape
+      return {
+        role,
+        content
+      };
+    }
+  };
+};
+
 export const activate = (context: ExtensionContext): void => {
   const outputChannel = window.createOutputChannel("Attractor");
   context.subscriptions.push(outputChannel);
@@ -61,6 +90,7 @@ export const activate = (context: ExtensionContext): void => {
   activateAttractor(context, commands, {
     windowApi: createWindowApi(),
     chatApi: createChatApi(),
+    modelGateway: new CopilotModelGateway(createLanguageModelApi()),
     outputChannel
   });
 };
