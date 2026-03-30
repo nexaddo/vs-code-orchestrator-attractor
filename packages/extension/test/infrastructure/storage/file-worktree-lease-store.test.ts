@@ -20,20 +20,20 @@ describe("FileWorktreeLeaseStore", () => {
   });
 
   it("allocates a new lease", async () => {
-    const lease = await store.allocate("run-001", "/tmp/wt/run-001");
+    const lease = await store.allocate("run-001", "/tmp/wt/run-001", "repo-1", "branch-1");
     expect(lease.runId).toBe("run-001");
     expect(lease.worktreePath).toBe("/tmp/wt/run-001");
     expect(lease.state).toBe("active");
   });
 
   it("returns existing lease if already allocated", async () => {
-    const first = await store.allocate("run-dup", "/tmp/wt/dup");
-    const second = await store.allocate("run-dup", "/tmp/wt/dup");
+    const first = await store.allocate("run-dup", "/tmp/wt/dup", "repo-dup", "branch-dup");
+    const second = await store.allocate("run-dup", "/tmp/wt/dup", "repo-dup", "branch-dup");
     expect(second.createdAt).toBe(first.createdAt);
   });
 
   it("finds a lease by runId", async () => {
-    await store.allocate("run-002", "/tmp/wt/run-002");
+    await store.allocate("run-002", "/tmp/wt/run-002", "repo-2", "branch-2");
     const found = await store.findByRunId("run-002");
     expect(found?.runId).toBe("run-002");
   });
@@ -44,15 +44,15 @@ describe("FileWorktreeLeaseStore", () => {
   });
 
   it("releases a lease", async () => {
-    await store.allocate("run-004", "/tmp/wt/run-004");
+    await store.allocate("run-004", "/tmp/wt/run-004", "repo-4", "branch-4");
     await store.release("run-004");
     const found = await store.findByRunId("run-004");
     expect(found).toBeUndefined();
   });
 
   it("lists all active leases", async () => {
-    await store.allocate("run-a", "/tmp/wt/a");
-    await store.allocate("run-b", "/tmp/wt/b");
+    await store.allocate("run-a", "/tmp/wt/a", "repo-a", "branch-a");
+    await store.allocate("run-b", "/tmp/wt/b", "repo-b", "branch-b");
     const leases = await store.listAll();
     expect(leases).toHaveLength(2);
   });
@@ -63,8 +63,8 @@ describe("FileWorktreeLeaseStore", () => {
   });
 
   it("released leases are excluded from listAll", async () => {
-    await store.allocate("run-a", "/tmp/wt/a");
-    await store.allocate("run-b", "/tmp/wt/b");
+    await store.allocate("run-a", "/tmp/wt/a", "repo-a", "branch-a");
+    await store.allocate("run-b", "/tmp/wt/b", "repo-b", "branch-b");
     await store.release("run-a");
     const leases = await store.listAll();
     expect(leases).toHaveLength(1);
@@ -72,7 +72,7 @@ describe("FileWorktreeLeaseStore", () => {
   });
 
   it("persists to .attractor/worktrees/leases.json", async () => {
-    await store.allocate("run-005", "/tmp/wt/run-005");
+    await store.allocate("run-005", "/tmp/wt/run-005", "repo-5", "branch-5");
     const filePath = path.join(
       tmpDir,
       ".attractor",

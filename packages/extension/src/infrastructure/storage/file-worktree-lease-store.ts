@@ -7,12 +7,12 @@ import type { WorktreeLeaseStore } from "../../application/ports";
 
 /**
  * Self-contained on-disk format for leases.
- * Does not use the shared WorktreeLeaseSchema which requires fields
- * (repositoryId, branchName) only available from the WorktreeManager.
  */
 interface StoredLease {
   version: 1;
   runId: string;
+  repositoryId: string;
+  branchName: string;
   worktreePath: string;
   state: "active" | "released";
   createdAt: string;
@@ -31,8 +31,8 @@ function toWorktreedLease(s: StoredLease): WorktreeLease {
     version: STORE_VERSION,
     id: s.runId,
     runId: s.runId,
-    repositoryId: "",
-    branchName: "",
+    repositoryId: s.repositoryId,
+    branchName: s.branchName,
     worktreePath: s.worktreePath,
     state: s.state === "active" ? "active" : "released",
     createdAt: s.createdAt,
@@ -98,8 +98,13 @@ export class FileWorktreeLeaseStore implements WorktreeLeaseStore {
       .map(toWorktreedLease);
   }
 
-  // Internal: used by RunCommandHandler / tests
-  async allocate(runId: string, worktreePath: string): Promise<WorktreeLease> {
+  // Internal: used by tests and worktree wiring
+  async allocate(
+    runId: string,
+    worktreePath: string,
+    repositoryId: string,
+    branchName: string
+  ): Promise<WorktreeLease> {
     const store = await this.readStore();
     const existing = store.leases.find((l) => l.runId === runId);
     if (existing !== undefined) {
@@ -109,6 +114,8 @@ export class FileWorktreeLeaseStore implements WorktreeLeaseStore {
     const lease: StoredLease = {
       version: STORE_VERSION,
       runId,
+      repositoryId,
+      branchName,
       worktreePath,
       state: "active",
       createdAt: now,

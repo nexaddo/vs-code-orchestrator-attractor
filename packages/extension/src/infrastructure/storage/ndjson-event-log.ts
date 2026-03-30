@@ -4,6 +4,7 @@ import * as path from "path";
 import { EventEnvelopeSchema, type EventEnvelope } from "@attractor/shared";
 
 import type { EventLog } from "../../application/ports";
+import { assertSafeStorageId } from "../../storage/path-safety";
 
 /**
  * Append-only NDJSON event log at `.attractor/runs/<runId>/events.ndjson`.
@@ -12,13 +13,15 @@ export class NdjsonEventLog implements EventLog {
   constructor(private readonly root: string) {}
 
   private logPath(runId: string): string {
+    assertSafeStorageId(runId, "Run id");
     return path.join(this.root, ".attractor", "runs", runId, "events.ndjson");
   }
 
   async append(runId: string, envelope: EventEnvelope): Promise<void> {
+    const validated = EventEnvelopeSchema.parse(envelope);
     const logFile = this.logPath(runId);
     await fs.mkdir(path.dirname(logFile), { recursive: true });
-    await fs.appendFile(logFile, JSON.stringify(envelope) + "\n", "utf8");
+    await fs.appendFile(logFile, JSON.stringify(validated) + "\n", "utf8");
   }
 
   /**
