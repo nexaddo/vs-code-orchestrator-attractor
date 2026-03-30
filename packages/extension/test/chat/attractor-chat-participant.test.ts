@@ -10,6 +10,25 @@ import {
   type ChatRequestLike,
   type ChatResponseStreamLike
 } from "../../src/chat/attractor-chat-participant";
+import type { StorageServices } from "../../src/storage/services";
+
+/** Create a partial StorageServices mock with only the registries needed. */
+const makePartialServices = (
+  overrides: Partial<StorageServices>
+): StorageServices => {
+  const stub = {
+    repositoryRegistry: {},
+    planRegistry: {},
+    runRegistry: {},
+    eventLog: {},
+    snapshotProjector: {},
+    milestoneRunRegistry: {},
+    milestoneRegistry: {},
+    artifactRegistry: {},
+    ...overrides
+  };
+  return stub as StorageServices;
+};
 
 describe("buildChatHandler", () => {
   const makeMockContext = (): ChatContextLike => ({ history: [] });
@@ -26,16 +45,20 @@ describe("buildChatHandler", () => {
 
   it("handles /plan command with acknowledgment", async () => {
     const mockStream = makeMockStream();
-    const mockServices = {
-      planRegistry: {
-        list: vi.fn().mockResolvedValue([])
-      },
-      milestoneRegistry: {
-        listByPlanId: vi.fn()
-      }
-    };
     const dependencies: ChatHandlerDependencies = {
-      services: mockServices as any,
+      services: makePartialServices({
+        planRegistry: {
+          save: vi.fn(),
+          getById: vi.fn(),
+          list: vi.fn().mockResolvedValue([])
+        },
+        milestoneRegistry: {
+          save: vi.fn(),
+          getById: vi.fn(),
+          list: vi.fn(),
+          listByPlanId: vi.fn()
+        }
+      }),
       orchestration: null,
       outputChannel: null
     };
@@ -91,13 +114,15 @@ describe("buildChatHandler", () => {
 
   it("handles /status command with no active runs", async () => {
     const mockStream = makeMockStream();
-    const mockServices = {
-      runRegistry: {
-        listActiveRuns: vi.fn().mockResolvedValue([])
-      }
-    };
     const dependencies: ChatHandlerDependencies = {
-      services: mockServices as any,
+      services: makePartialServices({
+        runRegistry: {
+          save: vi.fn(),
+          getById: vi.fn(),
+          list: vi.fn(),
+          listActiveRuns: vi.fn().mockResolvedValue([])
+        }
+      }),
       orchestration: null,
       outputChannel: null
     };
@@ -120,23 +145,25 @@ describe("buildChatHandler", () => {
 
   it("handles /status command with active run", async () => {
     const mockStream = makeMockStream();
-    const mockServices = {
-      runRegistry: {
-        listActiveRuns: vi.fn().mockResolvedValue([
-          {
-            id: "run-123",
-            planId: "plan-456",
-            status: "running",
-            attempt: 1,
-            startedAt: "2024-03-15T10:30:00.000Z",
-            createdAt: "2024-03-15T10:30:00.000Z",
-            updatedAt: "2024-03-15T10:30:00.000Z"
-          }
-        ])
-      }
-    };
     const dependencies: ChatHandlerDependencies = {
-      services: mockServices as any,
+      services: makePartialServices({
+        runRegistry: {
+          save: vi.fn(),
+          getById: vi.fn(),
+          list: vi.fn(),
+          listActiveRuns: vi.fn().mockResolvedValue([
+            {
+              id: "run-123",
+              planId: "plan-456",
+              status: "running",
+              attempt: 1,
+              startedAt: "2024-03-15T10:30:00.000Z",
+              createdAt: "2024-03-15T10:30:00.000Z",
+              updatedAt: "2024-03-15T10:30:00.000Z"
+            }
+          ])
+        }
+      }),
       orchestration: null,
       outputChannel: null
     };
@@ -152,7 +179,7 @@ describe("buildChatHandler", () => {
     );
 
     expect(mockStream.markdown).toHaveBeenCalled();
-    const callArg = (mockStream.markdown as any).mock.calls[0][0] as string;
+    const callArg = vi.mocked(mockStream.markdown).mock.calls[0]![0] as string;
 
     expect(callArg).toContain("run-123");
     expect(callArg).toContain("plan-456");
@@ -220,16 +247,20 @@ describe("buildChatHandler", () => {
 
   it("handles /plan command with empty plan list", async () => {
     const mockStream = makeMockStream();
-    const mockServices = {
-      planRegistry: {
-        list: vi.fn().mockResolvedValue([])
-      },
-      milestoneRegistry: {
-        listByPlanId: vi.fn()
-      }
-    };
     const dependencies: ChatHandlerDependencies = {
-      services: mockServices as any,
+      services: makePartialServices({
+        planRegistry: {
+          save: vi.fn(),
+          getById: vi.fn(),
+          list: vi.fn().mockResolvedValue([])
+        },
+        milestoneRegistry: {
+          save: vi.fn(),
+          getById: vi.fn(),
+          list: vi.fn(),
+          listByPlanId: vi.fn()
+        }
+      }),
       orchestration: null,
       outputChannel: null
     };
@@ -252,47 +283,51 @@ describe("buildChatHandler", () => {
 
   it("handles /plan command with 2 plans - formats as markdown list", async () => {
     const mockStream = makeMockStream();
-    const mockServices = {
-      planRegistry: {
-        list: vi.fn().mockResolvedValue([
-          {
-            id: "plan-1",
-            title: "Ship Orchestration Pipeline",
-            goal: "Wire the 3 placeholder gaps in the Attractor VS Code extension so orchestration runs end to end",
-            status: "ready",
-            repositories: []
-          },
-          {
-            id: "plan-2",
-            title: "Improve Dashboard UX",
-            goal: "Redesign the dashboard with improved navigation and better milestone visualization",
-            status: "draft",
-            repositories: []
-          }
-        ])
-      },
-      milestoneRegistry: {
-        listByPlanId: vi
-          .fn()
-          .mockResolvedValueOnce([
-            { id: "m1" },
-            { id: "m2" },
-            { id: "m3" },
-            { id: "m4" },
-            { id: "m5" },
-            { id: "m6" },
-            { id: "m7" }
-          ])
-          .mockResolvedValueOnce([
-            { id: "m1" },
-            { id: "m2" },
-            { id: "m3" },
-            { id: "m4" }
-          ])
-      }
-    };
     const dependencies: ChatHandlerDependencies = {
-      services: mockServices as any,
+      services: makePartialServices({
+        planRegistry: {
+          save: vi.fn(),
+          getById: vi.fn(),
+          list: vi.fn().mockResolvedValue([
+            {
+              id: "plan-1",
+              title: "Ship Orchestration Pipeline",
+              goal: "Wire the 3 placeholder gaps in the Attractor VS Code extension so orchestration runs end to end",
+              status: "ready",
+              repositories: []
+            },
+            {
+              id: "plan-2",
+              title: "Improve Dashboard UX",
+              goal: "Redesign the dashboard with improved navigation and better milestone visualization",
+              status: "draft",
+              repositories: []
+            }
+          ])
+        },
+        milestoneRegistry: {
+          save: vi.fn(),
+          getById: vi.fn(),
+          list: vi.fn(),
+          listByPlanId: vi
+            .fn()
+            .mockResolvedValueOnce([
+              { id: "m1" },
+              { id: "m2" },
+              { id: "m3" },
+              { id: "m4" },
+              { id: "m5" },
+              { id: "m6" },
+              { id: "m7" }
+            ])
+            .mockResolvedValueOnce([
+              { id: "m1" },
+              { id: "m2" },
+              { id: "m3" },
+              { id: "m4" }
+            ])
+        }
+      }),
       orchestration: null,
       outputChannel: null
     };
@@ -309,7 +344,7 @@ describe("buildChatHandler", () => {
 
     // Get the markdown argument passed to stream.markdown()
     expect(mockStream.markdown).toHaveBeenCalled();
-    const callArg = (mockStream.markdown as any).mock.calls[0][0] as string;
+    const callArg = vi.mocked(mockStream.markdown).mock.calls[0]![0] as string;
 
     // Verify the markdown output contains all expected elements
     expect(callArg).toContain("Ship Orchestration Pipeline");
@@ -352,7 +387,9 @@ describe("buildChatHandler", () => {
     expect(mockStartOrchestration).toHaveBeenCalledWith(
       expect.objectContaining({
         planId: "plan-123",
-        panel: null,
+        panel: expect.objectContaining({
+          postMessage: expect.any(Function)
+        }),
         runId: expect.stringMatching(/^[0-9a-f-]{36}$/), // UUID format
         signal: expect.any(AbortSignal)
       })
@@ -364,17 +401,6 @@ describe("buildChatHandler", () => {
   });
 
   it("lists available plans when /run called without plan ID", async () => {
-    const mockServices = {
-      planRegistry: {
-        list: vi.fn().mockResolvedValue([
-          { id: "plan-abc", title: "Plan Alpha" },
-          { id: "plan-xyz", title: "Plan Beta" }
-        ])
-      },
-      milestoneRegistry: {
-        listByPlanId: vi.fn()
-      }
-    };
     const mockOrchestration = {
       startOrchestration: vi.fn(),
       cancelOrchestration: vi.fn()
@@ -382,7 +408,22 @@ describe("buildChatHandler", () => {
     const mockStream = makeMockStream();
 
     const dependencies: ChatHandlerDependencies = {
-      services: mockServices as any,
+      services: makePartialServices({
+        planRegistry: {
+          save: vi.fn(),
+          getById: vi.fn(),
+          list: vi.fn().mockResolvedValue([
+            { id: "plan-abc", title: "Plan Alpha" },
+            { id: "plan-xyz", title: "Plan Beta" }
+          ])
+        },
+        milestoneRegistry: {
+          save: vi.fn(),
+          getById: vi.fn(),
+          list: vi.fn(),
+          listByPlanId: vi.fn()
+        }
+      }),
       orchestration: mockOrchestration,
       outputChannel: null
     };
@@ -432,6 +473,46 @@ describe("buildChatHandler", () => {
     );
     expect(result).toEqual({});
   });
+
+  it("streams error message when /run orchestration fails", async () => {
+    const mockStartOrchestration = vi
+      .fn()
+      .mockRejectedValue(new Error("plan not found"));
+    const mockOrchestration = {
+      startOrchestration: mockStartOrchestration,
+      cancelOrchestration: vi.fn()
+    };
+    const mockStream = makeMockStream();
+    const mockOutputChannel = { appendLine: vi.fn() };
+
+    const dependencies: ChatHandlerDependencies = {
+      services: null,
+      orchestration: mockOrchestration,
+      outputChannel: mockOutputChannel
+    };
+
+    const handler = buildChatHandler(dependencies);
+
+    await handler(
+      { command: "run", prompt: "bad-plan" },
+      makeMockContext(),
+      mockStream,
+      makeMockToken()
+    );
+
+    // Allow the .catch() promise chain to resolve
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(mockStream.markdown).toHaveBeenCalledWith(
+      expect.stringContaining("Orchestration error")
+    );
+    expect(mockStream.markdown).toHaveBeenCalledWith(
+      expect.stringContaining("plan not found")
+    );
+    expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
+      expect.stringContaining("Attractor: /run error")
+    );
+  });
 });
 
 describe("registerChatParticipant", () => {
@@ -467,25 +548,29 @@ describe("buildChatHandler logging", () => {
   it("logs /plan command with plan count", async () => {
     const mockStream = makeMockStream();
     const logLines: string[] = [];
-    const mockServices = {
-      planRegistry: {
-        list: vi.fn().mockResolvedValue([
-          {
-            id: "plan-1",
-            title: "Test Plan",
-            goal: "Test goal",
-            status: "ready",
-            repositories: []
-          }
-        ])
-      },
-      milestoneRegistry: {
-        listByPlanId: vi.fn().mockResolvedValue([{ id: "m1" }])
-      }
-    };
 
     const dependencies: ChatHandlerDependencies = {
-      services: mockServices as any,
+      services: makePartialServices({
+        planRegistry: {
+          save: vi.fn(),
+          getById: vi.fn(),
+          list: vi.fn().mockResolvedValue([
+            {
+              id: "plan-1",
+              title: "Test Plan",
+              goal: "Test goal",
+              status: "ready",
+              repositories: []
+            }
+          ])
+        },
+        milestoneRegistry: {
+          save: vi.fn(),
+          getById: vi.fn(),
+          list: vi.fn(),
+          listByPlanId: vi.fn().mockResolvedValue([{ id: "m1" }])
+        }
+      }),
       orchestration: null,
       outputChannel: {
         appendLine: (line) => {
@@ -538,17 +623,21 @@ describe("buildChatHandler logging", () => {
 
   it("does not log when outputChannel is null", async () => {
     const mockStream = makeMockStream();
-    const mockServices = {
-      planRegistry: {
-        list: vi.fn().mockResolvedValue([])
-      },
-      milestoneRegistry: {
-        listByPlanId: vi.fn()
-      }
-    };
 
     const dependencies: ChatHandlerDependencies = {
-      services: mockServices as any,
+      services: makePartialServices({
+        planRegistry: {
+          save: vi.fn(),
+          getById: vi.fn(),
+          list: vi.fn().mockResolvedValue([])
+        },
+        milestoneRegistry: {
+          save: vi.fn(),
+          getById: vi.fn(),
+          list: vi.fn(),
+          listByPlanId: vi.fn()
+        }
+      }),
       orchestration: null,
       outputChannel: null
     };

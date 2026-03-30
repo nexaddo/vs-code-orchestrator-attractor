@@ -235,6 +235,7 @@ export const activateAttractor = (
           .sort((left, right) => left.order - right.order);
 
         let previousMilestoneIndex = -1;
+        const previousPhaseStatus = new Map<string, string>();
         const loop = new OrchestrationLoop();
         await loop.execute({
           modelGateway: orchestrationContext.modelGateway,
@@ -249,15 +250,41 @@ export const activateAttractor = (
                 `Attractor: milestone ${state.milestoneIndex + 1}/${state.milestoneCount} — ${state.milestoneName}`
               );
             }
+            for (const phase of state.phases) {
+              const prev = previousPhaseStatus.get(phase.role);
+              if (phase.status === "running" && prev !== "running") {
+                log.appendLine(
+                  `Attractor: phase ${phase.role} — milestone ${state.milestoneName}`
+                );
+              }
+              previousPhaseStatus.set(phase.role, phase.status);
+            }
             postRunMessage("run.state", state);
           },
           onHandoff: (handoff, role) => {
-            const handoffType =
-              "milestoneId" in handoff &&
-              typeof handoff.milestoneId === "string"
-                ? handoff.milestoneId
-                : runId;
-            log.appendLine(`Attractor: handoff ${role} — ${handoffType}`);
+            const nextRoleMap: Record<string, string> = {
+              orchestrator: "planner",
+              planner: "implementer",
+              implementer: "reviewer",
+              reviewer: "orchestrator"
+            };
+            const toRole = nextRoleMap[role] ?? "unknown";
+            const reason =
+              "description" in handoff &&
+              typeof handoff.description === "string"
+                ? handoff.description
+                : "summary" in handoff && typeof handoff.summary === "string"
+                  ? handoff.summary
+                  : "comments" in handoff &&
+                      Array.isArray(handoff.comments) &&
+                      handoff.comments.length > 0
+                    ? handoff.comments[0]
+                    : "tasks" in handoff && Array.isArray(handoff.tasks)
+                      ? `${handoff.tasks.length} tasks planned`
+                      : "handoff";
+            log.appendLine(
+              `Attractor: handoff ${role} → ${toRole} — ${reason}`
+            );
 
             const event: ExtensionEvent = {
               version: CONTRACT_VERSION,
@@ -333,10 +360,12 @@ export const activateAttractor = (
           (error.name === "AbortError" ||
             (error.message && error.message.includes("abort")))
         ) {
-          log.appendLine(`Attractor: orchestration canceled — run=${runId}`);
+          log.appendLine(
+            `Attractor: orchestration canceled — run=${runId} duration=${duration}ms`
+          );
         } else {
           log.appendLine(
-            `Attractor: orchestration failed — run=${runId} error=${errorMessage}`
+            `Attractor: orchestration failed — run=${runId} error=${errorMessage} duration=${duration}ms`
           );
         }
         if (runRecordSaved) {

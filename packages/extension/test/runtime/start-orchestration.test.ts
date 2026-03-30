@@ -336,7 +336,15 @@ describe("runtime startOrchestration", () => {
 
     expect(
       logLines.some((line) =>
-        line.match(/Attractor: handoff orchestrator — m-1/)
+        line.match(/Attractor: phase orchestrator — milestone First Milestone/)
+      )
+    ).toBe(true);
+
+    expect(
+      logLines.some((line) =>
+        line.match(
+          /Attractor: handoff orchestrator → planner — handoff description/
+        )
       )
     ).toBe(true);
 

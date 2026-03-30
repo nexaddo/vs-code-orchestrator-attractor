@@ -15,7 +15,9 @@ export interface ChatHandlerDependencies {
     startOrchestration: (options: {
       runId: string;
       planId: string;
-      panel: any; // WebviewPanelLike, but avoiding circular import
+      panel: {
+        postMessage(message: unknown): void | PromiseLike<boolean>;
+      };
       signal?: AbortSignal;
     }) => Promise<void>;
     cancelOrchestration: (runId: string) => void;
@@ -171,13 +173,25 @@ export const buildChatHandler = (
         token.onCancellationRequested(() => abortController.abort());
         const signal = abortController.signal;
 
-        // Start orchestration (fire and forget)
-        void orchestration.startOrchestration({
-          runId,
-          planId,
-          panel: null,
-          signal
-        });
+        // Start orchestration with error handling
+        // No webview panel in chat context — use no-op panel
+        const noOpPanel = { postMessage: () => {} };
+        orchestration
+          .startOrchestration({
+            runId,
+            planId,
+            panel: noOpPanel,
+            signal
+          })
+          .catch((err: unknown) => {
+            const message = err instanceof Error ? err.message : String(err);
+            stream.markdown(`\n\n**Orchestration error:** ${message}`);
+            if (outputChannel) {
+              outputChannel.appendLine(
+                `Attractor: /run error — run=${runId} error=${message}`
+              );
+            }
+          });
 
         stream.markdown(
           `Starting orchestration run \`${runId}\` for plan \`${planId}\`...`
