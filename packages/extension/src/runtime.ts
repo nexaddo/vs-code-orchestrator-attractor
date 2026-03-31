@@ -1,5 +1,6 @@
 import {
   CONTRACT_VERSION,
+  type AgentRoleStatus,
   type ExtensionEvent,
   WebviewInboundMessageSchema
 } from "@attractor/shared";
@@ -237,7 +238,7 @@ export const activateAttractor = (
           .sort((left, right) => left.order - right.order);
 
         let previousMilestoneIndex = -1;
-        const previousPhaseStatus = new Map<string, string>();
+        const previousPhaseStatus = new Map<Role, AgentRoleStatus>();
         const loop = new OrchestrationLoop();
         await loop.execute({
           modelGateway: orchestrationContext.modelGateway,

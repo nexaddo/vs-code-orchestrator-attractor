@@ -4,6 +4,7 @@
  */
 
 import type { StorageServices } from "../storage/services";
+import type { WebviewPanelLike } from "../dashboard/bridge";
 
 export interface OutputChannelLike {
   appendLine(value: string): void;
@@ -15,9 +16,7 @@ export interface ChatHandlerDependencies {
     startOrchestration: (options: {
       runId: string;
       planId: string;
-      panel: {
-        postMessage(message: unknown): void | PromiseLike<boolean>;
-      };
+      panel: WebviewPanelLike;
       signal?: AbortSignal;
     }) => Promise<void>;
     cancelOrchestration: (runId: string) => void;
