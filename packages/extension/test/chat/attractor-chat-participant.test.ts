@@ -12,7 +12,6 @@ import {
 } from "../../src/chat/attractor-chat-participant";
 import type { StorageServices } from "../../src/storage/services";
 
-/** Create a partial StorageServices mock with only the registries needed. */
 const makePartialServices = (
   overrides: Partial<StorageServices>
 ): StorageServices => {
@@ -27,7 +26,7 @@ const makePartialServices = (
     artifactRegistry: {},
     ...overrides
   };
-  return stub as StorageServices;
+  return stub as unknown as StorageServices;
 };
 
 describe("buildChatHandler", () => {
@@ -500,8 +499,11 @@ describe("buildChatHandler", () => {
       makeMockToken()
     );
 
-    // Allow the .catch() promise chain to resolve
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await vi.waitFor(() => {
+      expect(mockStream.markdown).toHaveBeenCalledWith(
+        expect.stringContaining("Orchestration error")
+      );
+    });
 
     expect(mockStream.markdown).toHaveBeenCalledWith(
       expect.stringContaining("Orchestration error")

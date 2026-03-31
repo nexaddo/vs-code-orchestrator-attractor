@@ -6,11 +6,18 @@ const { executeMock } = vi.hoisted(() => ({
   executeMock: vi.fn()
 }));
 
-vi.mock("../../src/application/orchestration-loop", () => ({
-  OrchestrationLoop: class {
-    execute = executeMock;
-  }
-}));
+vi.mock("../../src/application/orchestration-loop", async (importActual) => {
+  const actual =
+    await importActual<
+      typeof import("../../src/application/orchestration-loop")
+    >();
+  return {
+    ...actual,
+    OrchestrationLoop: class {
+      execute = executeMock;
+    }
+  };
+});
 
 import {
   activateAttractor,

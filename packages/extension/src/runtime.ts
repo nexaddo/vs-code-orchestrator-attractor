@@ -5,6 +5,48 @@ import {
   WebviewInboundMessageSchema
 } from "@attractor/shared";
 
+const getReasonForHandoff = (handoff: unknown): string => {
+  if (
+    handoff !== null &&
+    typeof handoff === "object" &&
+    "description" in handoff &&
+    typeof (handoff as { description: unknown }).description === "string"
+  ) {
+    return (handoff as { description: string }).description;
+  }
+  if (
+    handoff !== null &&
+    typeof handoff === "object" &&
+    "summary" in handoff &&
+    typeof (handoff as { summary: unknown }).summary === "string"
+  ) {
+    return (handoff as { summary: string }).summary;
+  }
+  if (
+    handoff !== null &&
+    typeof handoff === "object" &&
+    "comments" in handoff &&
+    Array.isArray((handoff as { comments: unknown }).comments) &&
+    (handoff as { comments: unknown[] }).comments.length > 0
+  ) {
+    return String((handoff as { comments: unknown[] }).comments[0]);
+  }
+  if (
+    handoff !== null &&
+    typeof handoff === "object" &&
+    "tasks" in handoff &&
+    Array.isArray((handoff as { tasks: unknown }).tasks)
+  ) {
+    return `${(handoff as { tasks: unknown[] }).tasks.length} tasks planned`;
+  }
+  return "handoff";
+};
+
+const truncateReason = (raw: string): string => {
+  const normalized = raw.replace(/\s+/g, " ").trim();
+  return normalized.length > 200 ? `${normalized.slice(0, 200)}…` : normalized;
+};
+
 import {
   createStorageServices,
   getStorageRoot,
@@ -266,19 +308,7 @@ export const activateAttractor = (
           },
           onHandoff: (handoff, role: Role) => {
             const toRole = nextRoleAfter(role);
-            const reason =
-              "description" in handoff &&
-              typeof handoff.description === "string"
-                ? handoff.description
-                : "summary" in handoff && typeof handoff.summary === "string"
-                  ? handoff.summary
-                  : "comments" in handoff &&
-                      Array.isArray(handoff.comments) &&
-                      handoff.comments.length > 0
-                    ? handoff.comments[0]
-                    : "tasks" in handoff && Array.isArray(handoff.tasks)
-                      ? `${handoff.tasks.length} tasks planned`
-                      : "handoff";
+            const reason = truncateReason(getReasonForHandoff(handoff));
             log.appendLine(
               `Attractor: handoff ${role} → ${toRole} — ${reason}`
             );
