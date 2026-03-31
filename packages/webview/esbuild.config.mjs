@@ -20,7 +20,7 @@
 
 import esbuild from "esbuild";
 import { execFileSync, spawn } from "node:child_process";
-import { mkdirSync } from "node:fs";
+import { copyFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -34,7 +34,8 @@ const production =
     ? process.env.NODE_ENV === "production"
     : !watch;
 
-const outDir = path.join(__dirname, "dist", "bundle");
+const distDir = path.join(__dirname, "dist");
+const outDir = path.join(distDir, "bundle");
 const cssIn = path.join(__dirname, "src", "styles", "index.css");
 const cssOut = path.join(outDir, "webview.css");
 
@@ -45,6 +46,12 @@ const postcssBin =
 
 // Ensure output directory exists
 mkdirSync(outDir, { recursive: true });
+
+// Copy preview harness to dist so it can be served alongside the bundle
+copyFileSync(
+  path.join(__dirname, "ui-preview.html"),
+  path.join(distDir, "ui-preview.html")
+);
 
 /** @type {import('esbuild').BuildOptions} */
 const jsOptions = {
