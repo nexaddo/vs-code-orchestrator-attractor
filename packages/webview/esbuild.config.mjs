@@ -66,9 +66,28 @@ const jsOptions = {
   minify: production
 };
 
+/** esbuild plugin that re-copies ui-preview.html into dist/ after every build.
+ *  In watch mode, copyFileSync runs only once at startup; this plugin ensures
+ *  edits to the harness are picked up on subsequent incremental rebuilds.
+ */
+const copyPreviewPlugin = {
+  name: "copy-preview-harness",
+  setup(build) {
+    build.onEnd(() => {
+      copyFileSync(
+        path.join(__dirname, "ui-preview.html"),
+        path.join(distDir, "ui-preview.html")
+      );
+    });
+  }
+};
+
 if (watch) {
-  // JS: esbuild watch
-  const jsCtx = await esbuild.context(jsOptions);
+  // JS: esbuild watch (with preview-harness copy on each rebuild)
+  const jsCtx = await esbuild.context({
+    ...jsOptions,
+    plugins: [copyPreviewPlugin]
+  });
   await jsCtx.watch();
 
   // CSS: postcss --watch
