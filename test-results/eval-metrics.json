@@ -1,0 +1,50 @@
+{
+  "timestamp": "2026-03-30T04:43:22.601Z",
+  "scenarios": [
+    {
+      "name": "happy-path",
+      "stepCompletionRate": 1,
+      "errorRecoveryRate": null,
+      "planAdherence": 1,
+      "milestonesRun": 3,
+      "phasesDone": 12,
+      "phasesFailed": 0,
+      "phasesSkipped": 0
+    },
+    {
+      "name": "implementer-failure",
+      "stepCompletionRate": 0.5,
+      "errorRecoveryRate": 1,
+      "planAdherence": 1,
+      "milestonesRun": 2,
+      "phasesDone": 4,
+      "phasesFailed": 2,
+      "phasesSkipped": 2
+    },
+    {
+      "name": "orchestrator-failure",
+      "stepCompletionRate": 0,
+      "errorRecoveryRate": 1,
+      "planAdherence": 1,
+      "milestonesRun": 2,
+      "phasesDone": 0,
+      "phasesFailed": 2,
+      "phasesSkipped": 6
+    },
+    {
+      "name": "mixed-success-failure",
+      "stepCompletionRate": 0.75,
+      "errorRecoveryRate": 1,
+      "planAdherence": 1,
+      "milestonesRun": 2,
+      "phasesDone": 6,
+      "phasesFailed": 1,
+      "phasesSkipped": 1
+    }
+  ],
+  "summary": {
+    "stepCompletionRate": 0.5625,
+    "errorRecoveryRate": 1,
+    "planAdherence": 1
+  }
+}

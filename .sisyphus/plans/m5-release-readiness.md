@@ -39,11 +39,13 @@ and passes packaging validation in CI.
 ### Wave 1 (no dependencies)
 
 #### Slice 1 — Extension host esbuild bundler and webview asset staging
+
 **Files**: `packages/extension/esbuild.config.mjs` (NEW), `packages/extension/package.json`,
 `packages/extension/src/runtime.ts`, root `package.json`,
 `packages/extension/test/dashboard/webview-provider.test.ts`,
 `packages/extension/test/smoke/activation.test.ts`
 **What**:
+
 1. Add `esbuild` as a devDependency to `packages/extension/package.json`
    (needed by the esbuild config below).
 2. Create an esbuild config that bundles `src/extension.ts` → `dist/bundle/extension.js`
@@ -63,17 +65,18 @@ and passes packaging validation in CI.
    Note: production mode detection is handled inside each esbuild config via
    `process.env.NODE_ENV` (defaults to production for one-shot builds, dev
    for watch mode). No POSIX-style env prefix needed in the npm script.
-**Tests**: Run the bundler, verify output file exists, verify `vscode` is not inlined,
-verify `dist/bundle/webview/webview.js` exists after bundling.
-**QA**: First build the webview bundle (prerequisite):
-`pnpm --filter @attractor/webview build:bundle`
-Then run the extension bundler:
-`node packages/extension/esbuild.config.mjs` → exit code 0.
-Run `node -e "const fs=require('fs'); const s=fs.statSync('packages/extension/dist/bundle/extension.js'); console.log(s.size); process.exit(s.size > 512000 ? 1 : 0)"` → exit 0 (< 500KB).
-Run `node -e "require('fs').statSync('packages/extension/dist/bundle/webview/webview.js')"` → no error (file exists).
-Run `pnpm typecheck && pnpm test` → all pass.
+   **Tests**: Run the bundler, verify output file exists, verify `vscode` is not inlined,
+   verify `dist/bundle/webview/webview.js` exists after bundling.
+   **QA**: First build the webview bundle (prerequisite):
+   `pnpm --filter @attractor/webview build:bundle`
+   Then run the extension bundler:
+   `node packages/extension/esbuild.config.mjs` → exit code 0.
+   Run `node -e "const fs=require('fs'); const s=fs.statSync('packages/extension/dist/bundle/extension.js'); console.log(s.size); process.exit(s.size > 512000 ? 1 : 0)"` → exit 0 (< 500KB).
+   Run `node -e "require('fs').statSync('packages/extension/dist/bundle/webview/webview.js')"` → no error (file exists).
+   Run `pnpm typecheck && pnpm test` → all pass.
 
 #### Slice 2 — `.vscodeignore` and packaging metadata
+
 **Files**: `packages/extension/.vscodeignore` (NEW), `packages/extension/package.json`,
 `packages/extension/resources/attractor-icon.png` (NEW)
 **What**: Create `.vscodeignore` excluding `src/`, `test/`, `dist/src/`, `node_modules/`,
@@ -91,6 +94,7 @@ Run `node -e "require('fs').statSync('packages/extension/.vscodeignore')"` → n
 Run `node -e "require('fs').statSync('packages/extension/resources/attractor-icon.png')"` → no error.
 
 #### Slice 3 — Startup error boundary and output channel
+
 **Files**: `packages/extension/src/runtime.ts`, `packages/extension/test/smoke/activation.test.ts`
 **What**: Wrap `activateAttractor` body in try-catch. Create an OutputChannel
 `"Attractor"` for diagnostic logging. Log: storage root resolution,
@@ -104,12 +108,14 @@ Add `OutputChannelLike` seam to `RuntimeDependencies` with signature
 `context.onWebviewMessage` in `runtime.ts` so that when `services` is null
 and the webview sends a `"ready"` message, the handler posts an
 `overview.state` response with an empty degraded payload:
+
 ```ts
 { version: 1, requestId, type: "overview.state",
   payload: { repositories: [], activeRuns: [], recentFailures: [],
              stats: { totalRepos: 0, totalPlans: 0, activeRuns: 0, pausedRuns: 0, failedRuns24h: 0 },
              error: "Storage unavailable — check output channel for details" } }
 ```
+
 This ensures the webview receives a response instead of being silently
 ignored. The `error` field is a new optional string on the existing
 `OverviewStatePayloadSchema` (in `packages/shared/src/contracts/index.ts`).
@@ -132,6 +138,7 @@ Run `pnpm test` → all existing tests pass + 5 new tests pass (verify count ≥
 Run `pnpm lint` → exit 0.
 
 #### Slice 4 — CHANGELOG.md
+
 **Files**: `CHANGELOG.md` (NEW)
 **What**: Create CHANGELOG.md with v0.1.0 entry covering M0–M4 highlights.
 Follow [Keep a Changelog](https://keepachangelog.com/) format.
@@ -142,6 +149,7 @@ Run `pnpm exec prettier --check CHANGELOG.md` → exit 0.
 ### Wave 2 (depends on Wave 1)
 
 #### Slice 5 — `vsce:package` script and VSIX validation
+
 **Files**: root `package.json`, `packages/extension/package.json`
 **Depends on**: Slice 1 (bundler + webview staging), Slice 2 (vscodeignore + metadata)
 **What**: Add `@vscode/vsce` as root devDependency.
@@ -159,6 +167,7 @@ Run `pnpm vsce:ls` → stdout includes `dist/bundle/extension.js`,
 stdout does NOT include any `.ts` source files (except `.d.ts`), no `test/` paths.
 
 #### Slice 6 — CI packaging validation
+
 **Files**: `.github/workflows/ci.yml`
 **Depends on**: Slice 5 (vsce:package)
 **What**: Add a `package-check` job that runs after `fast-checks`. It runs
@@ -170,6 +179,7 @@ piped through a shell assertion).
 **QA**: Push branch, verify CI shows green `package-check` job alongside `fast-checks`.
 
 #### Slice 7 — README and docs refresh
+
 **Files**: `README.md`, `packages/extension/package.json` (repository field)
 **Depends on**: Slice 4 (CHANGELOG exists)
 **What**: Update README milestone table through M4. Add "Getting Started" section
@@ -183,32 +193,38 @@ Run `node -e "const r=require('fs').readFileSync('README.md','utf8'); console.as
 ### Wave 3 (depends on Wave 2)
 
 #### Slice 8 — VSIX content smoke test
+
 **Files**: `test/smoke/vsix-content.test.ts` (NEW), `test/smoke/vitest.config.ts` (NEW),
 `vitest.config.ts` (MODIFY — add smoke project to `test.projects`)
 **Depends on**: Slice 5 (packaging works)
 **What**: Create `test/smoke/vitest.config.ts` following the existing
 `test/meta/vitest.config.ts` pattern:
+
 ```ts
-export default defineConfig({ test: { name: "smoke", include: ["*.test.ts"] } })
+export default defineConfig({
+  test: { name: "smoke", include: ["*.test.ts"] }
+});
 ```
+
 Add `"test/smoke/vitest.config.ts"` to root `vitest.config.ts` `test.projects` array.
 Create `test/smoke/vsix-content.test.ts` that first runs
 `pnpm build` (to ensure webview and extension bundles exist), then shells
 out to `pnpm --filter @attractor/extension exec vsce ls --no-dependencies`,
 captures stdout, and asserts:
+
 - `dist/bundle/extension.js` is listed
 - `dist/bundle/webview/webview.js` is listed
 - `dist/bundle/webview/webview.css` is listed
 - No `.ts` source files (except `.d.ts`)
 - No `test/` paths
 - No `node_modules/` paths (since `--no-dependencies`)
-**Tests**: The test itself is the validation. Note: the test runs
-`pnpm build` internally as a setup step (with a generous timeout) to
-guarantee build artifacts exist before asserting on `vsce ls` output.
-**QA**: Run `pnpm build` first (prerequisite), then:
-Run `pnpm test` → all tests pass including the new smoke test.
-Run `pnpm test -- --reporter=verbose` → output includes `smoke` project with
-`vsix-content` test name visible.
+  **Tests**: The test itself is the validation. Note: the test runs
+  `pnpm build` internally as a setup step (with a generous timeout) to
+  guarantee build artifacts exist before asserting on `vsce ls` output.
+  **QA**: Run `pnpm build` first (prerequisite), then:
+  Run `pnpm test` → all tests pass including the new smoke test.
+  Run `pnpm test -- --reporter=verbose` → output includes `smoke` project with
+  `vsix-content` test name visible.
 
 ## Dependency Graph
 
@@ -225,11 +241,11 @@ Slices 1 and 2 are the critical path for packaging (Slices 5/6/8).
 
 ## Wave Schedule
 
-| Wave | Slices | Parallel? |
-|------|--------|-----------|
-| 1    | 1, 2, 3, 4 | Yes — all independent |
-| 2    | 5, 6, 7 | Partially — 5 and 7 are independent; 6 depends on 5 |
-| 3    | 8 | Sequential — needs packaging to work |
+| Wave | Slices     | Parallel?                                           |
+| ---- | ---------- | --------------------------------------------------- |
+| 1    | 1, 2, 3, 4 | Yes — all independent                               |
+| 2    | 5, 6, 7    | Partially — 5 and 7 are independent; 6 depends on 5 |
+| 3    | 8          | Sequential — needs packaging to work                |
 
 ## Out of Scope (deferred)
 
