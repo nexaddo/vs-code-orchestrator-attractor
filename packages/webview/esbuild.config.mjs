@@ -20,7 +20,7 @@
 
 import esbuild from "esbuild";
 import { execFileSync, spawn } from "node:child_process";
-import { copyFileSync, mkdirSync } from "node:fs";
+import { copyFileSync, mkdirSync, watchFile } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -89,6 +89,15 @@ if (watch) {
     plugins: [copyPreviewPlugin]
   });
   await jsCtx.watch();
+
+  // Watch ui-preview.html directly so edits are propagated without needing a
+  // JS rebuild (it is not in esbuild's dependency graph).
+  const previewSrc = path.join(__dirname, "ui-preview.html");
+  const previewDst = path.join(distDir, "ui-preview.html");
+  watchFile(previewSrc, { interval: 500 }, () => {
+    copyFileSync(previewSrc, previewDst);
+    console.log("[attractor/webview] ui-preview.html updated in dist/");
+  });
 
   // CSS: postcss --watch
   const cssProc = spawn(

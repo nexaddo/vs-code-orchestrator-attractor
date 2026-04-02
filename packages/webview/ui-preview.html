@@ -129,10 +129,12 @@
   </head>
   <body>
     <div id="surface-tabs">
-      <button class="active" onclick="showSurface('overview')">Overview</button>
-      <button onclick="showSurface('repository')">Repository</button>
-      <button onclick="showSurface('plan')">Plan</button>
-      <button onclick="showSurface('run')">Run Inspector</button>
+      <button class="active" onclick="showSurface('overview', event)">
+        Overview
+      </button>
+      <button onclick="showSurface('repository', event)">Repository</button>
+      <button onclick="showSurface('plan', event)">Plan</button>
+      <button onclick="showSurface('run', event)">Run Inspector</button>
       <button id="theme-toggle" onclick="toggleTheme()">Light Theme</button>
     </div>
 
@@ -416,7 +418,7 @@
         }
       }
 
-      function showSurface(surface) {
+      function showSurface(surface, evt) {
         currentSurface = surface;
 
         // Update tab buttons
@@ -425,7 +427,7 @@
           .forEach((btn) => {
             btn.classList.remove("active");
           });
-        event.target.classList.add("active");
+        evt.target.classList.add("active");
 
         // Send navigate message then state
         window.dispatchEvent(
