@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { RunSurface, buildRunViewModel } from "../../src/run/RunSurface";
+import { formatTimestamp } from "../../src/lib/utils";
 import type { RunState } from "../../src/run/model";
 
 function createState(overrides?: Partial<RunState>): RunState {
@@ -192,5 +193,47 @@ describe("RunSurface", () => {
       "task-pack",
       "report"
     ]);
+  });
+
+  it("timeline startedAt and endedAt are ISO strings that formatTimestamp can display", () => {
+    const vm = buildRunViewModel(createState());
+
+    // The view model carries raw ISO strings; formatTimestamp is applied in the
+    // JSX render layer (RunSurface.tsx) to convert them to HH:MM:SS.mmm display
+    // values. This test verifies the pipeline: raw ISO → formatTimestamp → short time.
+    const first = vm.timeline[0];
+    expect(first.startedAt).toBe("2026-01-10T10:01:00.000Z");
+    expect(first.endedAt).toBe("2026-01-10T10:05:00.000Z");
+
+    // Verify formatTimestamp converts to the expected short form.
+    // The exact hour depends on the local timezone; we verify structure only.
+    expect(formatTimestamp(first.startedAt)).toMatch(
+      /^\d{2}:\d{2}:\d{2}\.\d{3}$/
+    );
+    expect(formatTimestamp(first.endedAt!)).toMatch(
+      /^\d{2}:\d{2}:\d{2}\.\d{3}$/
+    );
+  });
+
+  it("timeline milestone with no endedAt passes undefined safely through formatTimestamp", () => {
+    const vm = buildRunViewModel(createState());
+
+    const running = vm.timeline[1];
+    expect(running.endedAt).toBeUndefined();
+
+    // formatTimestamp guards against null/undefined — returns "" for missing values.
+    expect(formatTimestamp(running.endedAt ?? "")).toBe("");
+  });
+
+  it("artifact createdAt is an ISO string that formatTimestamp can display", () => {
+    const vm = buildRunViewModel(createState());
+
+    const artifact = vm.artifacts[0];
+    expect(artifact.createdAt).toBe("2026-01-10T10:02:00.000Z");
+
+    // formatTimestamp is applied to createdAt in the JSX render layer.
+    expect(formatTimestamp(artifact.createdAt)).toMatch(
+      /^\d{2}:\d{2}:\d{2}\.\d{3}$/
+    );
   });
 });

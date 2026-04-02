@@ -11,7 +11,7 @@ import {
   StatusBadge,
   type Status
 } from "../components";
-import { cn } from "../lib/utils";
+import { cn, formatTimestamp } from "../lib/utils";
 import type { RunState } from "./model";
 
 export interface RunSurfaceProps {
@@ -204,11 +204,11 @@ export function RunSurface({ state }: RunSurfaceProps): JSX.Element {
                         {milestoneRun.nodeId}
                       </div>
                       <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
-                        Started: {milestoneRun.startedAt}
+                        Started: {formatTimestamp(milestoneRun.startedAt)}
                       </div>
                       {milestoneRun.endedAt && (
                         <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
-                          Ended: {milestoneRun.endedAt}
+                          Ended: {formatTimestamp(milestoneRun.endedAt)}
                         </div>
                       )}
                       {milestoneRun.errorMessage && (
@@ -250,7 +250,7 @@ export function RunSurface({ state }: RunSurfaceProps): JSX.Element {
                       {artifact.title}
                     </div>
                     <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
-                      {artifact.createdAt}
+                      {formatTimestamp(artifact.createdAt)}
                     </div>
                   </div>
                   <Badge variant="outline">{artifact.type}</Badge>
