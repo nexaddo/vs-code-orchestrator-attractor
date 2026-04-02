@@ -28,11 +28,13 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 ## Existing Codebase Snapshot (main branch)
 
 ### Package Structure
+
 - `packages/shared/` — Zod schemas, contracts (400 lines in `contracts/index.ts`)
 - `packages/extension/` — VS Code extension (32 source files across runtime, dashboard, storage, worktrees, graph)
 - `packages/webview/` — Preact+Tailwind webview (33 source files across surfaces, store, components)
 
 ### Key Extension Seams
+
 - `runtime.ts` — `activateAttractor(context, commandsApi, dependencies)` with `StorageServices`, `WebviewViewProvider` registration, `onWebviewMessage` handler
 - `dashboard/bridge.ts` — `handleWebviewMessage()` dispatches query routes (ready, repository.open, milestone.open, graph.focus) and command no-ops (plan.create, plan.run, run.resume, run.cancel, run.retry)
 - `extension.ts` — passes `commands` and `WindowApiLike` to `activateAttractor`. Uses `require("vscode")` workaround due to old vscode types package
@@ -40,6 +42,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - `dashboard/webview-provider.ts` — `AttractorViewProvider` with `WebviewPostTarget` pattern
 
 ### Shared Contracts Already Present
+
 - `RoleSchema` = enum ["orchestrator", "planner", "implementer", "reviewer"] — ALREADY EXISTS
 - `RunRecordSchema` with `attempt` field (no `graphId`/`worktreeId`/`startedAt`/`completedAt`)
 - `WebviewOutboundMessageTypeSchema` = enum ["overview.state", "repository.state", "plan.state", "run.state", "timeline.update", "graph.update", "toast"]
@@ -47,6 +50,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - `NodeStatusSchema` = enum ["queued", "running", "blocked", "failed", "succeeded", "canceled"]
 
 ### Test Infrastructure
+
 - 37 test files, ~319 tests
 - Vitest runner, fixture-based contract tests
 - Fixtures under `test/fixtures/contracts/**`
@@ -62,6 +66,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 **Inputs:** Current `RoleSchema`, `RunRecord`, outbound message contracts.
 
 **Outputs:**
+
 - `AgentRoleStatusSchema` = enum ["done", "running", "waiting", "failed", "skipped"]
 - `AgentRolePhaseSchema` = object { role: RoleSchema, status: AgentRoleStatusSchema, taskSummary?: string, errorLabel?: string }
 - `OrchestrationStatePayloadSchema` = object { runId, milestoneIndex, milestoneCount, milestoneName, phases: AgentRolePhaseSchema[4] }
@@ -74,6 +79,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - `RunRecordSchema` += optional `graphId`, `worktreeId`, `startedAt`, `completedAt`
 
 **Tests:**
+
 - Schema parse/reject tests for all new orchestration payloads (valid + invalid)
 - Updated run record tests accept new optional fields
 - Updated webview message tests accept "orchestration.state"
@@ -81,6 +87,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - Fixture files if pattern requires
 
 **Files Modified:**
+
 - `packages/shared/src/contracts/index.ts`
 - `packages/shared/test/contracts/run-record.test.ts`
 - `packages/shared/test/contracts/webview-message.test.ts`
@@ -88,6 +95,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - NEW: `test/fixtures/contracts/runs/valid/with-optional-m4-fields.json` (if fixture pattern used)
 
 **Acceptance:**
+
 - All new payloads parse correctly with valid data
 - All new payloads reject invalid data
 - Existing payloads still parse unchanged
@@ -105,6 +113,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 **Inputs:** Slice 1 complete.
 
 **Outputs:**
+
 - Replace `"vscode": "^1.1.37"` devDep with `"@types/vscode": "^1.103.0"` in extension package.json
 - Remove `require("vscode")` workaround from `extension.ts`; use proper static imports
 - Add `chatParticipants` contribution to extension `package.json`
@@ -112,15 +121,18 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - Add commands: `attractor.run.start`, `attractor.run.cancel`, `attractor.plan.create`
 
 **Tests:**
+
 - Activation smoke tests still pass
 - TypeScript compiles cleanly with new types (typecheck is the test)
 
 **Files Modified:**
+
 - `packages/extension/package.json`
 - `packages/extension/src/extension.ts`
 - `packages/extension/test/smoke/activation.test.ts` (if assertions need updating)
 
 **Acceptance:**
+
 - `pnpm typecheck` succeeds with `@types/vscode` and chat/lm APIs available
 - `pnpm test` passes — no regressions
 - Dashboard activation still works
@@ -137,6 +149,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 **Inputs:** Slice 1 complete.
 
 **Outputs:**
+
 - `ModelGateway` interface: `send(messages, options) => Promise<string>`, `stream(messages, onChunk, options) => Promise<void>`
 - `ModelMessage` type: `{ role: "system" | "user" | "assistant", content: string }`
 - `ModelRequestOptions` type: `{ modelFamily?: string, maxTokens?: number, temperature?: number, signal?: AbortSignal }`
@@ -144,16 +157,19 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - Barrel export
 
 **Tests:**
+
 - `NoOpModelGateway.send()` returns empty string
 - `NoOpModelGateway.stream()` completes without calling onChunk
 - Type-level coverage for `ModelMessage` and `ModelRequestOptions`
 
 **Files Created:**
+
 - `packages/extension/src/application/ports.ts`
 - `packages/extension/src/application/index.ts`
 - `packages/extension/test/application/ports.test.ts`
 
 **Acceptance:**
+
 - Clean interface that downstream slices can depend on
 - No VS Code imports in this file
 - `pnpm typecheck && pnpm test` passes
@@ -169,6 +185,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 **Inputs:** Slices 1 and 3 complete.
 
 **Outputs:**
+
 - 8 functions:
   - `buildOrchestratorSystemPrompt(context)` / `buildOrchestratorUserMessage(context)`
   - `buildPlannerSystemPrompt(context)` / `buildPlannerUserMessage(context)`
@@ -178,16 +195,19 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - Returns `ModelMessage[]` arrays ready for `ModelGateway.send()`
 
 **Tests:**
+
 - 4 describe blocks (one per role), ~10 tests total
 - System prompts contain role identity, scope constraints, v1 node subset
 - User messages include milestone name, acceptance criteria, prior handoff summary
 - Deterministic: same input => same output
 
 **Files Created:**
+
 - `packages/extension/src/application/role-prompts.ts`
 - `packages/extension/test/application/role-prompts.test.ts`
 
 **Acceptance:**
+
 - Pure functions, zero side effects, no VS Code/storage imports
 - All prompts mention role identity
 - Orchestrator prompt mentions v1 node constraints
@@ -206,6 +226,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 **Inputs:** Slices 1, 3, 4 complete.
 
 **Outputs:**
+
 - Pure builder functions for each role handoff:
   - `buildOrchestratorHandoff(milestoneRecord) => OrchestratorHandoff`
   - `buildPlannerHandoff(modelResponse, milestoneId) => PlannerHandoff`
@@ -215,15 +236,18 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - Mapper: handoff payload => `ArtifactRecord` write intent (type, title, uri shape)
 
 **Tests:**
+
 - Unit tests for each handoff artifact shape
 - Contract round-trip: output validates against shared schemas
 - Malformed model response handling (graceful defaults, not crashes)
 
 **Files Created:**
+
 - `packages/extension/src/application/handoffs.ts`
 - `packages/extension/test/application/handoffs.test.ts`
 
 **Acceptance:**
+
 - Each phase can emit a stable typed handoff artifact
 - Handoff payloads validate against `OrchestratorHandoffSchema`, `PlannerHandoffSchema`, etc.
 - No VS Code dependencies, no storage side effects
@@ -239,6 +263,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 **Inputs:** Slices 2 and 3 complete.
 
 **Outputs:**
+
 - `CopilotModelGateway` implements `ModelGateway`
 - Uses `vscode.lm.selectChatModels()` for model selection
 - `send()` collects full response text from `LanguageModelChatResponse`
@@ -246,6 +271,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - `LanguageModelApiLike` seam interface for testing
 
 **Tests:**
+
 - Mocked model selection returning a stub model
 - `send()` returns concatenated text from streamed fragments
 - `stream()` calls `onChunk` for each fragment
@@ -254,10 +280,12 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - AbortSignal/CancellationToken passthrough if VS Code API supports it
 
 **Files Created:**
+
 - `packages/extension/src/copilot/copilot-model-gateway.ts`
 - `packages/extension/test/copilot/copilot-model-gateway.test.ts`
 
 **Acceptance:**
+
 - Gateway returns deterministic strings/chunks from mocked VS Code APIs
 - No live provider calls
 - Clean separation: only this file imports vscode.lm types
@@ -274,16 +302,18 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 **Inputs:** Slices 2 and 3 complete.
 
 **Outputs:**
+
 - `ChatApiLike` seam interface (testable without vscode)
 - `buildChatHandler()` that dispatches slash commands:
   - `/plan` => acknowledge plan creation intent (placeholder response)
-  - `/run` => acknowledge run start intent (placeholder response)  
+  - `/run` => acknowledge run start intent (placeholder response)
   - `/status` => report current orchestration state (or "no active run")
 - `registerChatParticipant(chatApi, handler)` wiring function
 - Runtime integration: add `ChatApiLike?` to `RuntimeDependencies`, wire in `activateAttractor`
 - Extension.ts: extract `ChatApiLike` from vscode namespace, pass to `activateAttractor`
 
 **Tests:**
+
 - Command parsing: `/plan`, `/run`, `/status` recognized correctly
 - Unknown command => helpful fallback response
 - Registration test: chat participant registered when chatApi is provided
@@ -291,6 +321,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - Activation smoke test updated for new optional dependency
 
 **Files Created/Modified:**
+
 - NEW: `packages/extension/src/chat/attractor-chat-participant.ts`
 - MODIFY: `packages/extension/src/runtime.ts`
 - MODIFY: `packages/extension/src/extension.ts`
@@ -298,6 +329,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - MODIFY: `packages/extension/test/smoke/activation.test.ts`
 
 **Acceptance:**
+
 - Participant registers cleanly with mock chat API
 - Commands are recognized deterministically in tests
 - Activation still works when chatApi is undefined (backward compat)
@@ -314,6 +346,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 **Inputs:** Slices 1, 3, 4, 5 complete.
 
 **Outputs:**
+
 - `OrchestrationLoop` class with:
   - `execute(options: OrchestrationOptions)` — drives full milestone progression
   - Options include: `modelGateway`, `milestones`, `runId`, `onStateChange`, `onHandoff`, `onError`, `signal?`
@@ -325,6 +358,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - Abort support via `AbortSignal`
 
 **Tests (deterministic, mocked model):**
+
 - `StubModelGateway` returning canned responses per role
 - Full success path: all 4 roles complete for single milestone
 - Multi-milestone: phases execute in order across milestones
@@ -336,10 +370,12 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - Topological sort correctness for milestone ordering
 
 **Files Created:**
+
 - `packages/extension/src/application/orchestration-loop.ts`
 - `packages/extension/test/application/orchestration-loop.test.ts`
 
 **Acceptance:**
+
 - Loop runs entirely under mocks
 - Emits expected phase states at each transition
 - Emits handoff artifacts between phases
@@ -358,6 +394,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 **Inputs:** Slices 6, 7, 8 complete.
 
 **Outputs:**
+
 - Inject `ModelGateway` into `RuntimeDependencies` (with `NoOpModelGateway` default)
 - `plan.run` command handler: creates `OrchestrationLoop`, starts execution
 - `run.cancel` command handler: signals abort to running loop
@@ -368,6 +405,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - Update `RunRecord` status during orchestration
 
 **Tests:**
+
 - Bridge tests: `plan.run` message triggers orchestration start (with stub gateway)
 - Bridge tests: `run.cancel` aborts running orchestration
 - Bridge tests: `plan.create` creates a plan or returns ack
@@ -376,6 +414,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - Existing bridge tests still pass unchanged
 
 **Files Modified:**
+
 - `packages/extension/src/runtime.ts`
 - `packages/extension/src/dashboard/bridge.ts`
 - `packages/extension/test/dashboard/bridge.test.ts`
@@ -383,6 +422,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - POSSIBLY NEW: `packages/extension/src/application/run-orchestrator.ts` (thin coordinator if runtime.ts would get too large)
 
 **Acceptance:**
+
 - Dashboard commands are no longer no-ops
 - A mocked run can start and emit orchestration progress to webview
 - Cancellation stops the loop
@@ -400,12 +440,14 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 **Inputs:** Slices 1 and 9 complete.
 
 **Outputs:**
+
 - `message-dispatch.ts`: handle `"orchestration.state"` message type
 - `store.ts`: add `orchestration` payload slot to store state
 - Surface component: minimal 4-role phase strip showing role name + status badge
 - Integrate into existing run surface or as standalone orchestration surface
 
 **Tests:**
+
 - Dispatch test: `orchestration.state` message sets store correctly
 - Dispatch test: returns `true` for valid orchestration state
 - Store test: orchestration payload is accessible after dispatch
@@ -413,6 +455,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - Existing dispatch tests still pass
 
 **Files Modified:**
+
 - `packages/webview/src/app/message-dispatch.ts`
 - `packages/webview/src/app/store.ts`
 - POSSIBLY NEW: `packages/webview/src/orchestration/` surface module
@@ -420,6 +463,7 @@ Decompose M4 (Copilot Orchestration) from the Attractor roadmap into 10 dependen
 - POSSIBLY NEW: `packages/webview/test/orchestration/` tests
 
 **Acceptance:**
+
 - Webview accepts `orchestration.state` and routes it to store
 - Phase strip renders deterministically in tests
 - No regressions in existing webview behavior
@@ -458,24 +502,24 @@ Slice 1 (shared contracts)
 
 ## Wave Schedule (Parallelization)
 
-| Wave | Slices | Dependencies Met |
-|------|--------|-----------------|
-| A | 1 | (none) |
-| B | 2, 3 | 1 |
-| C | 4, 6, 7 | 1+3 for 4; 2+3 for 6,7 |
-| D | 5 | 1+3+4 |
-| E | 8 | 1+3+4+5 |
-| F | 9 | 6+7+8 |
-| G | 10 | 1+9 |
+| Wave | Slices  | Dependencies Met       |
+| ---- | ------- | ---------------------- |
+| A    | 1       | (none)                 |
+| B    | 2, 3    | 1                      |
+| C    | 4, 6, 7 | 1+3 for 4; 2+3 for 6,7 |
+| D    | 5       | 1+3+4                  |
+| E    | 8       | 1+3+4+5                |
+| F    | 9       | 6+7+8                  |
+| G    | 10      | 1+9                    |
 
 ## Agent Assignment Recommendations
 
-| Role | Slices | Rationale |
-|------|--------|-----------|
-| `@ttd-planner` | 1, 4, 8 | Schema design, prompt design, loop architecture need careful acceptance criteria |
-| `@ttd-implementer` | 2, 3, 5, 6, 7, 9, 10 | Focused implementation with clear specs |
-| `@code-reviewer` | After 1, 8, 9 | Critical integration points need review |
-| `@plan-drift-reviewer` | After 9 | Final drift check before M4 declared complete |
+| Role                   | Slices               | Rationale                                                                        |
+| ---------------------- | -------------------- | -------------------------------------------------------------------------------- |
+| `@ttd-planner`         | 1, 4, 8              | Schema design, prompt design, loop architecture need careful acceptance criteria |
+| `@ttd-implementer`     | 2, 3, 5, 6, 7, 9, 10 | Focused implementation with clear specs                                          |
+| `@code-reviewer`       | After 1, 8, 9        | Critical integration points need review                                          |
+| `@plan-drift-reviewer` | After 9              | Final drift check before M4 declared complete                                    |
 
 ## Quality Gate (per slice)
 

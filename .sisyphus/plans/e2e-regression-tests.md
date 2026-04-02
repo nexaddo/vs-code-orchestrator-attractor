@@ -1,6 +1,7 @@
 # E2E Regression Test Suite for Attractor VS Code Extension
 
 ## TL;DR
+
 > **Summary**: Build a comprehensive Playwright + vitest E2E regression test suite covering the Attractor webview dashboard (4 surfaces), extension-webview bridge messaging, chat participant, orchestration loop, and event sourcing. Wave 1 includes a proof-of-concept spike to validate Playwright can access VS Code's double-nested webview iframes before committing to the approach.
 > **Deliverables**: `playwright.config.ts`, VS Code launcher + webview frame helpers, 9 Playwright E2E tests, 16 vitest integration tests, CI job definition, `data-testid` additions to surface components
 > **Effort**: Large
@@ -10,9 +11,11 @@
 ## Context
 
 ### Original Request
+
 Build a full suite of E2E tests that regression-test the Attractor VS Code extension from inside VS Code. Use Playwright to control the webview. Cover all happy paths, edge cases, and exceptions.
 
 ### Interview Summary
+
 - **Both test layers**: Playwright UI (Waves 0-5) + vitest integration (Waves 6-8)
 - **OrchestrationLoop**: Test with mock ModelGateway despite `startOrchestration` being a placeholder
 - **data-testid strategy**: Add testids to surface content elements as Wave 0 prep
@@ -20,6 +23,7 @@ Build a full suite of E2E tests that regression-test the Attractor VS Code exten
 - **Test location**: Playwright E2E tests in root `test/e2e/`; vitest integration tests in `packages/extension/test/integration/` and `packages/webview/test/integration/` (discoverable by existing vitest project entries)
 
 ### Metis Review (gaps addressed)
+
 1. **Double-nested iframe** (Gap 1): VS Code webviews are double-nested iframes (`<iframe class="webview">` → inner `<iframe>`). Wave 1 frame finder must account for this.
 2. **`timeline.update` is dead code** (Gap 2): Removed from test scope. `graph.update` and `orchestration.state` dispatch to store but NO component renders them — Wave 5 tests store dispatch only, NOT visual rendering.
 3. **`run.state` has no bridge trigger** (Gap 3): RunSurface tests must inject synthetic `run.state` messages via postMessage, not via bridge commands.
@@ -29,24 +33,27 @@ Build a full suite of E2E tests that regression-test the Attractor VS Code exten
 7. **CI job definition** (Gap 7): Wave 1 creates an `e2e` job in `.github/workflows/ci.yml` with Xvfb, matrix (ubuntu+windows), artifact upload for traces.
 
 ### Flakiness Mitigations (from Metis)
-| Vector | Mitigation |
-|--------|------------|
-| VS Code launch timing | `electronApp.firstWindow()` with 30s timeout + explicit `waitForSelector` on activity bar |
-| Webview panel activation | Wait for outer iframe → inner iframe → `[data-testid]` chain with explicit `waitFor` |
+
+| Vector                        | Mitigation                                                                                              |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------- |
+| VS Code launch timing         | `electronApp.firstWindow()` with 30s timeout + explicit `waitForSelector` on activity bar               |
+| Webview panel activation      | Wait for outer iframe → inner iframe → `[data-testid]` chain with explicit `waitFor`                    |
 | `postMessage` delivery timing | Use web-first assertions (`toBeVisible`, `toHaveText`) which auto-retry — NEVER `page.waitForTimeout()` |
-| Double-iframe load race | Always use `frameLocator` chain with `waitFor` on known element inside innermost frame |
-| CI display server | `xvfb-run` on Linux, native on Windows |
-| Extension activation race | Wait for extension activation via output channel or command availability before testing |
-| Temp dir isolation | `mkdtemp` with unique prefix per test, cleanup in `afterEach` |
-| Parallel test interference | `workers: 1` in Playwright config (serial execution) |
-| CSP blocking | All assertions are DOM-based, no JS injection into webview |
+| Double-iframe load race       | Always use `frameLocator` chain with `waitFor` on known element inside innermost frame                  |
+| CI display server             | `xvfb-run` on Linux, native on Windows                                                                  |
+| Extension activation race     | Wait for extension activation via output channel or command availability before testing                 |
+| Temp dir isolation            | `mkdtemp` with unique prefix per test, cleanup in `afterEach`                                           |
+| Parallel test interference    | `workers: 1` in Playwright config (serial execution)                                                    |
+| CSP blocking                  | All assertions are DOM-based, no JS injection into webview                                              |
 
 ## Work Objectives
 
 ### Core Objective
+
 Establish a maintainable, deterministic E2E regression test suite that catches regressions in the Attractor webview dashboard, extension-webview bridge, and extension-host integrations before they reach production.
 
 ### Deliverables
+
 1. `data-testid` attributes on all surface content elements and toast bar
 2. Degraded-mode error rendering fix in `OverviewSurface.tsx`
 3. `playwright.config.ts` with VS Code Electron configuration
@@ -57,6 +64,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
 8. Test fixtures validated against Zod schemas
 
 ### Definition of Done (verifiable conditions)
+
 - `npx playwright test` passes all E2E tests (0 failures)
 - `pnpm test` passes all vitest tests including new integration tests (0 failures)
 - `pnpm typecheck && pnpm lint` pass with 0 errors
@@ -65,6 +73,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
 - Evidence screenshots/traces saved to `.sisyphus/evidence/` on failure
 
 ### Must Have
+
 - Proof-of-concept spike validating Playwright webview access (Wave 1, hard blocker)
 - Per-file VS Code instance isolation
 - All 4 surface rendering tests (overview, repository, plan, run)
@@ -76,6 +85,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
 - OrchestrationLoop integration test with mock ModelGateway
 
 ### Must NOT Have (guardrails)
+
 - DO NOT create Playwright tests for graph/orchestration visual rendering (no UI components exist for these)
 - DO NOT test `timeline.update` (dead code — no handler in bridge or message-dispatch)
 - DO NOT duplicate existing unit test coverage — each vitest integration test must document what it covers that unit tests don't
@@ -87,7 +97,9 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
 - DO NOT mark `run.resume`/`run.retry` tests as passing — mark as `test.fixme()` since behavior will change
 
 ## Verification Strategy
+
 > ZERO HUMAN INTERVENTION — all verification is agent-executed.
+
 - Test decision: TDD (RED-GREEN-REFACTOR) for Waves 1-8; Wave 0 is prep work verified by existing tests passing
 - QA policy: Every task has agent-executed scenarios with specific selectors and expected outcomes
 - Evidence: `.sisyphus/evidence/task-{N}-{slug}.{ext}`
@@ -98,65 +110,73 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
 ### Parallel Execution Waves
 
 **Wave 0** (Foundation prep — 2 tasks):
+
 - Task 1: Add `data-testid` to surface content elements (`visual-engineering`)
 - Task 2: Fix degraded-mode error rendering in OverviewSurface (`quick`)
 
 **Wave 1** (Test infrastructure — 3 tasks):
+
 - Task 3: Proof-of-concept spike — validate Playwright webview access (`deep`)
 - Task 4: Playwright config + VS Code launcher + frame finder utilities (`unspecified-high`)
 - Task 5: CI job definition for E2E tests (`quick`)
 
 **Wave 2** (Handshake & degraded mode — 1 task):
+
 - Task 6: Handshake flow + degraded mode E2E tests (`unspecified-high`)
 
 **Wave 3** (Surface rendering — 2 tasks):
+
 - Task 7: Overview + Repository surface rendering tests — 2 Playwright tests (`unspecified-high`)
 - Task 8: Plan + Run surface rendering tests — 2 Playwright tests (`unspecified-high`)
 
 **Wave 4** (Bridge commands + toast rendering — 2 tasks):
+
 > **Architecture decision**: Bridge command logic (plan.run, run.cancel, plan.create etc.) is tested via **vitest** calling `handleWebviewMessage()` directly — a pure function at `packages/extension/src/dashboard/bridge.ts:48`. This avoids the CSP/trigger mechanism problem: the webview CSP (`default-src 'none'; script-src 'nonce-...'`) blocks JS injection, and no UI buttons exist to trigger these commands. Playwright tests in this wave verify only **toast rendering** by injecting outbound `toast` messages via the message helper (posting to the webview window from Electron page context, not subject to webview CSP).
+
 - Task 9: Bridge command flow integration tests — **vitest** (`unspecified-high`)
 - Task 10: Bridge validation + toast rendering E2E tests — 2 Playwright tests (`unspecified-high`)
 
 **Wave 5** (Store dispatch — 1 task):
+
 - Task 11: Graph + orchestration store dispatch verification — vitest (`unspecified-high`)
 
 **Wave 6-8** (Extension-host integration — 3 tasks, parallelizable with Waves 2-5):
+
 - Task 12: Chat participant registration wiring — vitest (`unspecified-high`)
 - Task 13: OrchestrationLoop integration with mock ModelGateway — vitest (`unspecified-high`)
 - Task 14: Event log + snapshot projector full cycle — vitest (`unspecified-high`)
 
 ### Dependency Matrix
 
-| Task | Depends On | Blocks |
-|------|-----------|--------|
-| 1 (testids) | — | 6, 7, 8, 10 |
-| 2 (error fix) | — | 6 |
-| 3 (spike) | — | 4 |
-| 4 (infra) | 3 | 5, 6, 7, 8, 10 |
-| 5 (CI) | 4 | — |
-| 6 (handshake) | 1, 2, 4 | — |
-| 7 (overview+repo) | 1, 4 | — |
-| 8 (plan+run) | 1, 4 | — |
-| 9 (bridge cmds vitest) | — | — |
-| 10 (validation+toasts) | 1, 4 | — |
-| 11 (store dispatch) | — | — |
-| 12 (chat) | — | — |
-| 13 (orch loop) | — | — |
-| 14 (event sourcing) | — | — |
+| Task                   | Depends On | Blocks         |
+| ---------------------- | ---------- | -------------- |
+| 1 (testids)            | —          | 6, 7, 8, 10    |
+| 2 (error fix)          | —          | 6              |
+| 3 (spike)              | —          | 4              |
+| 4 (infra)              | 3          | 5, 6, 7, 8, 10 |
+| 5 (CI)                 | 4          | —              |
+| 6 (handshake)          | 1, 2, 4    | —              |
+| 7 (overview+repo)      | 1, 4       | —              |
+| 8 (plan+run)           | 1, 4       | —              |
+| 9 (bridge cmds vitest) | —          | —              |
+| 10 (validation+toasts) | 1, 4       | —              |
+| 11 (store dispatch)    | —          | —              |
+| 12 (chat)              | —          | —              |
+| 13 (orch loop)         | —          | —              |
+| 14 (event sourcing)    | —          | —              |
 
 ### Agent Dispatch Summary
 
-| Wave | Tasks | Categories |
-|------|-------|------------|
-| 0 | 2 (Tasks 1-2) | visual-engineering, quick |
-| 1 | 3 (Tasks 3-5) | deep, unspecified-high, quick |
-| 2 | 1 (Task 6) | unspecified-high |
-| 3 | 2 (Tasks 7-8) | unspecified-high |
-| 4 | 2 (Tasks 9-10) | unspecified-high |
-| 5 | 1 (Task 11) | unspecified-high |
-| 6-8 | 3 (Tasks 12-14) | unspecified-high |
-| **Total** | **14 tasks** | |
+| Wave      | Tasks           | Categories                    |
+| --------- | --------------- | ----------------------------- |
+| 0         | 2 (Tasks 1-2)   | visual-engineering, quick     |
+| 1         | 3 (Tasks 3-5)   | deep, unspecified-high, quick |
+| 2         | 1 (Task 6)      | unspecified-high              |
+| 3         | 2 (Tasks 7-8)   | unspecified-high              |
+| 4         | 2 (Tasks 9-10)  | unspecified-high              |
+| 5         | 1 (Task 11)     | unspecified-high              |
+| 6-8       | 3 (Tasks 12-14) | unspecified-high              |
+| **Total** | **14 tasks**    |                               |
 
 ## TODOs
 
@@ -232,6 +252,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   - [ ] No behavior changes — only attribute additions
 
   **QA Scenarios**:
+
   ```
   Scenario: All testids present in source
     Tool: Bash
@@ -286,6 +307,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   - [ ] `pnpm typecheck && pnpm lint && pnpm test` all pass
 
   **QA Scenarios**:
+
   ```
   Scenario: Error banner renders with error payload
     Tool: Bash
@@ -345,6 +367,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   - [ ] Message injection feasibility documented (yes/no with details)
 
   **QA Scenarios**:
+
   ```
   Scenario: Spike successfully reads webview DOM
     Tool: Bash
@@ -367,16 +390,16 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
 
   **What to do**:
   Using findings from Task 3, create permanent test infrastructure:
-
   1. **`playwright.config.ts`** (root):
+
      ```typescript
-     import { defineConfig } from '@playwright/test';
+     import { defineConfig } from "@playwright/test";
      export default defineConfig({
-       testDir: 'test/e2e',
+       testDir: "test/e2e",
        timeout: 60_000,
        retries: process.env.CI ? 1 : 0,
        workers: 1,
-       use: { trace: 'on-first-retry' },
+       use: { trace: "on-first-retry" }
      });
      ```
 
@@ -430,6 +453,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   - [ ] No `page.waitForTimeout()` in any file
 
   **QA Scenarios**:
+
   ```
   Scenario: Smoke test passes
     Tool: Bash
@@ -491,6 +515,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   - [ ] `pnpm lint` passes (YAML valid)
 
   **QA Scenarios**:
+
   ```
   Scenario: CI YAML is valid
     Tool: Bash
@@ -552,6 +577,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   - [ ] Test 2 verifies error banner visibility and text content
 
   **QA Scenarios**:
+
   ```
   Scenario: Normal handshake completes
     Tool: Bash
@@ -621,6 +647,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   - [ ] Fixtures stored in `test/e2e/fixtures/`
 
   **QA Scenarios**:
+
   ```
   Scenario: Overview populated rendering
     Tool: Bash
@@ -689,6 +716,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   - [ ] Fixtures stored in `test/e2e/fixtures/`
 
   **QA Scenarios**:
+
   ```
   Scenario: Plan populated rendering
     Tool: Bash
@@ -713,7 +741,6 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   Create `packages/extension/test/integration/bridge-commands.test.ts` (vitest) testing the bridge command handler logic. This tests `handleWebviewMessage()` directly — a pure function that takes a parsed message, services, panel mock, and optional orchestration context. **This replaces the original Playwright approach** because the webview CSP blocks JS injection and no UI buttons trigger these commands.
 
   **Tests** (5 tests):
-
   1. `test('plan.run: valid planId sends orchestration-started toast')`:
      - Create mock `StorageServices`, mock `WebviewPanelLike` that records `postMessage` calls
      - Call `handleWebviewMessage({ version: 1, requestId: "r1", type: "plan.run", payload: { planId: "plan-001" } }, services, panel)`
@@ -767,6 +794,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   - [ ] No Playwright imports — this is a vitest test
 
   **QA Scenarios**:
+
   ```
   Scenario: plan.run valid sends correct toast
     Tool: Bash
@@ -834,6 +862,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   - [ ] No `page.waitForTimeout()` calls
 
   **QA Scenarios**:
+
   ```
   Scenario: Malformed messages don't crash webview
     Tool: Bash
@@ -858,7 +887,6 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   Create `packages/webview/test/integration/store-dispatch.test.ts` testing that `graph.update` and `orchestration.state` messages are correctly dispatched through `messageDispatch` into the store. These messages dispatch to store but NO component renders them — so this is a store-level integration test, not a UI test.
 
   **Tests** (3 tests):
-
   1. `test('graph.update: dispatches graphUpdate to store')`:
      - Create a store via `createStore(createInitialState())`
      - Call `messageDispatch(store, { version: 1, type: "graph.update", payload: { nodeId: "n1", status: "complete" } })`
@@ -900,6 +928,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   - [ ] No tests for `timeline.update` (dead code)
 
   **QA Scenarios**:
+
   ```
   Scenario: graph.update dispatches to store
     Tool: Bash
@@ -924,7 +953,6 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   Create `packages/extension/test/integration/chat-participant.test.ts` testing chat participant registration via the extension activation path.
 
   **Tests** (2 tests):
-
   1. `test('chat participant registers with correct ID')`:
      - Import and call the relevant registration logic
      - Assert the participant was registered with ID `"attractor.attractor"` (matching `PARTICIPANT_ID` constant at `packages/extension/src/chat/attractor-chat-participant.ts:41`)
@@ -958,6 +986,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   - [ ] No live Copilot API calls
 
   **QA Scenarios**:
+
   ```
   Scenario: Participant ID matches constant
     Tool: Bash
@@ -982,7 +1011,6 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   Create `packages/extension/test/integration/orchestration-loop.test.ts` testing the `OrchestrationLoop` class with a mock `ModelGateway`.
 
   **Tests** (3 tests):
-
   1. `test('orchestration loop: starts and progresses through phases')`:
      - Create `OrchestrationLoop` with `NoOpModelGateway` (from `packages/extension/src/application/ports.ts`)
      - Start a plan run with a simple DOT graph
@@ -1026,6 +1054,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   - [ ] No shared state between tests
 
   **QA Scenarios**:
+
   ```
   Scenario: Loop progresses through phases
     Tool: Bash
@@ -1050,7 +1079,6 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   Create `packages/extension/test/integration/event-sourcing.test.ts` testing the full event sourcing cycle: append events to `FileEventLog`, then project them via `SnapshotProjector`.
 
   **Tests** (3 tests):
-
   1. `test('full cycle: append events, list by run, project snapshot')`:
      - Create `FileEventLog` with a temp dir (via `mkdtemp`)
      - Append >=5 events for a single run (start, milestone-begin, node-complete, milestone-end, run-complete)
@@ -1095,6 +1123,7 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
   - [ ] No shared state between tests
 
   **QA Scenarios**:
+
   ```
   Scenario: Full event sourcing cycle
     Tool: Bash
@@ -1118,35 +1147,35 @@ Establish a maintainable, deterministic E2E regression test suite that catches r
 > **Never mark F1-F4 as checked before getting user's okay.** Rejection or user feedback → fix → re-run → present again → wait for okay.
 
 - [x] F1. Plan Compliance Audit — oracle
-  Verify every task matches its acceptance criteria. Check that all 14 tasks were implemented. Verify test count stays within the <=15 Playwright test cap (**current count: 9 Playwright tests**). Confirm no `page.waitForTimeout()` calls exist. Confirm `workers: 1` in playwright.config.ts.
+      Verify every task matches its acceptance criteria. Check that all 14 tasks were implemented. Verify test count stays within the <=15 Playwright test cap (**current count: 9 Playwright tests**). Confirm no `page.waitForTimeout()` calls exist. Confirm `workers: 1` in playwright.config.ts.
 
 - [x] F2. Code Quality Review — unspecified-high
-  Review all new test files for: proper cleanup (afterEach/afterAll), no hardcoded timeouts, consistent use of `data-testid` selectors, fixture data validated against Zod schemas, meaningful test descriptions.
+      Review all new test files for: proper cleanup (afterEach/afterAll), no hardcoded timeouts, consistent use of `data-testid` selectors, fixture data validated against Zod schemas, meaningful test descriptions.
 
 - [x] F3. Real Manual QA — unspecified-high (+ playwright if UI)
-  Execute `npx playwright test` and `pnpm test` on the full suite. Capture pass/fail counts. Verify CI job definition by dry-running with `act` or inspecting YAML structure. Take screenshots of any failures.
+      Execute `npx playwright test` and `pnpm test` on the full suite. Capture pass/fail counts. Verify CI job definition by dry-running with `act` or inspecting YAML structure. Take screenshots of any failures.
 
 - [x] F4. Scope Fidelity Check — deep
-  Compare implementation against this plan: verify no scope creep (no extra production changes beyond Wave 0), no duplicate unit test coverage in Waves 6-8, no tests for dead code (timeline.update, graph/orchestration rendering). Verify each vitest integration test has a comment explaining what it covers that unit tests don't.
+      Compare implementation against this plan: verify no scope creep (no extra production changes beyond Wave 0), no duplicate unit test coverage in Waves 6-8, no tests for dead code (timeline.update, graph/orchestration rendering). Verify each vitest integration test has a comment explaining what it covers that unit tests don't.
 
 ## Commit Strategy
 
-| Wave | Commit # | Message | Files |
-|------|----------|---------|-------|
-| 0 | 1 | `test(prep): add data-testid attributes to surface components and toast bar` | `packages/webview/src/overview/OverviewSurface.tsx`, `packages/webview/src/repository/RepositorySurface.tsx`, `packages/webview/src/plan/PlanSurface.tsx`, `packages/webview/src/run/RunSurface.tsx`, `packages/webview/src/app/App.tsx` |
-| 0 | 2 | `fix(webview): render degraded-mode error in OverviewSurface` | `packages/webview/src/overview/OverviewSurface.tsx`, `packages/webview/src/overview/model.ts` |
-| 1 | 3 | `test(e2e): add playwright config, VS Code launcher, and frame finder utilities` | `playwright.config.ts`, `test/e2e/helpers/launch.ts`, `test/e2e/helpers/webview-frame.ts`, `package.json` |
-| 1 | 4 | `test(e2e): add smoke test - launch VS Code, open panel, verify overview surface` | `test/e2e/smoke.test.ts` |
-| 1 | 5 | `ci: add e2e job with Xvfb and trace artifacts` | `.github/workflows/ci.yml` |
-| 2 | 6 | `test(e2e): handshake flow and degraded mode` | `test/e2e/handshake.test.ts` |
-| 3 | 7 | `test(e2e): overview and repository surface rendering` | `test/e2e/surfaces-overview-repository.test.ts`, `test/e2e/fixtures/` |
-| 3 | 8 | `test(e2e): plan and run surface rendering` | `test/e2e/surfaces-plan-run.test.ts`, `test/e2e/fixtures/` |
-| 4 | 9 | `test(integration): bridge command flows via handleWebviewMessage` | `packages/extension/test/integration/bridge-commands.test.ts` |
-| 4 | 10 | `test(e2e): bridge validation resilience and toast rendering` | `test/e2e/bridge-validation-and-toasts.test.ts` |
-| 5 | 11 | `test(integration): graph and orchestration store dispatch` | `packages/webview/test/integration/store-dispatch.test.ts` |
-| 6 | 12 | `test(integration): chat participant registration wiring` | `packages/extension/test/integration/chat-participant.test.ts` |
-| 7 | 13 | `test(integration): OrchestrationLoop with mock ModelGateway` | `packages/extension/test/integration/orchestration-loop.test.ts` |
-| 8 | 14 | `test(integration): event log + snapshot projector full cycle` | `packages/extension/test/integration/event-sourcing.test.ts` |
+| Wave | Commit # | Message                                                                           | Files                                                                                                                                                                                                                                    |
+| ---- | -------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0    | 1        | `test(prep): add data-testid attributes to surface components and toast bar`      | `packages/webview/src/overview/OverviewSurface.tsx`, `packages/webview/src/repository/RepositorySurface.tsx`, `packages/webview/src/plan/PlanSurface.tsx`, `packages/webview/src/run/RunSurface.tsx`, `packages/webview/src/app/App.tsx` |
+| 0    | 2        | `fix(webview): render degraded-mode error in OverviewSurface`                     | `packages/webview/src/overview/OverviewSurface.tsx`, `packages/webview/src/overview/model.ts`                                                                                                                                            |
+| 1    | 3        | `test(e2e): add playwright config, VS Code launcher, and frame finder utilities`  | `playwright.config.ts`, `test/e2e/helpers/launch.ts`, `test/e2e/helpers/webview-frame.ts`, `package.json`                                                                                                                                |
+| 1    | 4        | `test(e2e): add smoke test - launch VS Code, open panel, verify overview surface` | `test/e2e/smoke.test.ts`                                                                                                                                                                                                                 |
+| 1    | 5        | `ci: add e2e job with Xvfb and trace artifacts`                                   | `.github/workflows/ci.yml`                                                                                                                                                                                                               |
+| 2    | 6        | `test(e2e): handshake flow and degraded mode`                                     | `test/e2e/handshake.test.ts`                                                                                                                                                                                                             |
+| 3    | 7        | `test(e2e): overview and repository surface rendering`                            | `test/e2e/surfaces-overview-repository.test.ts`, `test/e2e/fixtures/`                                                                                                                                                                    |
+| 3    | 8        | `test(e2e): plan and run surface rendering`                                       | `test/e2e/surfaces-plan-run.test.ts`, `test/e2e/fixtures/`                                                                                                                                                                               |
+| 4    | 9        | `test(integration): bridge command flows via handleWebviewMessage`                | `packages/extension/test/integration/bridge-commands.test.ts`                                                                                                                                                                            |
+| 4    | 10       | `test(e2e): bridge validation resilience and toast rendering`                     | `test/e2e/bridge-validation-and-toasts.test.ts`                                                                                                                                                                                          |
+| 5    | 11       | `test(integration): graph and orchestration store dispatch`                       | `packages/webview/test/integration/store-dispatch.test.ts`                                                                                                                                                                               |
+| 6    | 12       | `test(integration): chat participant registration wiring`                         | `packages/extension/test/integration/chat-participant.test.ts`                                                                                                                                                                           |
+| 7    | 13       | `test(integration): OrchestrationLoop with mock ModelGateway`                     | `packages/extension/test/integration/orchestration-loop.test.ts`                                                                                                                                                                         |
+| 8    | 14       | `test(integration): event log + snapshot projector full cycle`                    | `packages/extension/test/integration/event-sourcing.test.ts`                                                                                                                                                                             |
 
 ## Success Criteria
 

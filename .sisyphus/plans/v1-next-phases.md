@@ -5,6 +5,7 @@
 > **Quick Summary**: Complete the remaining v1 work for Attractor after M4+M5 ship: finish wiring the live orchestration plumbing (wire-orchestration), close dashboard UX gaps (Run button, control buttons, log viewer, orchestration phase UI), build the React graph surface, implement DOT graph execution, and wire run resume+retry with worktree integration.
 >
 > **Deliverables**:
+>
 > - wire-orchestration committed and merged (T1-T7 + tests)
 > - Plan dashboard: Run Plan CTA wired
 > - Run inspector: log viewer, phase progress UI, cancel/resume/retry buttons
@@ -26,6 +27,7 @@
 `main` is at `42ac2d2` — vitest integration test suite (PR #31).
 
 **What shipped:**
+
 - M0-M5 all merged: contracts, backend spine, dashboard, copilot orchestration, release readiness
 - 503+ tests passing
 - VSIX packaging working
@@ -35,9 +37,11 @@
 - `startOrchestration` in `runtime.ts` — placeholder, does not instantiate OrchestrationLoop
 
 **What's in progress:**
+
 - `wire-orchestration` plan (`.sisyphus/plans/wire-orchestration.md`) — Task 1 code done in extension.ts, not committed
 
 **What's missing for v1:**
+
 1. Real orchestration plumbing (wire-orchestration T1-T7)
 2. Run Plan CTA in PlanSurface
 3. Run inspector: log viewer, orchestration phases, control buttons
@@ -50,35 +54,37 @@
 
 ### Feature Completeness Matrix
 
-| Feature | Status |
-|---------|--------|
-| DOT parsing + validation | ✅ DONE |
-| DOT graph execution (node walker) | ❌ MISSING |
-| Overview dashboard | ✅ DONE |
-| Repository detail surface | ✅ DONE |
-| Plan dashboard — Run CTA | ⚠️ PARTIAL |
-| Run inspector — phases, logs, controls | ⚠️ PARTIAL |
-| Graph rendering (React) | ⚠️ PARTIAL |
-| Event timeline (React) | ⚠️ PARTIAL |
-| Log viewer in RunSurface | ⚠️ PARTIAL |
-| Artifact viewer | ✅ DONE |
-| Orchestration roles 4-phase | ✅ DONE |
-| Model gateway (real Copilot) | ⚙️ IN PROGRESS |
-| Chat commands live | ⚙️ IN PROGRESS |
-| startOrchestration live | ⚙️ IN PROGRESS |
-| Run cancel | ✅ DONE |
-| Run resume | ❌ STUB |
-| Run retry | ❌ STUB |
-| Worktree integration | ❌ MISSING |
+| Feature                                | Status         |
+| -------------------------------------- | -------------- |
+| DOT parsing + validation               | ✅ DONE        |
+| DOT graph execution (node walker)      | ❌ MISSING     |
+| Overview dashboard                     | ✅ DONE        |
+| Repository detail surface              | ✅ DONE        |
+| Plan dashboard — Run CTA               | ⚠️ PARTIAL     |
+| Run inspector — phases, logs, controls | ⚠️ PARTIAL     |
+| Graph rendering (React)                | ⚠️ PARTIAL     |
+| Event timeline (React)                 | ⚠️ PARTIAL     |
+| Log viewer in RunSurface               | ⚠️ PARTIAL     |
+| Artifact viewer                        | ✅ DONE        |
+| Orchestration roles 4-phase            | ✅ DONE        |
+| Model gateway (real Copilot)           | ⚙️ IN PROGRESS |
+| Chat commands live                     | ⚙️ IN PROGRESS |
+| startOrchestration live                | ⚙️ IN PROGRESS |
+| Run cancel                             | ✅ DONE        |
+| Run resume                             | ❌ STUB        |
+| Run retry                              | ❌ STUB        |
+| Worktree integration                   | ❌ MISSING     |
 
 ---
 
 ## Work Objectives
 
 ### Core Objective
+
 Complete the Attractor v1 feature set: live orchestration, full run inspector, graph visualization, and run recovery — so the extension can execute a real plan end-to-end via Copilot.
 
 ### Concrete Deliverables
+
 - `packages/extension/src/extension.ts` — gateway wiring committed
 - `packages/extension/src/runtime.ts` — real startOrchestration
 - `packages/extension/src/chat/attractor-chat-participant.ts` — live /run /plan /status
@@ -91,6 +97,7 @@ Complete the Attractor v1 feature set: live orchestration, full run inspector, g
 - `docs/plans/progress-tracker.md` — updated to reflect current state
 
 ### Definition of Done
+
 - [ ] `pnpm typecheck && pnpm lint && pnpm test --run` passes (503+ tests)
 - [ ] F5 → dashboard → "Run Plan" → Output channel shows orchestration lifecycle
 - [ ] `@attractor /run <planId>` triggers real OrchestrationLoop execution
@@ -99,6 +106,7 @@ Complete the Attractor v1 feature set: live orchestration, full run inspector, g
 - [ ] DOT graph executor dispatches codergen/conditional/wait.human nodes correctly
 
 ### Must Have
+
 - All 503+ existing tests remain green throughout
 - wire-orchestration T1-T7 completed and committed atomically
 - Run Plan CTA in PlanSurface calls postMessage.runPlan(planId)
@@ -109,6 +117,7 @@ Complete the Attractor v1 feature set: live orchestration, full run inspector, g
 - Resume/retry: snapshot-based RunRecord persistence enabling re-entry
 
 ### Must NOT Have (Guardrails)
+
 - Do NOT add `vscode.window.showErrorMessage` — codebase deliberately avoids popups
 - Do NOT modify `orchestration-loop.ts`, `ports.ts`, `copilot-model-gateway.ts` (FROZEN from wire-orchestration plan)
 - Do NOT add new npm packages without explicit justification
@@ -123,11 +132,13 @@ Complete the Attractor v1 feature set: live orchestration, full run inspector, g
 ## Verification Strategy
 
 ### Test Decision
+
 - **Infrastructure exists**: YES (vitest, 503+ tests)
 - **Automated tests**: Tests-after strategy for new components
 - **Framework**: vitest
 
 ### QA Policy
+
 Every task includes agent-executed QA scenarios. Evidence saved to `.sisyphus/evidence/`.
 
 - **Extension changes**: `pnpm test --run` + `pnpm typecheck`
@@ -217,6 +228,7 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
   - [ ] All wire-orchestration checkboxes marked done
 
   **QA Scenarios**:
+
   ```
   Scenario: Chat /plan returns stored plans
     Tool: Bash (pnpm test --run --reporter=verbose)
@@ -283,6 +295,7 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
   - [ ] Next Up section points to `.sisyphus/plans/v1-next-phases.md`
 
   **QA Scenarios**:
+
   ```
   Scenario: Progress tracker is readable and accurate
     Tool: Bash (git log --oneline docs/plans/progress-tracker.md)
@@ -347,6 +360,7 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
   - [ ] `pnpm typecheck && pnpm test --run` passes
 
   **QA Scenarios**:
+
   ```
   Scenario: Run Plan button dispatches runPlan postMessage
     Tool: Bash (pnpm test --run packages/webview)
@@ -423,6 +437,7 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
   - [ ] `pnpm typecheck && pnpm test --run` passes
 
   **QA Scenarios**:
+
   ```
   Scenario: Orchestration phases panel renders from orchestration.state message
     Tool: Bash (pnpm test --run packages/webview)
@@ -499,6 +514,7 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
   - [ ] `pnpm typecheck && pnpm test --run` passes
 
   **QA Scenarios**:
+
   ```
   Scenario: GraphSurface renders nodes from graph.update payload
     Tool: Bash (pnpm test --run packages/webview)
@@ -573,6 +589,7 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
   - [ ] `pnpm typecheck && pnpm test --run` passes
 
   **QA Scenarios**:
+
   ```
   Scenario: Graph executor traverses start→codergen→exit and calls OrchestrationLoop
     Tool: Bash (pnpm test --run packages/extension/test/application/graph-executor.test.ts)
@@ -643,6 +660,7 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
   - [ ] `pnpm typecheck && pnpm test --run` passes
 
   **QA Scenarios**:
+
   ```
   Scenario: Snapshot saves and reloads correctly
     Tool: Bash (pnpm test --run packages/extension/test/application/run-snapshot.test.ts)
@@ -710,6 +728,7 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
   - [ ] `pnpm typecheck && pnpm test --run` passes
 
   **QA Scenarios**:
+
   ```
   Scenario: Worktree acquired before orchestration and released after
     Tool: Bash (pnpm test --run packages/extension/test/smoke)
@@ -740,45 +759,46 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
 > 4 review agents run in PARALLEL. ALL must APPROVE. Present consolidated results to user and get explicit "okay" before completing.
 
 - [ ] F1. **Plan Compliance Audit** — `oracle`
-  Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, run command). For each "Must NOT Have": search codebase for forbidden patterns. Check evidence files exist. Compare deliverables against plan.
-  Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
+      Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, run command). For each "Must NOT Have": search codebase for forbidden patterns. Check evidence files exist. Compare deliverables against plan.
+      Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
 - [ ] F2. **Code Quality Review** — `unspecified-high`
-  Run `pnpm typecheck && pnpm lint && pnpm test --run`. Review all changed files for: `as any`/`@ts-ignore`, empty catches, console.log in prod, commented-out code, unused imports. Check for AI slop: excessive comments, over-abstraction, generic names.
-  Output: `Build [PASS/FAIL] | Lint [PASS/FAIL] | Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
+      Run `pnpm typecheck && pnpm lint && pnpm test --run`. Review all changed files for: `as any`/`@ts-ignore`, empty catches, console.log in prod, commented-out code, unused imports. Check for AI slop: excessive comments, over-abstraction, generic names.
+      Output: `Build [PASS/FAIL] | Lint [PASS/FAIL] | Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
 
 - [ ] F3. **Real Manual QA** — `unspecified-high`
-  Start from clean state. Execute EVERY QA scenario from EVERY task. Test integration: Run Plan button → bridge → startOrchestration → OrchestrationLoop (with mock model). Test graph executor end-to-end with minimal DOT graph. Save to `.sisyphus/evidence/final-qa/`.
-  Output: `Scenarios [N/N pass] | Integration [N/N] | VERDICT`
+      Start from clean state. Execute EVERY QA scenario from EVERY task. Test integration: Run Plan button → bridge → startOrchestration → OrchestrationLoop (with mock model). Test graph executor end-to-end with minimal DOT graph. Save to `.sisyphus/evidence/final-qa/`.
+      Output: `Scenarios [N/N pass] | Integration [N/N] | VERDICT`
 
 - [ ] F4. **Scope Fidelity Check** — `deep`
-  For each task: read "What to do", read actual diff. Verify 1:1 — everything in spec was built, nothing beyond spec was built. Check "Must NOT do" compliance. Flag `infrastructure/` duplication if any appears.
-  Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | VERDICT`
+      For each task: read "What to do", read actual diff. Verify 1:1 — everything in spec was built, nothing beyond spec was built. Check "Must NOT do" compliance. Flag `infrastructure/` duplication if any appears.
+      Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | VERDICT`
 
 ---
 
 ## Commit Strategy
 
-| Commit | Message | Files |
-|--------|---------|-------|
-| 1 | `feat(extension): wire CopilotModelGateway at activation` | `src/extension.ts`, `test/smoke/gateway-wiring.test.ts` |
-| 2 | `refactor(chat): accept ChatHandlerDependencies in buildChatHandler` | `src/chat/attractor-chat-participant.ts`, tests |
-| 3 | `feat(runtime): implement startOrchestration with OrchestrationLoop` | `src/runtime.ts`, tests |
-| 4 | `feat(chat): wire /plan, /run, /status commands to real services` | `src/chat/attractor-chat-participant.ts`, tests |
-| 5 | `feat(runtime): add structured orchestration lifecycle logging` | `src/runtime.ts`, tests |
-| 6 | `docs: update progress tracker to current state post-M5` | `docs/plans/progress-tracker.md` |
-| 7 | `feat(webview): add Run Plan CTA to PlanSurface and control buttons to RunSurface` | webview sources + tests |
-| 8 | `feat(webview): add orchestration phases panel and log viewer to RunSurface` | webview sources + tests |
-| 9 | `feat(webview): add React GraphSurface and TimelinePanel components` | webview sources + tests |
-| 10 | `feat(extension): add DOT graph executor for node-based plan traversal` | `src/application/graph-executor.ts`, tests |
-| 11 | `feat(extension): implement run snapshot persistence for resume and retry` | `src/application/run-snapshot.ts`, `src/dashboard/bridge.ts`, tests |
-| 12 | `feat(extension): wire GitWorktreeManager acquire/release into startOrchestration` | `src/runtime.ts`, tests |
+| Commit | Message                                                                            | Files                                                               |
+| ------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| 1      | `feat(extension): wire CopilotModelGateway at activation`                          | `src/extension.ts`, `test/smoke/gateway-wiring.test.ts`             |
+| 2      | `refactor(chat): accept ChatHandlerDependencies in buildChatHandler`               | `src/chat/attractor-chat-participant.ts`, tests                     |
+| 3      | `feat(runtime): implement startOrchestration with OrchestrationLoop`               | `src/runtime.ts`, tests                                             |
+| 4      | `feat(chat): wire /plan, /run, /status commands to real services`                  | `src/chat/attractor-chat-participant.ts`, tests                     |
+| 5      | `feat(runtime): add structured orchestration lifecycle logging`                    | `src/runtime.ts`, tests                                             |
+| 6      | `docs: update progress tracker to current state post-M5`                           | `docs/plans/progress-tracker.md`                                    |
+| 7      | `feat(webview): add Run Plan CTA to PlanSurface and control buttons to RunSurface` | webview sources + tests                                             |
+| 8      | `feat(webview): add orchestration phases panel and log viewer to RunSurface`       | webview sources + tests                                             |
+| 9      | `feat(webview): add React GraphSurface and TimelinePanel components`               | webview sources + tests                                             |
+| 10     | `feat(extension): add DOT graph executor for node-based plan traversal`            | `src/application/graph-executor.ts`, tests                          |
+| 11     | `feat(extension): implement run snapshot persistence for resume and retry`         | `src/application/run-snapshot.ts`, `src/dashboard/bridge.ts`, tests |
+| 12     | `feat(extension): wire GitWorktreeManager acquire/release into startOrchestration` | `src/runtime.ts`, tests                                             |
 
 ---
 
 ## Success Criteria
 
 ### Verification Commands
+
 ```bash
 pnpm typecheck     # Expected: exit 0, zero errors
 pnpm lint          # Expected: exit 0, zero violations
@@ -786,6 +806,7 @@ pnpm test --run    # Expected: all 503+ tests pass
 ```
 
 ### Final Checklist
+
 - [ ] All "Must Have" present
 - [ ] All "Must NOT Have" absent (frozen files untouched, no `infrastructure/` duplicate)
 - [ ] All 503+ tests pass
