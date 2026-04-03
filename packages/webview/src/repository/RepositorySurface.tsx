@@ -12,6 +12,7 @@ import {
   type Status
 } from "../components";
 import { cn } from "../lib/utils";
+import { openPlan, openRun } from "../app/postMessage";
 import type { RepositoryState } from "./model";
 
 export interface RepositorySurfaceProps {
@@ -27,6 +28,7 @@ export interface RepositoryPlanViewModel {
 
 export interface RepositoryRunViewModel {
   id: string;
+  planId: string;
   status: Status;
   attempt: number;
   createdAt: string;
@@ -120,6 +122,7 @@ export function buildRepositoryViewModel(
     })),
     runs: state.runs.map((run) => ({
       id: run.id,
+      planId: run.planId,
       status: toRunStatusBadgeStatus(run.status),
       attempt: run.attempt,
       createdAt: run.createdAt
@@ -187,7 +190,16 @@ export function RepositorySurface({
                         {plan.updatedAt}
                       </div>
                     </div>
-                    <StatusBadge status={plan.status} variant="text" />
+                    <div class="flex shrink-0 items-center gap-2">
+                      <StatusBadge status={plan.status} variant="text" />
+                      <button
+                        type="button"
+                        class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-text-link)] hover:underline"
+                        onClick={() => openPlan(plan.id)}
+                      >
+                        Open
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -225,7 +237,16 @@ export function RepositorySurface({
                           Attempt {run.attempt} · {run.createdAt}
                         </div>
                       </div>
-                      <StatusBadge status={run.status} variant="text" />
+                      <div class="flex shrink-0 items-center gap-2">
+                        <StatusBadge status={run.status} variant="text" />
+                        <button
+                          type="button"
+                          class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-text-link)] hover:underline"
+                          onClick={() => openRun(run.id)}
+                        >
+                          Open
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))
