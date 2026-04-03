@@ -11,7 +11,7 @@ import {
   StatusBadge,
   type Status
 } from "../components";
-import { cn } from "../lib/utils";
+import { cn, formatDuration } from "../lib/utils";
 import type { RunState } from "./model";
 
 export interface RunSurfaceProps {
@@ -208,7 +208,11 @@ export function RunSurface({ state }: RunSurfaceProps): JSX.Element {
                       </div>
                       {milestoneRun.endedAt && (
                         <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
-                          Ended: {milestoneRun.endedAt}
+                          Ended: {milestoneRun.endedAt} · Duration:{" "}
+                          {formatDuration(
+                            milestoneRun.startedAt,
+                            milestoneRun.endedAt
+                          )}
                         </div>
                       )}
                       {milestoneRun.errorMessage && (
