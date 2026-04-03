@@ -111,6 +111,33 @@ describe("buildPlanViewModel", () => {
     ]);
   });
 
+  it("uses repository name when available in the repository view model", () => {
+    const state = makeState();
+    state.plan.repositories[0] = {
+      ...state.plan.repositories[0]!,
+      name: "my-app"
+    };
+
+    const vm = buildPlanViewModel(state);
+
+    expect(vm.repositories[0]!.name).toBe("my-app");
+    expect(vm.repositories[0]!.repositoryId).toBe("repo-main");
+  });
+
+  it("falls back to repositoryId when name is absent from the repository ref", () => {
+    const vm = buildPlanViewModel(makeState());
+
+    expect(vm.repositories[0]!.name).toBeUndefined();
+    expect(vm.repositories[0]!.repositoryId).toBe("repo-main");
+  });
+
+  it("normalizes access field to Writable/Read-only display labels", () => {
+    const vm = buildPlanViewModel(makeState());
+
+    expect(vm.repositories[0]!.accessLabel).toBe("Writable");
+    expect(vm.repositories[1]!.accessLabel).toBe("Read-only");
+  });
+
   it("builds empty arrays and zero progress for empty state", () => {
     const vm = buildPlanViewModel(
       makeState({ milestones: [], history: [], validationEvents: [] })

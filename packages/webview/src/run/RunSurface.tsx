@@ -12,6 +12,7 @@ import {
   type Status
 } from "../components";
 import { cn } from "../lib/utils";
+import { openPlan } from "../app/postMessage";
 import type { RunState } from "./model";
 
 export interface RunSurfaceProps {
@@ -46,6 +47,7 @@ export interface RunViewModel {
     runId: string;
     status: Status;
     planTitle: string;
+    planId: string;
     attemptLabel: string;
   };
   timeline: TimelineMilestoneRunViewModel[];
@@ -108,6 +110,7 @@ export function buildRunViewModel(state: RunState): RunViewModel {
       runId: state.run.id,
       status: toRunStatus(state.run.status),
       planTitle: state.plan.title,
+      planId: state.plan.id,
       attemptLabel: `Attempt ${state.run.attempt}`
     },
     timeline,
@@ -151,9 +154,13 @@ export function RunSurface({ state }: RunSurfaceProps): JSX.Element {
             <h2 class="truncate text-[length:var(--text-base)] font-semibold">
               {viewModel.header.runId}
             </h2>
-            <p class="text-[length:var(--text-sm)] text-[color:var(--color-vscode-description)]">
+            <button
+              type="button"
+              class="block text-[length:var(--text-sm)] text-[color:var(--color-vscode-text-link)] hover:underline text-left"
+              onClick={() => openPlan(viewModel.header.planId)}
+            >
               {viewModel.header.planTitle}
-            </p>
+            </button>
           </div>
           <div class="flex items-center gap-2">
             <StatusBadge status={viewModel.header.status} variant="text" />
