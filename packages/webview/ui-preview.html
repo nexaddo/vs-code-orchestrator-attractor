@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attractor UI Preview</title>
+
+    <!-- Mock VS Code CSS variables (Dark+ theme) -->
+    <style>
+      :root {
+        --vscode-editor-background: #1e1e1e;
+        --vscode-editor-foreground: #d4d4d4;
+        --vscode-sideBar-background: #252526;
+        --vscode-sideBar-foreground: #cccccc;
+        --vscode-panel-background: #1e1e1e;
+        --vscode-panel-border: #454545;
+        --vscode-button-background: #0e639c;
+        --vscode-button-foreground: #ffffff;
+        --vscode-button-hoverBackground: #1177bb;
+        --vscode-button-secondaryBackground: #3a3d41;
+        --vscode-button-secondaryForeground: #cccccc;
+        --vscode-button-secondaryHoverBackground: #44474b;
+        --vscode-input-background: #3c3c3c;
+        --vscode-input-foreground: #cccccc;
+        --vscode-input-border: #3c3c3c;
+        --vscode-focusBorder: #007fd4;
+        --vscode-errorForeground: #f48771;
+        --vscode-editorWarning-foreground: #cca700;
+        --vscode-editorInfo-foreground: #75beff;
+        --vscode-testing-iconPassed: #73c991;
+        --vscode-testing-iconFailed: #f48771;
+        --vscode-badge-background: #4d4d4d;
+        --vscode-badge-foreground: #ffffff;
+        --vscode-descriptionForeground: #8b949e;
+        --vscode-progressBar-background: #0e70c0;
+        --vscode-disabledForeground: #6d6d6d;
+        --vscode-inputValidation-errorBorder: #be1100;
+        --vscode-list-errorForeground: #f48771;
+        --vscode-list-hoverBackground: #2a2d2e;
+        --vscode-list-activeSelectionBackground: #094771;
+        --vscode-list-activeSelectionForeground: #ffffff;
+        --vscode-list-inactiveSelectionBackground: #37373d;
+        --vscode-textSeparator-foreground: #424242;
+        --vscode-tree-indentGuidesStroke: #585858;
+        --vscode-debugIcon-pauseForeground: #f48771;
+        --vscode-contrastBorder: transparent;
+        --vscode-contrastActiveBorder: transparent;
+        --vscode-notifications-background: #252526;
+        --vscode-charts-red: #f14c4c;
+        --vscode-charts-blue: #3794ff;
+        --vscode-charts-orange: #d18616;
+        --vscode-charts-green: #89d185;
+        --vscode-terminal-background: #1e1e1e;
+        --vscode-terminal-foreground: #cccccc;
+        --vscode-settings-headerForeground: #e7e7e7;
+        --vscode-textLink-foreground: #3794ff;
+        --vscode-textLink-activeForeground: #3794ff;
+        --vscode-font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --vscode-font-size: 13px;
+        --vscode-editor-font-family:
+          "Menlo", "Monaco", "Courier New", monospace;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #surface-tabs {
+        display: flex;
+        background: #252526;
+        border-bottom: 1px solid #454545;
+        padding: 0 8px;
+        gap: 4px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+      }
+
+      #surface-tabs button {
+        padding: 6px 12px;
+        background: none;
+        border: none;
+        color: var(--preview-tab-color, #ccc);
+        cursor: pointer;
+        font-size: 12px;
+        font-family: var(--vscode-font-family);
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+      }
+
+      #surface-tabs button.active {
+        color: var(--preview-tab-active-color, #fff);
+        border-bottom-color: #007acc;
+      }
+
+      #surface-tabs button:hover {
+        color: var(--preview-tab-active-color, #fff);
+      }
+
+      #theme-toggle {
+        margin-left: auto;
+        padding: 4px 10px;
+        background: #3a3d41;
+        border: 1px solid #555;
+        color: #ccc;
+        cursor: pointer;
+        font-size: 11px;
+        border-radius: 3px;
+        align-self: center;
+      }
+
+      #root {
+        position: fixed;
+        top: 33px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow: hidden;
+      }
+    </style>
+    <link rel="stylesheet" href="bundle/webview.css" />
+  </head>
+  <body>
+    <div id="surface-tabs">
+      <button class="active" onclick="showSurface('overview', event)">
+        Overview
+      </button>
+      <button onclick="showSurface('repository', event)">Repository</button>
+      <button onclick="showSurface('plan', event)">Plan</button>
+      <button onclick="showSurface('run', event)">Run Inspector</button>
+      <button id="theme-toggle" onclick="toggleTheme()">Light Theme</button>
+    </div>
+
+    <div id="root"></div>
+
+    <script src="bundle/webview.js"></script>
+    <script>
+      // ── Mock data ──────────────────────────────────────────────────────────────
+
+      const OVERVIEW_STATE = {
+        stats: {
+          totalRepos: 3,
+          totalPlans: 7,
+          activeRuns: 2,
+          pausedRuns: 1,
+          failedRuns24h: 1
+        },
+        repositories: [
+          { id: "repo-1", name: "my-app", defaultBranch: "main" },
+          { id: "repo-2", name: "infra-config", defaultBranch: "trunk" },
+          { id: "repo-3", name: "api-gateway", defaultBranch: "main" }
+        ],
+        activeRuns: [
+          { id: "run-abc123", planId: "plan-001", status: "running" },
+          { id: "run-def456", planId: "plan-002", status: "queued" }
+        ],
+        recentFailures: [
+          { id: "run-xyz789", planId: "plan-003", status: "failed" }
+        ],
+        error: null
+      };
+
+      const REPOSITORY_STATE = {
+        repository: {
+          id: "repo-1",
+          name: "my-app",
+          defaultBranch: "main",
+          labels: ["typescript", "frontend"]
+        },
+        plans: [
+          {
+            id: "plan-001",
+            title: "Feature: Add OAuth login",
+            status: "running",
+            updatedAt: "2026-03-29T12:00:00Z"
+          },
+          {
+            id: "plan-002",
+            title: "Refactor: API client",
+            status: "ready",
+            updatedAt: "2026-03-28T09:00:00Z"
+          },
+          {
+            id: "plan-003",
+            title: "Fix: Memory leak in cache",
+            status: "completed",
+            updatedAt: "2026-03-27T16:30:00Z"
+          }
+        ],
+        runs: [
+          {
+            id: "run-abc123",
+            status: "running",
+            attempt: 1,
+            createdAt: "2026-03-29T11:00:00Z"
+          },
+          {
+            id: "run-old001",
+            status: "completed",
+            attempt: 2,
+            createdAt: "2026-03-28T10:00:00Z"
+          },
+          {
+            id: "run-xyz789",
+            status: "failed",
+            attempt: 1,
+            createdAt: "2026-03-27T16:00:00Z"
+          }
+        ],
+        activity: [
+          {
+            id: "evt-1",
+            kind: "created",
+            entityType: "plan",
+            entityId: "plan-001",
+            timestamp: "2026-03-29T11:55:00Z"
+          },
+          {
+            id: "evt-2",
+            kind: "status.changed",
+            entityType: "run",
+            entityId: "run-abc123",
+            timestamp: "2026-03-29T11:00:00Z"
+          },
+          {
+            id: "evt-3",
+            kind: "artifact.created",
+            entityType: "artifact",
+            entityId: "art-001",
+            timestamp: "2026-03-29T11:30:00Z"
+          },
+          {
+            id: "evt-4",
+            kind: "validation.failed",
+            entityType: "plan",
+            entityId: "plan-003",
+            timestamp: "2026-03-27T15:45:00Z"
+          }
+        ]
+      };
+
+      const PLAN_STATE = {
+        plan: {
+          id: "plan-001",
+          title: "Feature: Add OAuth login",
+          goal: "Implement GitHub OAuth integration for single-sign-on, including callback handler, session management, and UI updates.",
+          status: "running",
+          graphSource: ".attractor/plans/oauth-login.dot",
+          createdAt: "2026-03-25T09:00:00Z",
+          updatedAt: "2026-03-29T12:00:00Z",
+          repositories: [
+            {
+              repositoryId: "repo-1",
+              role: "primary",
+              access: "write",
+              mountAlias: "app",
+              ref: "feature/oauth"
+            }
+          ]
+        },
+        milestones: [
+          {
+            id: "m-1",
+            title: "Research & Planning",
+            order: 1,
+            status: "completed",
+            acceptanceCriteria: ["Documented OAuth flow", "Selected library"]
+          },
+          {
+            id: "m-2",
+            title: "Backend Auth Endpoint",
+            order: 2,
+            status: "running",
+            acceptanceCriteria: [
+              "POST /auth/github",
+              "Session created on success"
+            ]
+          },
+          {
+            id: "m-3",
+            title: "Frontend Login UI",
+            order: 3,
+            status: "pending",
+            acceptanceCriteria: ["Button renders", "Redirect works"]
+          },
+          {
+            id: "m-4",
+            title: "E2E Tests",
+            order: 4,
+            status: "pending",
+            acceptanceCriteria: ["Test login flow", "Test logout flow"]
+          }
+        ],
+        history: [
+          {
+            id: "run-old001",
+            status: "failed",
+            attempt: 1,
+            createdAt: "2026-03-28T10:00:00Z"
+          },
+          {
+            id: "run-abc123",
+            status: "running",
+            attempt: 2,
+            createdAt: "2026-03-29T11:00:00Z"
+          }
+        ],
+        validationEvents: [
+          {
+            id: "evt-v1",
+            kind: "status.changed",
+            entityType: "plan",
+            entityId: "plan-001",
+            entityKind: "plan",
+            aggregateId: "plan-001",
+            correlationId: "corr-1",
+            timestamp: "2026-03-29T11:00:00Z",
+            payload: { reason: "Started run attempt 2" }
+          }
+        ]
+      };
+
+      const RUN_STATE = {
+        run: {
+          id: "run-abc123",
+          status: "running",
+          attempt: 2,
+          planId: "plan-001"
+        },
+        plan: {
+          id: "plan-001",
+          title: "Feature: Add OAuth login"
+        },
+        milestoneRuns: [
+          {
+            id: "mr-1",
+            nodeId: "research",
+            status: "succeeded",
+            startedAt: "2026-03-29T11:00:00Z",
+            endedAt: "2026-03-29T11:15:00Z"
+          },
+          {
+            id: "mr-2",
+            nodeId: "backend-auth",
+            status: "running",
+            startedAt: "2026-03-29T11:15:00Z"
+          },
+          {
+            id: "mr-3",
+            nodeId: "frontend-ui",
+            status: "queued",
+            startedAt: "2026-03-29T11:00:00Z"
+          },
+          {
+            id: "mr-4",
+            nodeId: "e2e-tests",
+            status: "queued",
+            startedAt: "2026-03-29T11:00:00Z"
+          }
+        ],
+        artifacts: [
+          {
+            id: "art-1",
+            title: "oauth-research.md",
+            type: "document",
+            createdAt: "2026-03-29T11:14:00Z"
+          },
+          {
+            id: "art-2",
+            title: "auth-endpoint.ts",
+            type: "task-pack",
+            createdAt: "2026-03-29T11:20:00Z"
+          }
+        ],
+        currentHandoff: {
+          fromRole: "planner",
+          toRole: "implementer",
+          task: "Implement the POST /auth/github endpoint with session creation",
+          reason: "Planning phase complete. Implementation ready to begin."
+        }
+      };
+
+      // ── VS Code acquireVsCodeApi mock ────────────────────────────────────────
+      window.acquireVsCodeApi = function () {
+        return {
+          postMessage: function (msg) {
+            console.log("[mock vscode] postMessage:", msg);
+          },
+          getState: function () {
+            return null;
+          },
+          setState: function (state) {
+            console.log("[mock vscode] setState:", state);
+          }
+        };
+      };
+
+      // ── Surface switching ─────────────────────────────────────────────────────
+      let currentSurface = "overview";
+
+      function sendState(surface) {
+        const msgMap = {
+          overview: { type: "overview.state", payload: OVERVIEW_STATE },
+          repository: { type: "repository.state", payload: REPOSITORY_STATE },
+          plan: { type: "plan.state", payload: PLAN_STATE },
+          run: { type: "run.state", payload: RUN_STATE }
+        };
+        const msg = msgMap[surface];
+        if (msg) {
+          window.dispatchEvent(new MessageEvent("message", { data: msg }));
+        }
+      }
+
+      function showSurface(surface, evt) {
+        currentSurface = surface;
+
+        // Update tab buttons
+        document
+          .querySelectorAll("#surface-tabs button:not(#theme-toggle)")
+          .forEach((btn) => {
+            btn.classList.remove("active");
+          });
+        evt.target.classList.add("active");
+
+        // Send navigate message then state
+        window.dispatchEvent(
+          new MessageEvent("message", {
+            data: { type: "navigate", surface: surface }
+          })
+        );
+
+        // Small delay to let navigation settle
+        setTimeout(() => sendState(surface), 50);
+      }
+
+      // ── Light theme support ──────────────────────────────────────────────────
+      let isLight = false;
+      function toggleTheme() {
+        isLight = !isLight;
+        document.getElementById("theme-toggle").textContent = isLight
+          ? "Dark Theme"
+          : "Light Theme";
+
+        if (isLight) {
+          document.documentElement.style.setProperty(
+            "--vscode-editor-background",
+            "#ffffff"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-editor-foreground",
+            "#1e1e1e"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-sideBar-background",
+            "#f3f3f3"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-panel-background",
+            "#ffffff"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-panel-border",
+            "#e0e0e0"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-list-hoverBackground",
+            "#e8e8e8"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-list-inactiveSelectionBackground",
+            "#e4e6f1"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-descriptionForeground",
+            "#717171"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-badge-background",
+            "#c4c4c4"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-badge-foreground",
+            "#333333"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-settings-headerForeground",
+            "#1e1e1e"
+          );
+          document.getElementById("surface-tabs").style.background = "#f3f3f3";
+          document.getElementById("surface-tabs").style.borderBottomColor =
+            "#e0e0e0";
+          document
+            .getElementById("surface-tabs")
+            .style.setProperty("--preview-tab-color", "#555");
+          document
+            .getElementById("surface-tabs")
+            .style.setProperty("--preview-tab-active-color", "#1e1e1e");
+        } else {
+          document.documentElement.style.setProperty(
+            "--vscode-editor-background",
+            "#1e1e1e"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-editor-foreground",
+            "#d4d4d4"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-sideBar-background",
+            "#252526"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-panel-background",
+            "#1e1e1e"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-panel-border",
+            "#454545"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-list-hoverBackground",
+            "#2a2d2e"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-list-inactiveSelectionBackground",
+            "#37373d"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-descriptionForeground",
+            "#8b949e"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-badge-background",
+            "#4d4d4d"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-badge-foreground",
+            "#ffffff"
+          );
+          document.documentElement.style.setProperty(
+            "--vscode-settings-headerForeground",
+            "#e7e7e7"
+          );
+          document.getElementById("surface-tabs").style.background = "#252526";
+          document.getElementById("surface-tabs").style.borderBottomColor =
+            "#454545";
+          document
+            .getElementById("surface-tabs")
+            .style.setProperty("--preview-tab-color", "#ccc");
+          document
+            .getElementById("surface-tabs")
+            .style.setProperty("--preview-tab-active-color", "#fff");
+        }
+      }
+
+      // ── Boot: send initial state after webview mounts ────────────────────────
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          sendState("overview");
+        }, 200);
+      });
+    </script>
+  </body>
+</html>

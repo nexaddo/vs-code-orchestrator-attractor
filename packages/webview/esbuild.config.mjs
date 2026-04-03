@@ -20,7 +20,7 @@
 
 import esbuild from "esbuild";
 import { execFileSync, spawn } from "node:child_process";
-import { mkdirSync } from "node:fs";
+import { copyFileSync, mkdirSync, watchFile } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -34,7 +34,8 @@ const production =
     ? process.env.NODE_ENV === "production"
     : !watch;
 
-const outDir = path.join(__dirname, "dist", "bundle");
+const distDir = path.join(__dirname, "dist");
+const outDir = path.join(distDir, "bundle");
 const cssIn = path.join(__dirname, "src", "styles", "index.css");
 const cssOut = path.join(outDir, "webview.css");
 
@@ -45,6 +46,12 @@ const postcssBin =
 
 // Ensure output directory exists
 mkdirSync(outDir, { recursive: true });
+
+// Copy preview harness to dist so it can be served alongside the bundle
+copyFileSync(
+  path.join(__dirname, "ui-preview.html"),
+  path.join(distDir, "ui-preview.html")
+);
 
 /** @type {import('esbuild').BuildOptions} */
 const jsOptions = {
@@ -59,10 +66,38 @@ const jsOptions = {
   minify: production
 };
 
+/** esbuild plugin that re-copies ui-preview.html into dist/ after every build.
+ *  In watch mode, copyFileSync runs only once at startup; this plugin ensures
+ *  edits to the harness are picked up on subsequent incremental rebuilds.
+ */
+const copyPreviewPlugin = {
+  name: "copy-preview-harness",
+  setup(build) {
+    build.onEnd(() => {
+      copyFileSync(
+        path.join(__dirname, "ui-preview.html"),
+        path.join(distDir, "ui-preview.html")
+      );
+    });
+  }
+};
+
 if (watch) {
-  // JS: esbuild watch
-  const jsCtx = await esbuild.context(jsOptions);
+  // JS: esbuild watch (with preview-harness copy on each rebuild)
+  const jsCtx = await esbuild.context({
+    ...jsOptions,
+    plugins: [copyPreviewPlugin]
+  });
   await jsCtx.watch();
+
+  // Watch ui-preview.html directly so edits are propagated without needing a
+  // JS rebuild (it is not in esbuild's dependency graph).
+  const previewSrc = path.join(__dirname, "ui-preview.html");
+  const previewDst = path.join(distDir, "ui-preview.html");
+  watchFile(previewSrc, { interval: 500 }, () => {
+    copyFileSync(previewSrc, previewDst);
+    console.log("[attractor/webview] ui-preview.html updated in dist/");
+  });
 
   // CSS: postcss --watch
   const cssProc = spawn(
