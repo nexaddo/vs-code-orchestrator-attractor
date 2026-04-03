@@ -15,6 +15,17 @@ import {
 import { cn } from "../lib/utils";
 import type { PlanState } from "./model";
 
+/**
+ * Extract the filename from a file path (Unix or Windows style).
+ * Examples: ".attractor/plans/oauth-login.dot" -> "oauth-login.dot"
+ *           "C:\\plans\\flow.dot" -> "flow.dot"
+ */
+function extractFilename(filePath: string): string {
+  const normalized = filePath.replace(/\\/g, "/");
+  const lastSlash = normalized.lastIndexOf("/");
+  return lastSlash === -1 ? filePath : normalized.slice(lastSlash + 1);
+}
+
 export interface PlanSurfaceProps {
   state: PlanState;
 }
@@ -242,7 +253,7 @@ export function PlanSurface({ state }: PlanSurfaceProps): JSX.Element {
         </CardHeader>
         <CardContent class="space-y-2">
           <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
-            Graph Source: {viewModel.graphSource}
+            Graph: {extractFilename(viewModel.graphSource)}
           </div>
           <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
             Created: {viewModel.createdAt} · Updated: {viewModel.updatedAt}

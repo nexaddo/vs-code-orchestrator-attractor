@@ -3,6 +3,12 @@ import { describe, expect, it } from "vitest";
 import { buildPlanViewModel } from "../../src/plan/PlanSurface";
 import type { PlanState } from "../../src/plan/model";
 
+function extractFilename(filePath: string): string {
+  const normalized = filePath.replace(/\\/g, "/");
+  const lastSlash = normalized.lastIndexOf("/");
+  return lastSlash === -1 ? filePath : normalized.slice(lastSlash + 1);
+}
+
 function makeState(overrides?: Partial<PlanState>): PlanState {
   const base: PlanState = {
     plan: {
@@ -109,6 +115,33 @@ describe("buildPlanViewModel", () => {
         message: "Acceptance criteria mismatch"
       }
     ]);
+  });
+
+  it("uses repository name when available in the repository view model", () => {
+    const state = makeState();
+    state.plan.repositories[0] = {
+      ...state.plan.repositories[0]!,
+      name: "my-app"
+    };
+
+    const vm = buildPlanViewModel(state);
+
+    expect(vm.repositories[0]!.name).toBe("my-app");
+    expect(vm.repositories[0]!.repositoryId).toBe("repo-main");
+  });
+
+  it("leaves repository name undefined when name is absent from the repository ref", () => {
+    const vm = buildPlanViewModel(makeState());
+
+    expect(vm.repositories[0]!.name).toBeUndefined();
+    expect(vm.repositories[0]!.repositoryId).toBe("repo-main");
+  });
+
+  it("normalizes access field to Writable/Read-only display labels", () => {
+    const vm = buildPlanViewModel(makeState());
+
+    expect(vm.repositories[0]!.accessLabel).toBe("Writable");
+    expect(vm.repositories[1]!.accessLabel).toBe("Read-only");
   });
 
   it("builds empty arrays and zero progress for empty state", () => {
@@ -228,5 +261,33 @@ describe("buildPlanViewModel", () => {
     );
 
     expect(vm.milestoneProgress).toEqual({ current: 2, total: 3 });
+  });
+});
+
+describe("extractFilename", () => {
+  it("extracts filename from Unix-style path", () => {
+    expect(extractFilename(".attractor/plans/oauth-login.dot")).toBe(
+      "oauth-login.dot"
+    );
+    expect(extractFilename("graph/plan.dot")).toBe("plan.dot");
+    expect(extractFilename("deep/nested/dir/file.txt")).toBe("file.txt");
+  });
+
+  it("extracts filename from Windows-style path", () => {
+    expect(extractFilename("C:\\plans\\flow.dot")).toBe("flow.dot");
+    expect(extractFilename("folder\\subfolder\\file.txt")).toBe("file.txt");
+  });
+
+  it("handles mixed path separators", () => {
+    expect(extractFilename("C:\\plans/flow.dot")).toBe("flow.dot");
+  });
+
+  it("returns input unchanged if no path separators", () => {
+    expect(extractFilename("simple.dot")).toBe("simple.dot");
+    expect(extractFilename("file.txt")).toBe("file.txt");
+  });
+
+  it("handles trailing slashes", () => {
+    expect(extractFilename("path/to/dir/")).toBe("");
   });
 });
