@@ -65,6 +65,7 @@ export const PlanRepositoryAccessSchema = z.enum(["read_write", "read_only"]);
 
 export const PlanRepositoryRefSchema = z.object({
   repositoryId: z.string().min(1),
+  name: z.string().min(1).optional(),
   role: PlanRepositoryRoleSchema,
   access: PlanRepositoryAccessSchema,
   mountAlias: z.string().min(1),
