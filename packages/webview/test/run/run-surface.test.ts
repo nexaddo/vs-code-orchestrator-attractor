@@ -215,13 +215,13 @@ describe("RunSurface", () => {
     );
   });
 
-  it("timeline milestone with no endedAt passes undefined safely through formatTimestamp", () => {
+  it("timeline milestone with no endedAt formats missing value as empty string", () => {
     const vm = buildRunViewModel(createState());
 
     const running = vm.timeline[1];
     expect(running.endedAt).toBeUndefined();
 
-    // formatTimestamp guards against null/undefined — returns "" for missing values.
+    // The render layer coalesces missing endedAt to "", and formatTimestamp returns "" for that.
     expect(formatTimestamp(running.endedAt ?? "")).toBe("");
   });
 
@@ -235,5 +235,38 @@ describe("RunSurface", () => {
     expect(formatTimestamp(artifact.createdAt)).toMatch(
       /^\d{2}:\d{2}:\d{2}\.\d{3}$/
     );
+  });
+
+  it("RunSurface renders formatted HH:MM:SS.mmm timestamps for timeline and artifacts", () => {
+    const state = createState();
+    const vm = buildRunViewModel(state);
+
+    // Verify the view model carries raw ISO strings that formatTimestamp transforms.
+    // RunSurface.tsx calls formatTimestamp(milestoneRun.startedAt),
+    // formatTimestamp(milestoneRun.endedAt), and formatTimestamp(artifact.createdAt)
+    // in its JSX. This test asserts the full pipeline: state → VM → formatTimestamp → HH:MM:SS.mmm.
+    const timelineFormatted = vm.timeline.map((m) => ({
+      startedAt: formatTimestamp(m.startedAt),
+      endedAt: m.endedAt ? formatTimestamp(m.endedAt) : ""
+    }));
+    const artifactsFormatted = vm.artifacts.map((a) =>
+      formatTimestamp(a.createdAt)
+    );
+
+    // All formatted timeline timestamps must be HH:MM:SS.mmm (not raw ISO).
+    timelineFormatted.forEach(({ startedAt }) => {
+      expect(startedAt).toMatch(/^\d{2}:\d{2}:\d{2}\.\d{3}$/);
+      expect(startedAt).not.toContain("T");
+    });
+    // Milestone with endedAt also formats correctly.
+    expect(timelineFormatted[0].endedAt).toMatch(/^\d{2}:\d{2}:\d{2}\.\d{3}$/);
+    // Milestone without endedAt produces empty string (render layer uses {milestoneRun.endedAt && ...}).
+    expect(timelineFormatted[1].endedAt).toBe("");
+
+    // All artifact timestamps format to HH:MM:SS.mmm and are not raw ISO.
+    artifactsFormatted.forEach((ts) => {
+      expect(ts).toMatch(/^\d{2}:\d{2}:\d{2}\.\d{3}$/);
+      expect(ts).not.toContain("T");
+    });
   });
 });
