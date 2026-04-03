@@ -41,6 +41,14 @@ export function openMilestone(planId: string): void {
   sendMessage("milestone.open", { planId });
 }
 
+export function openPlan(planId: string): void {
+  sendMessage("plan.open", { planId });
+}
+
+export function openRun(runId: string): void {
+  sendMessage("run.open", { runId });
+}
+
 export function focusGraphNode(nodeId: string, status: string): void {
   sendMessage("graph.focus", { nodeId, status });
 }

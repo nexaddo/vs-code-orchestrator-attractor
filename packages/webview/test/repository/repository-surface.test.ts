@@ -168,18 +168,21 @@ describe("RepositorySurface", () => {
     expect(vm.runs).toEqual([
       {
         id: "run-1",
+        planId: "plan-draft",
         status: "queued",
         attempt: 1,
         createdAt: "2026-01-20T00:00:00Z"
       },
       {
         id: "run-2",
+        planId: "plan-completed",
         status: "succeeded",
         attempt: 2,
         createdAt: "2026-01-21T00:00:00Z"
       },
       {
         id: "run-3",
+        planId: "plan-paused",
         status: "blocked",
         attempt: 1,
         createdAt: "2026-01-22T00:00:00Z"
