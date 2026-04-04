@@ -5,7 +5,9 @@ import {
   createPlan,
   focusGraphNode,
   openMilestone,
+  openPlan,
   openRepository,
+  openRun,
   resumeRun,
   retryRun,
   runPlan
@@ -109,5 +111,31 @@ describe("postMessage helpers", () => {
       type: "run.retry",
       payload: { runId: "run-3" }
     });
+  });
+
+  it("openPlan sends plan.open shape", () => {
+    openPlan("plan-99");
+
+    expect(posted[0]).toMatchObject({
+      version: 1,
+      type: "plan.open",
+      payload: { planId: "plan-99" }
+    });
+    expect((posted[0] as { requestId: unknown }).requestId).toEqual(
+      expect.any(String)
+    );
+  });
+
+  it("openRun sends run.open shape", () => {
+    openRun("run-42");
+
+    expect(posted[0]).toMatchObject({
+      version: 1,
+      type: "run.open",
+      payload: { runId: "run-42" }
+    });
+    expect((posted[0] as { requestId: unknown }).requestId).toEqual(
+      expect.any(String)
+    );
   });
 });

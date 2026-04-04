@@ -17,8 +17,10 @@ export type RepositoryRecord = z.infer<typeof RepositoryRecordSchema>;
 export const WebviewInboundMessageTypeSchema = z.enum([
   "ready",
   "repository.open",
+  "plan.open",
   "plan.create",
   "plan.run",
+  "run.open",
   "run.resume",
   "run.cancel",
   "run.retry",
@@ -66,7 +68,8 @@ export const PlanRepositoryRefSchema = z.object({
   role: PlanRepositoryRoleSchema,
   access: PlanRepositoryAccessSchema,
   mountAlias: z.string().min(1),
-  ref: z.string().min(1).optional()
+  ref: z.string().min(1).optional(),
+  name: z.string().min(1).optional()
 });
 
 export type PlanRepositoryRef = z.infer<typeof PlanRepositoryRefSchema>;

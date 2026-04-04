@@ -5,6 +5,7 @@ import { type ModelGateway } from "../application/ports";
 import { projectOverview } from "./overview-projection";
 import { projectRepository } from "./repository-projection";
 import { projectPlan } from "./plan-projection";
+import { projectRun } from "./run-projection";
 import { buildGraphUpdate } from "./graph-projection";
 
 /**
@@ -83,6 +84,58 @@ export async function handleWebviewMessage(
         version: 1,
         requestId: message.requestId,
         type: "plan.state",
+        payload: state
+      });
+      break;
+    }
+
+    case "plan.open": {
+      const planId = message.payload.planId;
+      if (typeof planId !== "string" || planId.trim().length === 0) {
+        await panel.postMessage({
+          version: 1,
+          requestId: message.requestId,
+          type: "toast",
+          payload: {
+            message:
+              "Invalid plan.open payload: planId must be a non-empty string",
+            severity: "warning",
+            actions: []
+          }
+        });
+        break;
+      }
+      const state = await projectPlan(planId, services);
+      await panel.postMessage({
+        version: 1,
+        requestId: message.requestId,
+        type: "plan.state",
+        payload: state
+      });
+      break;
+    }
+
+    case "run.open": {
+      const runId = message.payload.runId;
+      if (typeof runId !== "string" || runId.trim().length === 0) {
+        await panel.postMessage({
+          version: 1,
+          requestId: message.requestId,
+          type: "toast",
+          payload: {
+            message:
+              "Invalid run.open payload: runId must be a non-empty string",
+            severity: "warning",
+            actions: []
+          }
+        });
+        break;
+      }
+      const state = await projectRun(runId, services);
+      await panel.postMessage({
+        version: 1,
+        requestId: message.requestId,
+        type: "run.state",
         payload: state
       });
       break;

@@ -2,7 +2,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   OrchestrationLoop,
   type MilestoneInput,
-  type OrchestrationOptions
+  type OrchestrationOptions,
+  ROLE_ORDER,
+  nextRoleAfter
 } from "../../src/application/orchestration-loop";
 import type {
   ModelGateway,
@@ -895,5 +897,38 @@ describe("OrchestrationLoop", () => {
       expect(reviewerRunningIdx).toBeGreaterThan(implementerDoneIdx);
       expect(reviewerRunningIdx).toBeLessThan(reviewerDoneIdx);
     });
+  });
+});
+
+describe("ROLE_ORDER", () => {
+  it("defines all four roles in expected order", () => {
+    expect(ROLE_ORDER).toEqual([
+      "orchestrator",
+      "planner",
+      "implementer",
+      "reviewer"
+    ]);
+  });
+
+  it("contains exactly four roles", () => {
+    expect(ROLE_ORDER.length).toBe(4);
+  });
+});
+
+describe("nextRoleAfter", () => {
+  it("returns planner after orchestrator", () => {
+    expect(nextRoleAfter("orchestrator")).toBe("planner");
+  });
+
+  it("returns implementer after planner", () => {
+    expect(nextRoleAfter("planner")).toBe("implementer");
+  });
+
+  it("returns reviewer after implementer", () => {
+    expect(nextRoleAfter("implementer")).toBe("reviewer");
+  });
+
+  it("wraps around to orchestrator after reviewer", () => {
+    expect(nextRoleAfter("reviewer")).toBe("orchestrator");
   });
 });

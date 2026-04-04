@@ -103,6 +103,7 @@ describe("RunSurface", () => {
       runId: "run-001",
       status: "blocked",
       planTitle: "Ship run inspector surface",
+      planId: "plan-001",
       attemptLabel: "Attempt 2"
     });
     expect(vm.timeline).toHaveLength(2);
