@@ -17,8 +17,10 @@ export type RepositoryRecord = z.infer<typeof RepositoryRecordSchema>;
 export const WebviewInboundMessageTypeSchema = z.enum([
   "ready",
   "repository.open",
+  "plan.open",
   "plan.create",
   "plan.run",
+  "run.open",
   "run.resume",
   "run.cancel",
   "run.retry",
