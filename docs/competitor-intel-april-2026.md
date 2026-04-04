@@ -10,6 +10,7 @@
 ## High-Relevance Findings (Graph/DOT/Multi-Agent Role Systems)
 
 ### 1. TAKT — Agent Coordination Topology
+
 - **Repo**: [nrslib/takt](https://github.com/nrslib/takt)
 - **Stars**: 887 ⭐ | **Forks**: 49
 - **Description**: "TAKT Agent Koordination Topology - Define how AI agents coordinate, where humans intervene, and what gets recorded — in YAML"
@@ -24,6 +25,7 @@
 ---
 
 ### 2. KubeRocketAI — Declarative Agentic SDLC
+
 - **Repo**: [KubeRocketCI/kuberocketai](https://github.com/KubeRocketCI/kuberocketai)
 - **Stars**: 31 ⭐ | **Forks**: 7
 - **Description**: "Declarative agentic framework for AI-driven software development. Define, validate, and orchestrate AI agents as code—transparent, auditable, and CI/CD-ready."
@@ -38,6 +40,7 @@
 ---
 
 ### 3. Mysti — Multi-Agent Collaboration
+
 - **Repo**: [DeepMyst/Mysti](https://github.com/DeepMyst/Mysti)
 - **Stars**: 1027 ⭐ | **Forks**: 43
 - **Marketplace**: [Mysti - AI Coding Agent](https://marketplace.visualstudio.com/items?itemName=DeepMyst.mysti) (2,891 installs)
@@ -53,6 +56,7 @@
 ---
 
 ### 4. HermeX — Network of AI Agents
+
 - **Repo**: [HermeX-AI/hermex-ai-vscode](https://github.com/HermeX-AI/hermex-ai-vscode)
 - **Stars**: 1 ⭐ | **Forks**: 0
 - **Description**: "HermeX orchestrates a network of AI agents — Architect, Developer, Tester, Critic — to deliver production-ready features 10× faster."
@@ -66,6 +70,7 @@
 ---
 
 ### 5. workermill — Multi-Expert Orchestration
+
 - **Repo**: [jarod-rosenthal/workermill](https://github.com/jarod-rosenthal/workermill)
 - **Stars**: 4 ⭐ | **Forks**: 0
 - **Description**: "Open-source AI coding team with multi-expert orchestration"
@@ -81,6 +86,7 @@
 ## Medium-Relevance Findings (Workflow/Tooling)
 
 ### 6. kudosflow — Visual Workflow Editor
+
 - **Repo**: [akudo7/kudosflow](https://github.com/akudo7/kudosflow)
 - **Stars**: 9 ⭐ | **Forks**: 2
 - **Marketplace**: [kudosflow - LangChain extension](https://marketplace.visualstudio.com/items?itemName=AkiraKudo.kudosflow) (1,174 installs)
@@ -97,6 +103,7 @@
 ---
 
 ### 7. FlowDrop — Visual Workflow Editor (External)
+
 - **URL**: [flowdrop.io](https://flowdrop.io/)
 - **Description**: "The visual workflow editor for AI agents. A drop-in component that lets your users design, configure, and manage AI workflows."
 - **Key Features**:
@@ -109,6 +116,7 @@
 ---
 
 ### 8. DebugMCP — Agent Debugging
+
 - **Repo**: [microsoft/DebugMCP](https://github.com/microsoft/DebugMCP)
 - **Stars**: 276 ⭐ | **Forks**: 17
 - **Description**: "Gift your VS Code agent a real debugger: breakpoints, stepping, inspection."
@@ -123,6 +131,7 @@
 ---
 
 ### 9. bitfrog-copilot — 7+1 Agent System
+
 - **Repo**: [rainyulei/bitfrog-copilot](https://github.com/rainyulei/bitfrog-copilot)
 - **Stars**: 12 ⭐ | **Forks**: 2
 - **Description**: "7+1 AI development agents for GitHub Copilot with Chinese philosophy-driven thinking models. Brainstorm, plan, execute, debug, review, mentor, and Mozi autonomous deep worker."
@@ -137,6 +146,7 @@
 ---
 
 ### 10. nofx-vscode — Parallel Agents
+
 - **Repo**: [benfinklea/nofx-vscode](https://github.com/benfinklea/nofx-vscode)
 - **Stars**: 1 ⭐ | **Forks**: 0
 - **Description**: "VS Code extension for orchestrating multiple Claude Code AI agents in parallel"
@@ -146,6 +156,7 @@
 ---
 
 ### 11. operator — Kanban-style Multi-Agent
+
 - **Repo**: [untra/operator](https://github.com/untra/operator)
 - **Stars**: 10 ⭐ | **Forks**: 1
 - **Description**: "Operator! Multi-agent orchestration application for AI assisted kanban shaped software development"
@@ -160,6 +171,7 @@
 ---
 
 ### 12. retort-plugins — Retort Orchestration
+
 - **Repo**: [phoenixvc/retort-plugins](https://github.com/phoenixvc/retort-plugins)
 - **Stars**: 0 ⭐ | **Forks**: 0
 - **Description**: "VSCode extension for Retort — command palette, sidebar, and status bar for AI agent orchestration"
@@ -171,6 +183,7 @@
 ## Low-Relevance / Contextual
 
 ### 13. Skill-Dock — Agent Skill Manager
+
 - **Repo**: [yen0304/Skill-Dock](https://github.com/yen0304/Skill-Dock)
 - **Stars**: 11 ⭐ | **Forks**: 1
 - **Description**: "Local-first agent skill manager for VS Code / Cursor. Manage, browse, and import skills across Claude, Cursor, Codex."
@@ -180,6 +193,7 @@
 ---
 
 ### 14. Claude Code Guide (Educational)
+
 - **Repo**: [zebbern/claude-code-guide](https://github.com/zebbern/claude-code-guide)
 - **Stars**: 3789 ⭐ | **Forks**: 355
 - **Description**: "Claude Code Guide - Setup, Commands, workflows, agents, skills & tips-n-tricks"
@@ -188,6 +202,7 @@
 ---
 
 ### 15. FlowiseAI — Visual AI Development Platform
+
 - **URL**: [flowiseai.com](https://flowiseai.com/)
 - **Description**: "Open source generative AI development platform. Modular building blocks for building any agentic systems."
 - **Relevance**: **COMPLEMENT** — Low-code visual agent builder. Not VS Code specific but worth watching.
@@ -197,6 +212,7 @@
 ## VS Code Native (Context)
 
 ### VS Code 1.109+ Multi-Agent Support
+
 - **Reference**: [Your Home for Multi-Agent Development](https://code.visualstudio.com/blogs/2026/02/05/multi-agent-development)
 - **Key Features**:
   - Native agent sessions
@@ -208,18 +224,18 @@
 
 ## Summary Table
 
-| Name | Stars | Type | Relevance | Notes |
-|------|-------|------|-----------|-------|
-| TAKT | 887 | Declarative topology | **COMPETITOR** | YAML-based agent coordination. Different formalism (YAML vs DOT). |
-| KubeRocketAI | 31 | SDLC framework | COMPLEMENT | Full SDLC. Could integrate for multi-repo. |
-| Mysti | 1027 | Multi-model collaboration | COMPLEMENT | Multi-LLM coordination. |
-| HermeX | 1 | Role-based network | **COMPETITOR** | Architect/Developer/Tester/Critic pipeline. |
-| kudosflow | 9 | Visual workflow | COMPLEMENT | React Flow visualizer. |
-| DebugMCP | 276 | Debugging | COMPLEMENT | Agent debugging gap. |
-| bitfrog-copilot | 12 | Role agents | COMPETITOR | 7+1 agent system. |
-| nofx-vscode | 1 | Parallel agents | **COMPETITOR** | Parallel execution. |
-| workermill | 4 | Multi-expert | COMPLEMENT | |
-| operator | 10 | Kanban | COMPLEMENT | Novel workflow view. |
+| Name            | Stars | Type                      | Relevance      | Notes                                                             |
+| --------------- | ----- | ------------------------- | -------------- | ----------------------------------------------------------------- |
+| TAKT            | 887   | Declarative topology      | **COMPETITOR** | YAML-based agent coordination. Different formalism (YAML vs DOT). |
+| KubeRocketAI    | 31    | SDLC framework            | COMPLEMENT     | Full SDLC. Could integrate for multi-repo.                        |
+| Mysti           | 1027  | Multi-model collaboration | COMPLEMENT     | Multi-LLM coordination.                                           |
+| HermeX          | 1     | Role-based network        | **COMPETITOR** | Architect/Developer/Tester/Critic pipeline.                       |
+| kudosflow       | 9     | Visual workflow           | COMPLEMENT     | React Flow visualizer.                                            |
+| DebugMCP        | 276   | Debugging                 | COMPLEMENT     | Agent debugging gap.                                              |
+| bitfrog-copilot | 12    | Role agents               | COMPETITOR     | 7+1 agent system.                                                 |
+| nofx-vscode     | 1     | Parallel agents           | **COMPETITOR** | Parallel execution.                                               |
+| workermill      | 4     | Multi-expert              | COMPLEMENT     |                                                                   |
+| operator        | 10    | Kanban                    | COMPLEMENT     | Novel workflow view.                                              |
 
 ---
 
@@ -233,5 +249,5 @@
 
 ---
 
-*Last Updated: 2026-04-02*  
-*Scan Source: GitHub API, Web Search, VS Code Marketplace*
+_Last Updated: 2026-04-02_  
+_Scan Source: GitHub API, Web Search, VS Code Marketplace_
