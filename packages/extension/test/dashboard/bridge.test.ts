@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 import {
   type RepositoryRecord,
   type PlanRecord,
-  type MilestoneRecord
+  type MilestoneRecord,
+  type RunRecord
 } from "@attractor/shared";
 
 import { type StorageServices } from "../../src/storage/services";
@@ -62,6 +63,16 @@ const makeMilestone = (id: string, planId: string): MilestoneRecord => ({
   nodeIds: ["node1"]
 });
 
+const makeRun = (id: string, planId: string): RunRecord => ({
+  version: 1,
+  id,
+  planId,
+  status: "running",
+  attempt: 1,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
+});
+
 const makeServices = (overrides: {
   repositories?: RepositoryRecord[];
   planCount?: number;
@@ -69,6 +80,8 @@ const makeServices = (overrides: {
   repositoryById?: (id: string) => RepositoryRecord | null;
   plans?: PlanRecord[];
   milestones?: MilestoneRecord[];
+  runs?: RunRecord[];
+  runById?: (id: string) => RunRecord | null;
 }): StorageServices => {
   const repos = overrides.repositories ?? [];
   const planStubs =
@@ -77,19 +90,21 @@ const makeServices = (overrides: {
       { length: overrides.planCount ?? 0 },
       (_, i) => ({ id: `p${i}` }) as never
     );
-  const activeRunStubs = Array.from(
-    { length: overrides.activeRunCount ?? 0 },
-    (_, i) =>
-      ({
-        version: 1,
-        id: `run-${i}`,
-        planId: "plan-1",
-        status: "running",
-        attempt: 1,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }) as never
-  );
+  const activeRunStubs =
+    overrides.runs ??
+    Array.from(
+      { length: overrides.activeRunCount ?? 0 },
+      (_, i) =>
+        ({
+          version: 1,
+          id: `run-${i}`,
+          planId: "plan-1",
+          status: "running",
+          attempt: 1,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }) as never
+    );
 
   return {
     repositoryRegistry: {
@@ -111,7 +126,12 @@ const makeServices = (overrides: {
     },
     runRegistry: {
       save: notImplemented,
-      getById: notImplemented,
+      getById: async (id: string) => {
+        if (overrides.runById) {
+          return overrides.runById(id);
+        }
+        return activeRunStubs.find((r) => r.id === id) ?? null;
+      },
       list: async () => activeRunStubs,
       listActiveRuns: notImplemented
     },
@@ -120,7 +140,7 @@ const makeServices = (overrides: {
     milestoneRunRegistry: {
       save: notImplemented,
       getById: notImplemented,
-      listByRunId: notImplemented,
+      listByRunId: async () => [],
       listByMilestoneId: notImplemented
     },
     milestoneRegistry: {
@@ -132,7 +152,7 @@ const makeServices = (overrides: {
     artifactRegistry: {
       save: notImplemented,
       getById: notImplemented,
-      listByRunId: notImplemented,
+      listByRunId: async () => [],
       listByNodeId: notImplemented
     }
   };
@@ -817,6 +837,119 @@ describe("handleWebviewMessage — bridge", () => {
       expect(msg.type).toBe("toast");
       expect(msg.payload.severity).toBe("warning");
       expect(msg.payload.message).toContain("not yet supported");
+    });
+  });
+
+  describe("navigation routes", () => {
+    it("plan.open posts plan.state with correct payload", async () => {
+      const plan1 = makePlan("p1", "r1");
+      const milestone1 = makeMilestone("m1", "p1");
+      const services = makeServices({
+        plans: [plan1],
+        milestones: [milestone1]
+      });
+      const { panel, posted } = makePanel();
+
+      await handleWebviewMessage(
+        {
+          version: 1,
+          requestId: "req-plan-open",
+          type: "plan.open",
+          payload: { planId: "p1" }
+        },
+        services,
+        panel
+      );
+
+      expect(posted).toHaveLength(1);
+      const msg = posted[0] as {
+        version: number;
+        requestId: string;
+        type: string;
+        payload: unknown;
+      };
+      expect(msg.version).toBe(1);
+      expect(msg.requestId).toBe("req-plan-open");
+      expect(msg.type).toBe("plan.state");
+      expect(msg.payload).toBeDefined();
+    });
+
+    it("plan.open echoes the requestId", async () => {
+      const services = makeServices({
+        plans: [makePlan("p1", "r1")]
+      });
+      const { panel, posted } = makePanel();
+
+      await handleWebviewMessage(
+        {
+          version: 1,
+          requestId: "echo-plan-open-999",
+          type: "plan.open",
+          payload: { planId: "p1" }
+        },
+        services,
+        panel
+      );
+
+      const msg = posted[0] as { requestId: string };
+      expect(msg.requestId).toBe("echo-plan-open-999");
+    });
+
+    it("run.open posts run.state with correct payload", async () => {
+      const plan1 = makePlan("p1", "r1");
+      const run1 = makeRun("run-1", "p1");
+      const services = makeServices({
+        plans: [plan1],
+        runs: [run1]
+      });
+      const { panel, posted } = makePanel();
+
+      await handleWebviewMessage(
+        {
+          version: 1,
+          requestId: "req-run-open",
+          type: "run.open",
+          payload: { runId: "run-1" }
+        },
+        services,
+        panel
+      );
+
+      expect(posted).toHaveLength(1);
+      const msg = posted[0] as {
+        version: number;
+        requestId: string;
+        type: string;
+        payload: unknown;
+      };
+      expect(msg.version).toBe(1);
+      expect(msg.requestId).toBe("req-run-open");
+      expect(msg.type).toBe("run.state");
+      expect(msg.payload).toBeDefined();
+    });
+
+    it("run.open echoes the requestId", async () => {
+      const plan1 = makePlan("p1", "r1");
+      const run1 = makeRun("run-1", "p1");
+      const services = makeServices({
+        plans: [plan1],
+        runs: [run1]
+      });
+      const { panel, posted } = makePanel();
+
+      await handleWebviewMessage(
+        {
+          version: 1,
+          requestId: "echo-run-open-111",
+          type: "run.open",
+          payload: { runId: "run-1" }
+        },
+        services,
+        panel
+      );
+
+      const msg = posted[0] as { requestId: string };
+      expect(msg.requestId).toBe("echo-run-open-111");
     });
   });
 });

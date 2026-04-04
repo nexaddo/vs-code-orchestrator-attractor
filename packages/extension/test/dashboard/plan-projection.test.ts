@@ -5,6 +5,7 @@ import {
   type ExtensionEvent,
   type MilestoneRecord,
   type PlanRecord,
+  type RepositoryRecord,
   type RunRecord
 } from "@attractor/shared";
 
@@ -87,16 +88,18 @@ const makeServices = (overrides: {
   milestones?: MilestoneRecord[];
   allRuns?: RunRecord[];
   eventsByRunId?: Map<string, ExtensionEvent[]>;
+  repositoriesById?: Map<string, RepositoryRecord>;
 }): StorageServices => {
   const plan = overrides.plan ?? null;
   const milestones = overrides.milestones ?? [];
   const allRuns = overrides.allRuns ?? [];
   const eventsByRunId = overrides.eventsByRunId ?? new Map();
+  const repositoriesById = overrides.repositoriesById ?? new Map();
 
   return {
     repositoryRegistry: {
       save: notImplemented,
-      getById: notImplemented,
+      getById: async (id: string) => repositoriesById.get(id) ?? null,
       list: async () => notImplemented()
     },
     planRegistry: {
@@ -276,5 +279,46 @@ describe("projectPlan", () => {
     expect(state.validationEvents[0]!.id).toBe("v2");
     expect(state.validationEvents[1]!.id).toBe("v3");
     expect(state.validationEvents[2]!.id).toBe("v1");
+  });
+
+  it("enriches plan repositories with names from repositoryRegistry", async () => {
+    const plan = makePlan("p1");
+    const repoRecord: RepositoryRecord = {
+      version: CONTRACT_VERSION,
+      id: "repo-1",
+      name: "my-app",
+      rootUri: "/workspace/my-app",
+      defaultBranch: "main",
+      labels: []
+    };
+    const repositoriesById = new Map<string, RepositoryRecord>([
+      ["repo-1", repoRecord]
+    ]);
+
+    const services = makeServices({
+      plan,
+      milestones: [],
+      allRuns: [],
+      repositoriesById
+    });
+
+    const state = await projectPlan("p1", services);
+
+    expect(state.plan.repositories[0]!.name).toBe("my-app");
+  });
+
+  it("leaves repository name undefined when not found in registry", async () => {
+    const plan = makePlan("p1");
+
+    const services = makeServices({
+      plan,
+      milestones: [],
+      allRuns: [],
+      repositoriesById: new Map()
+    });
+
+    const state = await projectPlan("p1", services);
+
+    expect(state.plan.repositories[0]!.name).toBeUndefined();
   });
 });

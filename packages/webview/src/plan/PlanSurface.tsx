@@ -15,14 +15,27 @@ import {
 import { cn } from "../lib/utils";
 import type { PlanState } from "./model";
 
+/**
+ * Extract the filename from a file path (Unix or Windows style).
+ * Examples: ".attractor/plans/oauth-login.dot" -> "oauth-login.dot"
+ *           "C:\\plans\\flow.dot" -> "flow.dot"
+ */
+function extractFilename(filePath: string): string {
+  const normalized = filePath.replace(/\\/g, "/");
+  const lastSlash = normalized.lastIndexOf("/");
+  return lastSlash === -1 ? filePath : normalized.slice(lastSlash + 1);
+}
+
 export interface PlanSurfaceProps {
   state: PlanState;
 }
 
 export interface PlanRepositoryViewModel {
   repositoryId: string;
+  name?: string | undefined;
   role: string;
   access: string;
+  accessLabel: string;
   mountAlias: string;
   ref?: string | undefined;
 }
@@ -192,8 +205,11 @@ export function buildPlanViewModel(state: PlanState): PlanViewModel {
     updatedAt: state.plan.updatedAt,
     repositories: state.plan.repositories.map((repository) => ({
       repositoryId: repository.repositoryId,
+      name: repository.name,
       role: repository.role,
       access: repository.access,
+      accessLabel:
+        repository.access === "read_write" ? "Writable" : "Read-only",
       mountAlias: repository.mountAlias,
       ref: repository.ref
     })),
@@ -237,7 +253,7 @@ export function PlanSurface({ state }: PlanSurfaceProps): JSX.Element {
         </CardHeader>
         <CardContent class="space-y-2">
           <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
-            Graph Source: {viewModel.graphSource}
+            Graph: {extractFilename(viewModel.graphSource)}
           </div>
           <div class="text-[length:var(--text-xs)] text-[color:var(--color-vscode-description)]">
             Created: {viewModel.createdAt} · Updated: {viewModel.updatedAt}
@@ -257,10 +273,10 @@ export function PlanSurface({ state }: PlanSurfaceProps): JSX.Element {
                 >
                   <div class="flex items-center justify-between gap-2">
                     <span class="truncate font-medium">
-                      {repository.repositoryId}
+                      {repository.name ?? repository.repositoryId}
                     </span>
                     <span class="uppercase tracking-wide text-[color:var(--color-vscode-description)]">
-                      {repository.access}
+                      {repository.accessLabel}
                     </span>
                   </div>
                   <div class="mt-1 text-[color:var(--color-vscode-description)]">
