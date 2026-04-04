@@ -5,6 +5,7 @@ import { type ModelGateway } from "../application/ports";
 import { projectOverview } from "./overview-projection";
 import { projectRepository } from "./repository-projection";
 import { projectPlan } from "./plan-projection";
+import { projectRun } from "./run-projection";
 import { buildGraphUpdate } from "./graph-projection";
 
 /**
@@ -83,6 +84,30 @@ export async function handleWebviewMessage(
         version: 1,
         requestId: message.requestId,
         type: "plan.state",
+        payload: state
+      });
+      break;
+    }
+
+    case "plan.open": {
+      const planId = message.payload.planId as string;
+      const state = await projectPlan(planId, services);
+      await panel.postMessage({
+        version: 1,
+        requestId: message.requestId,
+        type: "plan.state",
+        payload: state
+      });
+      break;
+    }
+
+    case "run.open": {
+      const runId = message.payload.runId as string;
+      const state = await projectRun(runId, services);
+      await panel.postMessage({
+        version: 1,
+        requestId: message.requestId,
+        type: "run.state",
         payload: state
       });
       break;

@@ -21,8 +21,10 @@ export interface PlanSurfaceProps {
 
 export interface PlanRepositoryViewModel {
   repositoryId: string;
+  name?: string | undefined;
   role: string;
   access: string;
+  accessLabel: string;
   mountAlias: string;
   ref?: string | undefined;
 }
@@ -192,8 +194,11 @@ export function buildPlanViewModel(state: PlanState): PlanViewModel {
     updatedAt: state.plan.updatedAt,
     repositories: state.plan.repositories.map((repository) => ({
       repositoryId: repository.repositoryId,
+      name: repository.name,
       role: repository.role,
       access: repository.access,
+      accessLabel:
+        repository.access === "read_write" ? "Writable" : "Read-only",
       mountAlias: repository.mountAlias,
       ref: repository.ref
     })),
@@ -257,10 +262,10 @@ export function PlanSurface({ state }: PlanSurfaceProps): JSX.Element {
                 >
                   <div class="flex items-center justify-between gap-2">
                     <span class="truncate font-medium">
-                      {repository.repositoryId}
+                      {repository.name ?? repository.repositoryId}
                     </span>
                     <span class="uppercase tracking-wide text-[color:var(--color-vscode-description)]">
-                      {repository.access}
+                      {repository.accessLabel}
                     </span>
                   </div>
                   <div class="mt-1 text-[color:var(--color-vscode-description)]">
