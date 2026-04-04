@@ -25,6 +25,8 @@ export interface PlanRepositoryViewModel {
   access: string;
   mountAlias: string;
   ref?: string | undefined;
+  name?: string | undefined;
+  accessLabel: string;
 }
 
 export interface PlanMilestoneViewModel {
@@ -121,6 +123,17 @@ function toRunStatus(status: string): Status {
   }
 }
 
+function toAccessLabel(access: string): string {
+  switch (access) {
+    case "read_write":
+      return "Writable";
+    case "read_only":
+      return "Read-only";
+    default:
+      return access;
+  }
+}
+
 function toValidationLevel(kind: string): "info" | "warn" | "error" | "debug" {
   if (kind === "validation.failed" || kind === "error") {
     return "error";
@@ -195,7 +208,9 @@ export function buildPlanViewModel(state: PlanState): PlanViewModel {
       role: repository.role,
       access: repository.access,
       mountAlias: repository.mountAlias,
-      ref: repository.ref
+      ref: repository.ref,
+      name: repository.name,
+      accessLabel: toAccessLabel(repository.access)
     })),
     milestones,
     history: [...state.history].map((run) => ({

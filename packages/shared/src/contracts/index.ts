@@ -68,7 +68,8 @@ export const PlanRepositoryRefSchema = z.object({
   role: PlanRepositoryRoleSchema,
   access: PlanRepositoryAccessSchema,
   mountAlias: z.string().min(1),
-  ref: z.string().min(1).optional()
+  ref: z.string().min(1).optional(),
+  name: z.string().min(1).optional()
 });
 
 export type PlanRepositoryRef = z.infer<typeof PlanRepositoryRefSchema>;
