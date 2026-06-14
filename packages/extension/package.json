@@ -93,7 +93,7 @@
     "@ts-graphviz/parser": "^0.6.1"
   },
   "devDependencies": {
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.28.1",
     "@types/vscode": "^1.103.0",
     "@vscode/test-electron": "^2.5.2"
   }
